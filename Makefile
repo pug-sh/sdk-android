@@ -1,7 +1,7 @@
 # sdk-android developer tasks. Mirrors the proto vendoring of sdk-web / sdk-flutter / sdk-node /
 # sdk-go / sdk-rust: proto/ is committed, so builds and CI never touch the Buf Schema Registry.
 
-.PHONY: sync-protos proto-latest check-proto-pin protos check-codegen verify-version fmt lint test build check ci
+.PHONY: sync-protos proto-latest check-proto-pin protos descriptors typed-track check-codegen verify-version fmt lint test build check ci
 
 # `ci` must run `protos` before `check-codegen` diffs the generated files. Keep everything serial
 # even under `make -jN`.
@@ -17,7 +17,10 @@ PROTO_COMMIT := 8b5d0680b10c4693b4d9d15d3dbfc663
 PROTO_PATHS := --path sdk/events/v1 --path sdk/profiles/v1 --path common/events/v1 --path common/v1/property_value.proto
 
 DESCRIPTORS := pug/src/test/resources/pug.binpb
-GENERATED := $(DESCRIPTORS)
+# A JSON image keeps the source comments and names the custom options, which tools/gen-track reads.
+EVENTS_IMAGE := build/typed-track/events.json
+TYPED_TRACK := $(addprefix pug/src/main/kotlin/sh/pug/android/,TrackNamespace.kt PugEvents.kt internal/event/WellKnownEvents.kt)
+GENERATED := $(DESCRIPTORS) $(TYPED_TRACK)
 
 GRADLE := ./gradlew --console=plain
 
@@ -40,10 +43,20 @@ check-proto-pin:
 	  && echo "proto/ matches $(PROTO_MODULE):$(PROTO_COMMIT)." \
 	  || { echo "proto/ diverges from $(PROTO_COMMIT); re-run 'make sync-protos protos'."; exit 1; }
 
-# The descriptor set the wire conformance tests parse with protobuf-java.
-protos:
+# Everything generated from proto/.
+protos: descriptors typed-track
+
+# The descriptor set the wire and typed-track conformance tests parse with protobuf-java.
+descriptors:
 	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
 	buf build --exclude-source-info --as-file-descriptor-set -o $(DESCRIPTORS)
+
+# The typed track API (`Pug.track.<event>(…)`, PugEvents, the event registry) from the event protos.
+typed-track:
+	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
+	@mkdir -p $(dir $(EVENTS_IMAGE))
+	buf build --path proto/common/events/v1 -o $(EVENTS_IMAGE)
+	$(GRADLE) :tools:gen-track:run --args="$(EVENTS_IMAGE) pug/src/main/kotlin"
 
 # CI gate: the committed generated files must match a fresh `make protos`.
 check-codegen:

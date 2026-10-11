@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "sdk-android"
 
 include(":pug")
+include(":tools:gen-track")

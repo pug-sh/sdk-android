@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import sh.pug.android.PugOptions
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent
+import sh.pug.android.internal.event.EventSchema
 import sh.pug.android.internal.isNull
 import sh.pug.android.internal.logging.LogcatLogger
 import sh.pug.android.internal.logging.SafeLogger
@@ -62,6 +63,11 @@ internal class PugFacade(
                 it.track(kind, properties, options)
             }
         }
+    }
+
+    /** The methods of `Pug.track`: [values] are the event's properties in schema order, null where unset. */
+    fun trackTyped(event: EventSchema, extras: Map<String, Any?>?, options: TrackOptions?, vararg values: Any?) {
+        call(event.label) { it.trackTyped(event, values, extras, options) }
     }
 
     fun identify(externalId: String, traits: Map<String, Any?>?) {

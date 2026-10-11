@@ -23,6 +23,7 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
 
     private fun map(kind: String, properties: Map<String, Any?>, auto: Boolean): Map<String, PropertyValue> {
         val mapped = LinkedHashMap<String, PropertyValue>()
+        val schema = if (auto) null else WellKnownEvents.byKind[kind]
         try {
             if (properties.isEmpty()) return emptyMap()
             for (entry in properties.entries) {
@@ -39,13 +40,19 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
                         },
                     )
 
-                    else -> convert(kind, key, value)?.let { mapped[key] = it }
+                    else -> convert(kind, key, value)?.let { mapped[key] = coerce(schema, key, it) }
                 }
             }
         } catch (t: Throwable) {
             logger.warn("The properties of event \"$kind\" could not be read; ${mapped.size} were kept", t)
         }
         return mapped
+    }
+
+    // PLAN.md D19: a double-typed property of a well-known event gets one column type, even from `price: 10`.
+    private fun coerce(schema: EventSchema?, key: String, value: PropertyValue): PropertyValue {
+        if (value !is PropertyValue.IntValue || schema?.field(key)?.type != FieldType.DOUBLE) return value
+        return PropertyValue.DoubleValue(value.value.toDouble())
     }
 
     private fun convert(kind: String, key: String, value: Any): PropertyValue? = try {

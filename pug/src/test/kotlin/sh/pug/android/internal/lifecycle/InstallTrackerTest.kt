@@ -4,6 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import sh.pug.android.MemoryPugStorage
+import sh.pug.android.PugEvents.APP_INSTALL
+import sh.pug.android.PugEvents.APP_UPDATE
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.storage.PugStorageKeys
 
