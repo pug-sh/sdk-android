@@ -138,8 +138,9 @@ internal class PugClient(
      * starts observing the app's lifecycle, whose events wait for start-up like any call.
      */
     fun start(previousTeardown: Job?) {
+        val startTime = clock.nowMillis()
         consentDeadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(consentWaitMs)
-        lifetime = scope.launch { run(previousTeardown) }
+        lifetime = scope.launch { run(previousTeardown, startTime) }
         // The client is running now, so a failure here must not reach the facade, which would
         // leave it running unreachable.
         try {
@@ -299,7 +300,7 @@ internal class PugClient(
                     opened = false
                 } else if (!wasGranted) {
                     // What a launch would have tracked, had consent allowed it then.
-                    installs.emit(::captureInstallEvent)
+                    installs.emit { kind, properties -> captureInstallEvent(kind, properties, now) }
                     if (visible) {
                         open(now)
                         screen?.let { captureScreenView(it, screenClass, now) }
@@ -346,10 +347,10 @@ internal class PugClient(
         if (ops.trySend(Op(label, block)).isFailure) logger.debug("$label was ignored: Pug was destroyed")
     }
 
-    private suspend fun run(previousTeardown: Job?) {
+    private suspend fun run(previousTeardown: Job?, startTime: Long) {
         previousTeardown?.join()
         try {
-            restore()
+            restore(startTime)
         } catch (e: CancellationException) {
             throw e
         } catch (t: Throwable) {
@@ -366,7 +367,7 @@ internal class PugClient(
         tearDown()
     }
 
-    private fun restore() {
+    private fun restore(startTime: Long) {
         val storage = SafePugStorage(options.storage ?: defaultStorage(), logger)
         val keys = PugStorageKeys(projectId)
         consent =
@@ -397,7 +398,8 @@ internal class PugClient(
                 random,
             )
         consent.enforceAtInit()
-        installs.emit(::captureInstallEvent)
+        // Dated at init: the launch's app_open was dated on the main thread, and may precede this.
+        installs.emit { kind, properties -> captureInstallEvent(kind, properties, startTime) }
         dispatcher.start()
         if (options.dryRun) logger.warn("dryRun is on: events and identify() are logged, never sent")
         logger.debug("Pug started for project \"$projectId\"")
@@ -489,10 +491,8 @@ internal class PugClient(
         return properties
     }
 
-    private fun captureInstallEvent(kind: String, properties: Map<String, Any?>): Boolean {
-        val now = clock.nowMillis()
-        return capture(kind, propertyMapper.mapCustom(kind, properties), now, now, immediate = false)
-    }
+    private fun captureInstallEvent(kind: String, properties: Map<String, Any?>, time: Long): Boolean =
+        capture(kind, propertyMapper.mapCustom(kind, properties), time, time, immediate = false)
 
     private fun enterForeground(now: Long) {
         visible = true
