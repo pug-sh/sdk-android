@@ -16,6 +16,9 @@ internal object ProtoDescriptors {
         } ?: error("no message $fullName in pug.binpb")
     }
 
+    fun messages(packageName: String): List<Descriptor> =
+        files.filter { it.`package` == packageName }.flatMap { it.messageTypes }
+
     private fun load(): Collection<FileDescriptor> {
         val bytes = checkNotNull(javaClass.getResourceAsStream("/pug.binpb")) {
             "pug.binpb missing; run make protos"

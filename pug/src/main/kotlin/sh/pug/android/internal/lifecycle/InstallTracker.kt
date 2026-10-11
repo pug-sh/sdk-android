@@ -1,11 +1,9 @@
 package sh.pug.android.internal.lifecycle
 
+import sh.pug.android.PugEvents
 import sh.pug.android.PugStorage
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.storage.PugStorageKeys
-
-internal const val APP_INSTALL: String = "app_install"
-internal const val APP_UPDATE: String = "app_update"
 
 /**
  * `app_install` and `app_update`, once per app version (Flutter's InstallTracker). [check] decides
@@ -32,8 +30,10 @@ internal class InstallTracker(
             when {
                 lastVersion == appVersion -> null
 
-                !lastVersion.isNullOrEmpty() ->
-                    Pending(APP_UPDATE, mapOf("appVersion" to appVersion, "previousVersion" to lastVersion), appVersion)
+                !lastVersion.isNullOrEmpty() -> {
+                    val properties = mapOf("appVersion" to appVersion, "previousVersion" to lastVersion)
+                    Pending(PugEvents.APP_UPDATE, properties, appVersion)
+                }
 
                 // Pug ran here before it recorded a version: this app already used it, so this is
                 // an upgrade of a known install rather than a new one.
@@ -42,7 +42,7 @@ internal class InstallTracker(
                     null
                 }
 
-                else -> Pending(APP_INSTALL, mapOf("appVersion" to appVersion), appVersion)
+                else -> Pending(PugEvents.APP_INSTALL, mapOf("appVersion" to appVersion), appVersion)
             }
     }
 

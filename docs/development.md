@@ -23,7 +23,9 @@ The library compiles to Java 11 bytecode with Kotlin `apiVersion`/`languageVersi
 | `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease` |
 | `make fmt` | `spotlessApply` (ktlint 1.8, `android_studio` style) |
 | `make lint` / `test` / `build` | the individual Gradle steps |
-| `make protos` | `buf build` → `pug/src/test/resources/pug.binpb`, the descriptor set the conformance tests read |
+| `make protos` | `descriptors` and `typed-track`: everything generated from `proto/` |
+| `make descriptors` | `buf build` → `pug/src/test/resources/pug.binpb`, the descriptor set the conformance tests read |
+| `make typed-track` | `buf build` → a JSON image, then `tools/gen-track` → the typed track API (below) |
 | `make check-codegen` | fails if the committed generated files differ from a fresh `make protos` |
 | `make ci` | `protos`, `check-codegen`, `check`: what CI runs |
 | `make sync-protos` | re-export `proto/` from the pinned BSR commit (network) |
@@ -44,6 +46,24 @@ the descriptor set and asserts byte-for-byte equality.
 
 To take a newer schema: `make proto-latest`, set `PROTO_COMMIT`, `make sync-protos protos`, then
 update `internal/wire` for any change to the encoded messages and run `make check`.
+
+### Typed track
+
+The typed API is generated from the well-known event protos (`proto/common/events/v1`, PLAN.md D19,
+D23–D25) and committed:
+
+| File | Holds |
+| ---- | ----- |
+| `pug/src/main/kotlin/sh/pug/android/TrackNamespace.kt` | `Pug.track.<event>(…)`: one method per event for Android, with KDoc |
+| `pug/src/main/kotlin/sh/pug/android/PugEvents.kt` | the kinds as `const val`s |
+| `pug/src/main/kotlin/sh/pug/android/internal/event/WellKnownEvents.kt` | each event's `EventSchema`: kind, method, properties with type and required |
+
+`make typed-track` writes them: `buf build --path proto/common/events/v1` makes a JSON image (it
+keeps the proto comments and names the custom options, `[common.events.v1.kind]`), and
+`./gradlew :tools:gen-track:run` reads it. The generator is the Gradle module `tools/gen-track`
+(Kotlin/JVM with org.json, not shipped); it fails loudly on schema shapes it does not support
+rather than skipping them. Its output is already ktlint-clean, which `spotlessCheck` holds it to;
+when ktlint disagrees, fix the generator rather than formatting the files.
 
 ## Testing notes
 
@@ -72,6 +92,11 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 - `EndToEndTest` runs a client on a real worker against MockWebServer and decodes the requests with
   protobuf-java. Java tests live in `pug/src/test/java`: `PugJavaApiTest` pins the API as Java sees
   it, and `JavaCallers` passes the nulls Kotlin cannot (`PLAN.md` D20).
+- The typed track API is tested against the protos, not against the generator: `EventProtos` reads
+  the Android events from `pug.binpb` with protobuf-java (the custom options arrive as unknown
+  fields), `WellKnownEventsTest` compares the registry and `PugEvents` with them, and
+  `TrackNamespaceTest` calls every method by reflection with distinct arguments and checks the
+  properties sent.
 - `Build.VERSION.SDK_INT` reads 0 in JVM tests, so code with an API-level branch takes the level as
   a constructor parameter (`PropertyMapper(logger, sdkInt = 26)`). Robolectric runs SDK 36 only, so
   `AndroidAutoProperties` takes it too, and its tests reach the older branches by passing 22 or 27.
@@ -88,7 +113,8 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 | Path | Responsibility |
 | ---- | -------------- |
 | `pug/src/main/kotlin/sh/pug/android/Version.kt` | `SDK_VERSION`, sent as `$sdkVersion` and in the User-Agent |
-| `Pug.kt` | The public entry point: thin `@JvmStatic` wrappers over `PugFacade` |
+| `Pug.kt` | The public entry point: thin `@JvmStatic` wrappers over `PugFacade`, and the `track` field |
+| `TrackNamespace.kt`, `PugEvents.kt` | Generated: the typed methods and the event kinds |
 | `PugOptions.kt`, `TrackOptions.kt`, `TrackingConsent.kt` | Public configuration; `PugOptions` validates numbers at `build()` |
 | `PugLogger.kt`, `PugStorage.kt` | Public logger and storage interfaces, `MemoryPugStorage` |
 | `internal/logging/SafeLogger.kt` | The logger internals call: debug gating, contains a throwing logger; `LogcatLogger` |
@@ -105,6 +131,7 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 | `internal/platform/ActivityLifecycleTracker.kt` | Activity callbacks to foreground/background and screens, on the main thread |
 | `internal/lifecycle/InstallTracker.kt` | `app_install` / `app_update`, once per app version |
 | `internal/event/` | `PropertyMapper`, `TraitsMapper`, `HostJson` (host values as JSON), `EventFactory` (D15 guards), limits |
+| `internal/event/EventSchema.kt`, `WellKnownEvents.kt` | Schema types and Duration text; the generated registry of well-known events |
 | `internal/identity/Identity.kt` | Session and profile: minted lazily, held in memory, written through |
 | `internal/consent/TrackingConsentController.kt` | Consent state, persistence and the D12 purges (through callbacks) |
 | `internal/queue/` | `EventQueue` (lock/commit/rollback, overflow, persistence), `EventJson` (stored event shape) |
@@ -113,3 +140,4 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 | `internal/wire/ProtoWriter.kt`, `ProtoReader.kt` | Protobuf wire primitives |
 | `internal/transport/HttpPugTransport.kt` | Connect unary client: headers, deadlines, cancellation, error mapping |
 | `internal/transport/RpcCode.kt` | Connect codes, permanent set, HTTP-status fallback, `PugTransportException` |
+| `tools/gen-track/` | The typed-track generator: `Catalog.kt` reads the image, `Render.kt` writes the sources |

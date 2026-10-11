@@ -16,6 +16,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import sh.pug.android.MemoryPugStorage
+import sh.pug.android.PugEvents
 import sh.pug.android.PugOptions
 import sh.pug.android.PugStorage
 import sh.pug.android.TrackOptions
@@ -25,9 +26,13 @@ import sh.pug.android.internal.PugClock
 import sh.pug.android.internal.UuidV7Generator
 import sh.pug.android.internal.consent.TrackingConsentController
 import sh.pug.android.internal.event.EventFactory
+import sh.pug.android.internal.event.EventSchema
+import sh.pug.android.internal.event.FieldType
 import sh.pug.android.internal.event.MAX_STRING_BYTES
 import sh.pug.android.internal.event.PropertyMapper
 import sh.pug.android.internal.event.TraitsMapper
+import sh.pug.android.internal.event.WellKnownEvents
+import sh.pug.android.internal.event.durationText
 import sh.pug.android.internal.identity.Identity
 import sh.pug.android.internal.identity.RESERVED_ID_PREFIX
 import sh.pug.android.internal.lifecycle.InstallTracker
@@ -52,10 +57,6 @@ internal const val TEARDOWN_TIMEOUT_MS: Long = 10_000L
 
 // How long a consent getter waits for start-up to read a stored choice before answering "unknown".
 internal const val CONSENT_WAIT_MS: Long = 1_000L
-
-private const val APP_OPEN = "app_open"
-private const val APP_CLOSE = "app_close"
-private const val SCREEN_VIEW = "screen_view"
 
 /**
  * One configured SDK instance. Calls, and the app's lifecycle callbacks, arrive on any thread: they
@@ -164,8 +165,44 @@ internal class PugClient(
         val occurTime = factory.occurTime(kind, trackOptions?.timestamp, callTime)
         // Mapped now, because the host may change the map or its values once track() returns.
         val custom = if (properties == null) emptyMap() else propertyMapper.mapCustom(kind, properties)
+        WellKnownEvents.byKind[kind]?.let { reportMissing(it, custom) }
         val immediate = trackOptions?.immediate == true
         submit("track") { capture(kind, custom, callTime, occurTime, immediate) }
+    }
+
+    /** [values] are [event]'s properties in schema order, null where the caller left them out. */
+    fun trackTyped(
+        event: EventSchema,
+        values: Array<out Any?>,
+        extras: Map<String, Any?>?,
+        trackOptions: TrackOptions?,
+    ) {
+        val callTime = clock.nowMillis()
+        val typed = LinkedHashMap<String, Any?>()
+        event.fields.forEachIndexed { index, field ->
+            val value = values[index]
+            when {
+                value is Long && field.type == FieldType.DURATION -> typed[field.name] = durationText(value)
+
+                value != null -> typed[field.name] = value
+
+                // Only Java code can pass null for a required argument (PLAN.md D20).
+                field.required -> {
+                    logger.warn("Pug.${event.label}() was dropped: ${field.name} is null")
+                    return
+                }
+            }
+        }
+        val occurTime = factory.occurTime(event.kind, trackOptions?.timestamp, callTime)
+        val custom = LinkedHashMap<String, PropertyValue>()
+        if (extras != null) custom.putAll(propertyMapper.mapCustom(event.kind, extras))
+        for ((name, value) in propertyMapper.mapCustom(event.kind, typed)) {
+            if (custom.put(name, value) != null) {
+                logger.warn("Extra \"$name\" of Pug.${event.label}() was dropped: an argument sets it")
+            }
+        }
+        val immediate = trackOptions?.immediate == true
+        submit(event.label) { capture(event.kind, custom, callTime, occurTime, immediate) }
     }
 
     fun identify(externalId: String, traits: Map<String, Any?>?) {
@@ -259,6 +296,14 @@ internal class PugClient(
                 }
             }
         }
+    }
+
+    private fun reportMissing(event: EventSchema, properties: Map<String, PropertyValue>) {
+        if (!logger.isDebugEnabled) return
+        val missing = event.fields.filter { it.required && it.name !in properties }
+        if (missing.isEmpty()) return
+        val names = missing.joinToString { "\"${it.name}\"" }
+        logger.debug("Event \"${event.kind}\" is missing $names, which Pug.${event.label}() requires")
     }
 
     private fun restored(): RestoredConsent? {
@@ -433,12 +478,12 @@ internal class PugClient(
 
     private fun open(now: Long) {
         if (!options.autoTrack || opened) return
-        opened = capture(APP_OPEN, emptyMap(), now, now, immediate = false)
+        opened = capture(PugEvents.APP_OPEN, emptyMap(), now, now, immediate = false)
     }
 
     private fun enterBackground(now: Long) {
         visible = false
-        if (options.autoTrack && opened && capture(APP_CLOSE, emptyMap(), now, now, immediate = true)) {
+        if (options.autoTrack && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, now, immediate = true)) {
             opened = false
         }
         // The process may be frozen or killed from here on: whatever is queued gets its send now.
@@ -471,10 +516,10 @@ internal class PugClient(
 
     private fun captureScreenView(name: String, screenClass: String?, callTime: Long) {
         val properties = propertyMapper.mapCustom(
-            SCREEN_VIEW,
+            PugEvents.SCREEN_VIEW,
             mapOf("screenName" to name, "screenClass" to screenClass),
         )
-        capture(SCREEN_VIEW, properties, callTime, callTime, immediate = false)
+        capture(PugEvents.SCREEN_VIEW, properties, callTime, callTime, immediate = false)
     }
 
     private fun sendIdentify(externalId: String, traits: Map<String, JsonValue>) {

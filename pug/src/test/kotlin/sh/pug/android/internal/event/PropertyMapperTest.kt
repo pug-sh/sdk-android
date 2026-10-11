@@ -25,6 +25,15 @@ class PropertyMapperTest {
     private enum class Plan { PRO }
 
     @Test
+    fun `a whole number for a double property of a well-known event is sent as a double`() {
+        assertEquals(
+            mapOf("price" to DoubleValue(10.0), "quantity" to IntValue(2), "productId" to StringValue("p1")),
+            mapper.mapCustom("add_to_cart", mapOf("price" to 10, "quantity" to 2, "productId" to "p1")),
+        )
+        assertEquals(mapOf("price" to IntValue(10)), mapper.mapCustom("checkout", mapOf("price" to 10)))
+    }
+
+    @Test
     fun `scalars map onto their PropertyValue type`() {
         val mapped =
             mapper.mapCustom(

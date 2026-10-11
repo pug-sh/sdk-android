@@ -74,4 +74,28 @@ public class PugJavaApiTest {
         assertFalse(Pug.isTrackingEnabled());
         assertTrue(Pug.isConsentPending());
     }
+
+    @Test
+    public void typedEventsAreFieldsAndOverloads() {
+        Pug.track.addToCart("p1");
+        Pug.track.addToCart("p1", 9.99, "USD");
+        Pug.track.addToCart(
+                "p1", null, null, null, 2, null, null, null, Collections.singletonMap("coupon", "SPRING"),
+                new TrackOptions(true));
+        Pug.track.addToCart(null);
+        Pug.track.videoPlay("v1", 1_500L);
+        Pug.track.appOpen();
+        Pug.track(PugEvents.ADD_TO_CART, Collections.singletonMap("productId", "p1"));
+    }
+
+    @Test
+    public void eventKindsAreCompileTimeConstants() {
+        String kind = "add_to_cart";
+        switch (kind) {
+            case PugEvents.ADD_TO_CART:
+                break;
+            default:
+                throw new AssertionError(kind);
+        }
+    }
 }

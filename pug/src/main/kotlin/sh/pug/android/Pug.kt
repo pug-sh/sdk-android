@@ -11,6 +11,13 @@ public object Pug {
     private val facade = PugFacade.create()
 
     /**
+     * The well-known events, each with a method that takes its properties as typed arguments:
+     * `Pug.track.addToCart(productId = "p1", price = 9.99)`.
+     */
+    @JvmField
+    public val track: TrackNamespace = TrackNamespace(facade)
+
+    /**
      * Starts the SDK for [projectId]. A second call is ignored with a warning until [destroy]. Called
      * on the main thread before any activity starts, as in `Application.onCreate`, it sees the first
      * screen; called later, it tracks from the next one on.
@@ -26,7 +33,8 @@ public object Pug {
     /**
      * Tracks an event. [kind] may contain only letters, digits, '_', '.' and '-'. [properties] are
      * read during the call, so the map can be reused once it returns; keys starting with '$' are
-     * reserved and dropped.
+     * reserved and dropped. The well-known events, listed in [PugEvents], also have typed methods,
+     * such as `Pug.track.addToCart(…)`.
      */
     @JvmStatic
     @JvmOverloads

@@ -16,10 +16,11 @@ semantics). Out of scope by user instruction: FCM/push and device registration
 ## Commands
 
 ```bash
-make check      # verify-version + spotlessCheck + lint + unit tests + release AAR (one Gradle run)
-make fmt        # spotlessApply (ktlint, android_studio style)
-make protos     # regenerate pug/src/test/resources/pug.binpb from proto/ (needs buf)
-make ci         # protos + check-codegen + check: what CI runs
+make check       # verify-version + spotlessCheck + lint + unit tests + release AAR (one Gradle run)
+make fmt         # spotlessApply (ktlint, android_studio style)
+make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
+make typed-track # only the typed track API: TrackNamespace.kt, PugEvents.kt, WellKnownEvents.kt
+make ci          # protos + check-codegen + check: what CI runs
 ```
 
 JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untracked
@@ -31,8 +32,15 @@ JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untr
 Module `:pug` → `sh.pug:pug-android`, package `sh.pug.android`, explicit API mode. Public: the `Pug`
 object (the entry point, `@JvmStatic`), `PugOptions` (opaque, built by `PugOptions.Builder` or the
 Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
-`MemoryPugStorage`. Storage defaults to files under `noBackupFilesDir/pug/`.
+`MemoryPugStorage`, and the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
+`track(kind, …)` function) and `PugEvents`. Storage defaults to files under `noBackupFilesDir/pug/`.
 
+- **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt` and
+  `internal/event/WellKnownEvents.kt` come from `tools/gen-track` (the Gradle module
+  `:tools:gen-track`, run by `make typed-track` on a `buf build` JSON image). Change the generator
+  and regenerate; `check-codegen` fails on drift. Typed methods pass their values in schema order to
+  `PugFacade.trackTyped`, and `PugClient.trackTyped` names them from the `EventSchema`
+  (`internal/event/EventSchema.kt`), formats Durations (D24) and merges `extras` (D25).
 - `internal/runtime/` — `PugFacade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
   last one's teardown. `PugClient` is one configured instance: calls (and lifecycle callbacks) map
@@ -55,7 +63,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   `FilePugStorage` is the default store: a file per key, cached, written behind by 1 s and synced
   on backgrounding, flush and teardown (`PLAN.md` §4.6).
 - `internal/event/` — `PropertyMapper` / `TraitsMapper` (host values → `PropertyValue` / Struct,
-  D15 guards), `EventFactory` (kind gate, timestamps, SDK auto-properties, 4 MiB cap).
+  D15 guards, the D19 double coercion for well-known kinds), `EventFactory` (kind gate, timestamps,
+  SDK auto-properties, 4 MiB cap), `EventSchema` and the generated `WellKnownEvents` registry.
 - `internal/identity/Identity`, `internal/consent/TrackingConsentController`,
   `internal/queue/EventQueue` — session/profile, consent (D12 purges via callbacks), and the
   persisted lock/commit/rollback queue. Each holds its state in memory, reads storage once at
@@ -107,7 +116,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   a deliberate divergence from a reference SDK).
 - Tests are JVM unit tests under `pug/src/test` (JUnit 4 + kotlin.test, plus a few Java tests under
   `src/test/java` for the Java API and Java nulls). Runtime tests use virtual time
-  (`TestCoroutineScheduler`), `FakeTransport` and `FakePlatform`. Robolectric (SDK 36, set in
-  `src/test/resources/robolectric.properties`) runs the `internal/platform/` tests and
-  `AndroidEndToEndTest`; under it, serve HTTP with the JDK's `com.sun.net.httpserver`, not
-  MockWebServer (`docs/development.md`).
+  (`TestCoroutineScheduler`), `FakeTransport` and `FakePlatform`. `WellKnownEventsTest` and
+  `TrackNamespaceTest` check the generated code against `pug.binpb` through protobuf-java, not
+  through the generator. Robolectric (SDK 36, set in `src/test/resources/robolectric.properties`)
+  runs the `internal/platform/` tests and `AndroidEndToEndTest`; under it, serve HTTP with the
+  JDK's `com.sun.net.httpserver`, not MockWebServer (`docs/development.md`).

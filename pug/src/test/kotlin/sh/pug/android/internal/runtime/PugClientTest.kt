@@ -84,6 +84,20 @@ class PugClientTest {
     }
 
     @Test
+    fun `an untyped well-known event without a required property gets a debug hint`() {
+        val client = client()
+
+        client.track("add_to_cart", mapOf("price" to 10), null)
+        client.track("add_to_cart", mapOf("productId" to "p1"), null)
+        client.track("checkout", null, null)
+
+        assertEquals(
+            listOf("Event \"add_to_cart\" is missing \"productId\", which Pug.track.addToCart() requires"),
+            logger.debugs.filter { "missing" in it },
+        )
+    }
+
+    @Test
     fun `a timestamp option sets when the event happened`() {
         val client = client { batch(maxSize = 1) }
 
