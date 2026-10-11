@@ -1,5 +1,7 @@
 [versions]
 agp = "9.4.1"
+# The ABI dump library of the Kotlin Gradle plugin AGP builds with (tools/abi-dump).
+abiTools = "2.2.10"
 ktlint = "1.8.0"
 spotless = "8.10.4"
 # Floors, not targets: Gradle resolves highest-wins, so these set the oldest versions a host app
@@ -13,6 +15,7 @@ protobuf = "4.36.2"
 robolectric = "4.17"
 
 [libraries]
+abi-tools = { module = "org.jetbrains.kotlin:abi-tools", version.ref = "abiTools" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinStdlib" }
@@ -23,5 +26,6 @@ protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "p
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

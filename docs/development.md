@@ -1,7 +1,7 @@
 # Development
 
 Internal guide for working on `sdk-android`. Design decisions and the phase plan live in
-[`PLAN.md`](../PLAN.md); end-user docs will live in the [README](../README.md).
+[`PLAN.md`](../PLAN.md); end-user docs live in the [README](../README.md).
 
 ## Toolchain
 
@@ -20,9 +20,12 @@ The library compiles to Java 11 bytecode with Kotlin `apiVersion`/`languageVersi
 
 | Command | What it does |
 | ------- | ------------ |
-| `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease` |
+| `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease`, the API dump check and the minified sample build |
 | `make fmt` | `spotlessApply` (ktlint 1.8, `android_studio` style) |
 | `make lint` / `test` / `build` | the individual Gradle steps |
+| `make abi-dump` | rewrites `pug/api/pug.api` from the release AAR (below) |
+| `make sample` | builds the sample app, debug and minified release |
+| `make publish-bundle` / `publish-central` | the signed Maven Central bundle, and its upload ([Releasing](#releasing)) |
 | `make protos` | `descriptors` and `typed-track`: everything generated from `proto/` |
 | `make descriptors` | `buf build` → `pug/src/test/resources/pug.binpb`, the descriptor set the conformance tests read |
 | `make typed-track` | `buf build` → a JSON image, then `tools/gen-track` → the typed track API (below) |
@@ -31,7 +34,7 @@ The library compiles to Java 11 bytecode with Kotlin `apiVersion`/`languageVersi
 | `make sync-protos` | re-export `proto/` from the pinned BSR commit (network) |
 | `make check-proto-pin` | release gate: `proto/` equals the pinned export (network) |
 | `make proto-latest` | print the newest commit on `buf.build/pugsh/pug:main` |
-| `make verify-version` | `VERSION_NAME` in `gradle.properties` equals `SDK_VERSION` in `Version.kt` |
+| `make verify-version` | `VERSION_NAME` in `gradle.properties` equals `SDK_VERSION` in `Version.kt`, and the README's install line names it |
 
 ## Protos
 
@@ -65,6 +68,41 @@ keeps the proto comments and names the custom options, `[common.events.v1.kind]`
 rather than skipping them. Its output is already ktlint-clean, which `spotlessCheck` holds it to;
 when ktlint disagrees, fix the generator rather than formatting the files.
 
+## Public API dump
+
+`pug/api/pug.api` lists the public API of the release AAR in the Kotlin ABI validation (and BCV)
+format, and `make check` fails when the AAR differs from it, printing the diff. After an intended
+API change, `make abi-dump` rewrites it; review the diff before committing, since a removed or
+changed line breaks callers compiled against the previous release.
+
+Neither the Kotlin Gradle plugin's `abiValidation` nor BCV works here: both look for the
+`kotlin-android` plugin, and AGP 9's built-in Kotlin applies `KotlinBaseApiPlugin` instead. So
+`tools/abi-dump` (the Gradle module `:tools:abi-dump`, not shipped) runs the same dumper, the
+`org.jetbrains.kotlin:abi-tools` library at the Kotlin Gradle plugin's version, over the
+`classes.jar` inside `pug/build/outputs/aar/pug-release.aar`; its `abiDump` and `abiCheck` tasks
+depend on `:pug:bundleReleaseAar`. Internal declarations are left out through the Kotlin metadata,
+synthetic `$default` methods stay in: they are what Kotlin callers of a function with default
+arguments compile against.
+
+Most of the file is the typed track API. A proto bump that adds a property to an event changes its
+methods' signatures (PLAN.md, phase 5 notes): treat it as an API change in the CHANGELOG.
+
+## Sample app
+
+`sample/` (the Gradle module `:sample`, package `sh.pug.android.sample`) is an app built on the SDK
+the way a host app is: `Pug.init` in `Application.onCreate` with StrictMode on in debug builds
+(disk and network detection on the main thread, `penaltyDeath`), typed and custom events, screens,
+identify, reset, and a consent screen written in Java. It uses framework widgets only, so it adds no
+dependency to the build.
+
+Its release build is minified by R8 with only `proguard-android-optimize.txt`, no rules for the SDK,
+and `make check` builds it: R8 fails on a missing class, so this proves the AAR needs no consumer
+rules to shrink. That the minified app also runs is checked on a device:
+`./gradlew :sample:installRelease` (signed with the debug key) and `adb logcat -s Pug`, which shows
+each event in dry run (`debug` is on in every build of the sample). The project, API key and
+endpoint come from the Gradle properties `pug.sample.projectId`, `pug.sample.apiKey` and
+`pug.sample.endpoint`, read into `BuildConfig`; without an API key the sample runs in dry run.
+
 ## Testing notes
 
 - All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test. The Android classes in
@@ -97,6 +135,11 @@ when ktlint disagrees, fix the generator rather than formatting the files.
   fields), `WellKnownEventsTest` compares the registry and `PugEvents` with them, and
   `TrackNamespaceTest` calls every method by reflection with distinct arguments and checks the
   properties sent.
+- `MainThreadIoTest` (Robolectric) holds the SDK to its StrictMode promise, which StrictMode itself
+  cannot check on the JVM: its `Application` records the SDK's calls for the no-backup directory,
+  the package manager, resources, system services and permissions by thread, and a full session
+  driven from the main thread (init, calls, an activity's lifecycle, consent, flush, destroy) must
+  leave them all to the worker.
 - `Build.VERSION.SDK_INT` reads 0 in JVM tests, so code with an API-level branch takes the level as
   a constructor parameter (`PropertyMapper(logger, sdkInt = 26)`). Robolectric runs SDK 36 only, so
   `AndroidAutoProperties` takes it too, and its tests reach the older branches by passing 22 or 27.
@@ -141,3 +184,38 @@ when ktlint disagrees, fix the generator rather than formatting the files.
 | `internal/transport/HttpPugTransport.kt` | Connect unary client: headers, deadlines, cancellation, error mapping |
 | `internal/transport/RpcCode.kt` | Connect codes, permanent set, HTTP-status fallback, `PugTransportException` |
 | `tools/gen-track/` | The typed-track generator: `Catalog.kt` reads the image, `Render.kt` writes the sources |
+| `tools/abi-dump/` | The public API dump of the release AAR, and its check |
+| `pug/api/pug.api` | The committed public API dump |
+| `sample/` | The sample app; its minified release build is part of `make check` |
+
+## Releasing
+
+Publishing to Maven Central is manual and cannot be undone: a published version can never be
+replaced, only followed by a new one.
+
+### One-time setup
+
+1. A [Central Portal](https://central.sonatype.com) account with the namespace `sh.pug` verified,
+   which takes a DNS TXT record on `pug.sh`.
+2. A Portal user token (View Account → Generate User Token). `CENTRAL_TOKEN` is the base64 of its
+   `username:password`: `printf '%s' '<username>:<password>' | base64 | tr -d '\n'`.
+3. A GPG signing key whose public half is on a keyserver Central checks, such as
+   `keyserver.ubuntu.com` (`gpg --keyserver keyserver.ubuntu.com --send-keys <id>`). The build reads
+   the armored private key and its passphrase from `ORG_GRADLE_PROJECT_signingInMemoryKey` and
+   `ORG_GRADLE_PROJECT_signingInMemoryKeyPassword`: `gpg --armor --export-secret-keys <id>`.
+
+### Each release
+
+1. `make check-proto-pin`: `proto/` must be exactly the pinned BSR export.
+2. Set the version in `gradle.properties` (`VERSION_NAME`), `Version.kt` (`SDK_VERSION`) and the
+   README's install line (`make verify-version` checks all three), and date the CHANGELOG entry.
+3. `make ci`, commit as `Release vX.Y.Z`, tag `vX.Y.Z` and push both.
+4. With the three variables above exported, `make publish-central`. It builds and signs the bundle
+   (`make publish-bundle`; `centralBundle` refuses unsigned artifacts) and uploads it as a
+   user-managed deployment.
+5. On the Portal's Deployments page, wait for validation, check the files, and press Publish. The
+   artifact reaches Maven Central within about half an hour.
+6. Create the GitHub release for the tag from the CHANGELOG entry.
+
+`make publish-bundle` alone, with a key, leaves the bundle at `pug/build/central/` for inspection;
+`publishToMavenLocal` puts an unsigned copy in `~/.m2` to try in another project.

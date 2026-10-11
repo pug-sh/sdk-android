@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## Start here
 
-`PLAN.md` is the source of truth: the phase status table, every design decision (D1–D19) with its
+`PLAN.md` is the source of truth: the phase status table, every design decision (D1–D25) with its
 reasoning, the wire and transport contracts, and the family-coordination list. Read it before
 changing behavior; a decision recorded there is not re-litigated in code review. Build details live
 in `docs/development.md`.
@@ -16,12 +16,17 @@ semantics). Out of scope by user instruction: FCM/push and device registration
 ## Commands
 
 ```bash
-make check       # verify-version + spotlessCheck + lint + unit tests + release AAR (one Gradle run)
+make check       # verify-version + spotlessCheck + lint + unit tests + release AAR + API dump check
+                 # + minified sample build (one Gradle run)
 make fmt         # spotlessApply (ktlint, android_studio style)
+make abi-dump    # rewrite pug/api/pug.api after an intended public API change; review the diff
 make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
 make typed-track # only the typed track API: TrackNamespace.kt, PugEvents.kt, WellKnownEvents.kt
 make ci          # protos + check-codegen + check: what CI runs
 ```
+
+Releasing (`make publish-bundle`, `make publish-central`) is manual; the steps are in
+`docs/development.md`.
 
 JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untracked
 `local.properties`. Gradle is slow to start: run it once into a log file and grep the file
@@ -35,6 +40,11 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
 `MemoryPugStorage`, and the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
 `track(kind, …)` function) and `PugEvents`. Storage defaults to files under `noBackupFilesDir/pug/`.
 
+- **Public API is pinned** by `pug/api/pug.api`, which `make check` compares with the release AAR
+  through `tools/abi-dump` (KGP's ABI validation and BCV do not run under AGP's built-in Kotlin).
+  Any change to a public signature, the generated ones included, shows there.
+- **`sample/`** (`:sample`) is a framework-only app on the SDK, from Kotlin and Java, with StrictMode
+  `penaltyDeath` in debug builds; its release build is minified with no keep rules for the SDK.
 - **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt` and
   `internal/event/WellKnownEvents.kt` come from `tools/gen-track` (the Gradle module
   `:tools:gen-track`, run by `make typed-track` on a `buf build` JSON image). Change the generator

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pug sample</string>
+    <string name="status">%1$s\nTracking consent: %2$s</string>
+    <string name="mode_dry_run">Dry run: events are logged (Logcat tag Pug), not sent. Set pug.sample.apiKey to send them.</string>
+    <string name="mode_sending">Sending to %1$s</string>
+    <string name="track_event">Track a custom event</string>
+    <string name="track_search">Track a search (typed)</string>
+    <string name="show_settings">Show a screen that is not an activity</string>
+    <string name="open_product">Open a product</string>
+    <string name="identify">Identify sample-user-42</string>
+    <string name="reset">Reset (log out)</string>
+    <string name="flush">Flush</string>
+    <string name="open_consent">Tracking consent (Java)</string>
+    <string name="product_title">Trail runner</string>
+    <string name="product_details">Trail runner, $89.00</string>
+    <string name="add_to_cart">Add to cart</string>
+    <string name="buy_now">Buy now (sent immediately)</string>
+    <string name="consent_title">Tracking consent</string>
+    <string name="consent_state">Consent: %1$s\nWaiting for a choice: %2$b</string>
+    <string name="opt_in">Opt in</string>
+    <string name="opt_out">Opt out</string>
+    <string name="track_from_java">Track from Java</string>
+</resources>

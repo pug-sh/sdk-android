@@ -1,19 +1,27 @@
 # Changelog
 
-## Unreleased
+A release that regenerates the typed track API from newer event schemas says so: a property added
+to an event inserts a parameter before `extras` and `options`, which Java callers passing those
+positionally must follow.
 
-- Project scaffold, vendored protos, protobuf wire codec and Connect transport.
-- Configuration types (`PugOptions`, `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
-  `MemoryPugStorage`) and the internal building blocks: property and trait mapping, event
-  guards, identity, consent and the persistent event queue.
-- The `Pug` entry point: `init`, `track`, `identify`, `reset`, `rotateSession`, `flush`, `destroy`
-  and tracking consent, with batched delivery and retry backoff.
-- The Android platform layer: state and undelivered events are kept in files that are not backed
-  up; device, app, screen, locale and network auto-properties; `app_open` and `app_close` as the
-  app enters and leaves the foreground, which also sends queued events; a `screen_view` for each
-  activity shown, and `Pug.screen` for screens that are not activities; `app_install` and
-  `app_update` on the first launch of each app version.
-- Typed tracking for the 123 well-known events, generated from the event schemas:
+## 0.1.0 (unreleased)
+
+The first release.
+
+- `Pug.init` from `Application.onCreate`, then `track`, `identify`, `screen`, `reset`,
+  `rotateSession`, `flush` and `destroy`. Calls return at once from any thread and never throw; only
+  `Pug.init` rejects invalid arguments.
+- Typed methods for the 123 well-known events, generated from the event schemas:
   `Pug.track.addToCart(productId = "p1", price = 9.99)`, with `extras` for further properties and
-  overloads for Java. Their kinds are `PugEvents` constants, and a whole number sent for a
-  well-known decimal property, such as `price`, is sent as a decimal.
+  overloads for Java. Their kinds are `PugEvents` constants.
+- Automatic `app_open` and `app_close`, a `screen_view` for each activity, and `app_install` and
+  `app_update` on the first launch of each app version.
+- Tracking consent (granted or denied, optionally persisted): opting out drops queued events and
+  the stored identity; opting in tracks what consent held back during the launch.
+- Device, app, screen, locale and network auto-properties.
+- Batched delivery with retry backoff, and undelivered events, identity and consent kept in files
+  that Auto Backup leaves out.
+- `PugOptions` for the endpoint, batching, sessions, consent, the automatic events, logging,
+  `dryRun` and storage, with a Kotlin builder block and a Java builder.
+- Runtime dependencies are kotlin-stdlib and kotlinx-coroutines-core only; `minSdk` 21; no R8 rules
+  needed.

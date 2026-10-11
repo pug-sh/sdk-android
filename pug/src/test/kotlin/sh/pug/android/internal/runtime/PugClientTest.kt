@@ -2,6 +2,7 @@
 
 package sh.pug.android.internal.runtime
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -415,6 +416,21 @@ class PugClientTest {
     }
 
     @Test
+    fun `consent getters stop waiting for start-up once the deadline after start has passed`() {
+        val client = client(previousTeardown = Job(), consentWaitMs = 100)
+
+        val start = System.nanoTime()
+        repeat(10) { assertNull(client.trackingConsent) }
+        val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)
+
+        assertTrue(elapsedMs < 500, "the getters waited $elapsedMs ms in all")
+        assertEquals(
+            listOf("Tracking consent was asked for before Pug finished starting; it is reported as unknown"),
+            logger.warnings,
+        )
+    }
+
+    @Test
     fun `nothing runs until the previous client's teardown is over, then calls run in order`() {
         val previous = Job()
         val client = client(previousTeardown = previous) { batch(maxSize = 1) }
@@ -583,7 +599,11 @@ class PugClientTest {
         assertEquals(listOf(listOf("a")), transport.kinds)
     }
 
-    private fun client(previousTeardown: Job? = null, configure: PugOptions.Builder.() -> Unit = {}): PugClient {
+    private fun client(
+        previousTeardown: Job? = null,
+        consentWaitMs: Long = 20,
+        configure: PugOptions.Builder.() -> Unit = {},
+    ): PugClient {
         val options =
             PugOptions("pub_key") {
                 logger = this@PugClientTest.logger
@@ -601,7 +621,7 @@ class PugClientTest {
             ids = ids,
             random = FixedRandom(),
             sdkInt = 26,
-            consentWaitMs = 20,
+            consentWaitMs = consentWaitMs,
         ).also { it.start(previousTeardown) }
     }
 
