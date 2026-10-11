@@ -11,6 +11,7 @@ import sh.pug.android.TrackingConsent
 import sh.pug.android.internal.isNull
 import sh.pug.android.internal.logging.LogcatLogger
 import sh.pug.android.internal.logging.SafeLogger
+import sh.pug.android.internal.platform.AndroidPlatform
 import sh.pug.android.internal.transport.HttpPugTransport
 
 /**
@@ -20,7 +21,7 @@ import sh.pug.android.internal.transport.HttpPugTransport
  */
 internal class PugFacade(
     private val fallbackLogger: SafeLogger,
-    private val newClient: (projectId: String, options: PugOptions) -> PugClient,
+    private val newClient: (context: Context, projectId: String, options: PugOptions) -> PugClient,
 ) {
     private val lock = Any()
 
@@ -41,7 +42,7 @@ internal class PugFacade(
             val started =
                 synchronized(lock) {
                     if (client != null) return@synchronized false
-                    client = newClient(projectId, options).also { it.start(teardown) }
+                    client = newClient(context, projectId, options).also { it.start(teardown) }
                     true
                 }
             if (!started) {
@@ -69,6 +70,16 @@ internal class PugFacade(
                 it.logger.error("identify() was dropped: externalId is null")
             } else {
                 it.identify(externalId, traits)
+            }
+        }
+    }
+
+    fun screen(name: String) {
+        call("screen") {
+            if (isNull(name)) {
+                it.logger.warn("A screen with a null name was dropped")
+            } else {
+                it.screen(name)
             }
         }
     }
@@ -148,8 +159,9 @@ internal class PugFacade(
         fun create(): PugFacade {
             // Shared by every client, so two never touch storage at once.
             val worker = Dispatchers.IO.limitedParallelism(1)
-            return PugFacade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { projectId, options ->
-                PugClient(projectId, options, HttpPugTransport(options.endpoint, options.apiKey), worker)
+            return PugFacade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { context, projectId, options ->
+                val transport = HttpPugTransport(options.endpoint, options.apiKey)
+                PugClient(projectId, options, transport, worker, AndroidPlatform(context))
             }
         }
 

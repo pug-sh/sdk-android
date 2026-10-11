@@ -61,6 +61,8 @@ public class PugJavaApiTest {
         Pug.track("kind", Collections.singletonMap("key", null), null);
         Pug.identify(null);
         Pug.identify("user-1", null);
+        Pug.screen(null);
+        Pug.screen("Home");
         Pug.reset();
         Pug.rotateSession();
         Pug.flush();

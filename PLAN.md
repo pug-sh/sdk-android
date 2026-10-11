@@ -11,8 +11,8 @@ session can continue from here without re-reading the reference SDKs.
 | 1 | Scaffold, vendored protos, hand-rolled wire codec, Connect transport | ✅ done (2026-10-11) |
 | 2 | Core building blocks: options, logger, storage API, ids, property mapping, events, identity, consent, queue | ✅ done (2026-10-11) |
 | 3 | Runtime: dispatcher (batching/retry), `PugClient`, `Pug` facade | ✅ done (2026-10-11) |
-| 4 | Android platform: file storage, auto-properties, lifecycle, screens, install/update | ⏳ next |
-| 5 | Typed track API (codegen from protos) | ☐ |
+| 4 | Android platform: file storage, auto-properties, lifecycle, screens, install/update | ✅ done (2026-10-11) |
+| 5 | Typed track API (codegen from protos) | ⏳ next |
 | 6 | Release readiness: sample app, docs, publishing, API dump, hardening audit | ☐ |
 
 **Resuming in a new session:** read this file, then `CLAUDE.md` and `docs/development.md`, then
@@ -162,6 +162,19 @@ with the family (collected again in §7).
   generated methods keep compile-time required fields and inherit the behavior; a generated method
   must check its required parameters the same way.
 
+- **D21 Opting in tracks what consent kept from the launch (F).** With consent denied by default, a
+  consent-banner app's first launch loses `app_install`, `app_open` and the first `screen_view`.
+  When consent goes from denied to granted, Android tracks the `app_install`/`app_update` decided at
+  start (the stored version advances only then) and, while the app is on screen, `app_open` and a
+  `screen_view` of the current screen. Opting out ends the visit, so no `app_close` follows the
+  purged identity's `app_open`. Flutter retries the install only at the next launch, where an
+  opt-in during the first launch has already written the keys that make it look like an upgrade:
+  that user's `app_install` is never sent.
+- **D22 With `autoScreenViews` off, screens belong to the host (F).** Resumed activities then
+  neither track `screen_view` nor move `$url`/`$referrer`, so a Compose app's single activity cannot
+  overwrite the screen it named with `Pug.screen`. Flutter keeps route state with `autoPageViews`
+  off, but its route observer is wiring the app adds; Android's activity callbacks are not.
+
 ## 4. Architecture
 
 ### 4.1 Layout
@@ -253,8 +266,15 @@ written.
 
 `PugStorage` (public interface): `getString`, `putString`, `remove`, all synchronous and called only
 on the SDK worker. `MemoryPugStorage` is public (the persistence opt-out); a `SafePugStorage` wrapper
-falls back to memory if the primary throws (Flutter). Default (phase 4): file-backed under
-`noBackupFilesDir/pug/` (D10).
+falls back to memory if the primary throws (Flutter).
+
+Default: `FilePugStorage`, one file per key under `noBackupFilesDir/pug/` (D10). The file name is the
+key with everything outside `[A-Za-z0-9_.-]` percent-encoded, so a project id cannot lead outside the
+directory, or `sha256-<hex>` beyond 128 characters. Each key is read at most once. A change lands in
+memory and reaches the disk 1 s later together with the changes made meanwhile
+(`STORAGE_SYNC_DELAY_MS`), or at once on backgrounding, `Pug.flush()` and the end of `destroy()`. A
+write goes to `<name>.tmp`, is fsynced and renamed over the file. A failed write is warned once, kept
+in memory and retried with the next sync; a file that cannot be opened reads as absent.
 
 Keys (`PugStorageKeys`): `__pug_<projectId>_session__`, `_profile__`, `_external_id__`, `_queue__`,
 `_consent__` (only when `persist`), `_last_version__`. No `device_id` key (§1). `priorActivity` =
@@ -286,21 +306,32 @@ timeout 30 min, max duration 24 h (both configurable, > 0 else warn + default). 
 id starting with `cookieless-` is discarded with a warning, and queued events carrying one are
 dropped on load (Flutter).
 
-### 4.9 Lifecycle, screens, install/update (phase 4)
+### 4.9 Lifecycle, screens, install/update
 
-- Foreground/background from our own `ActivityLifecycleCallbacks` (started-activity count,
-  ignoring `isChangingConfigurations`), seeded at init from
-  `ActivityManager.getMyMemoryState`. No AndroidX lifecycle dependency (D3).
-- `autoTrack` (default on): `app_open` on foreground, `app_close` on background (sent immediately).
-  The foreground flag only advances when the event was actually captured (consent-aware, Flutter).
-  Backgrounding always flushes and syncs storage, even with `autoTrack` off.
+- `ActivityLifecycleTracker` (our own `ActivityLifecycleCallbacks`; no AndroidX lifecycle, D3) runs
+  on the main thread, and `start()`/`stop()` hop there. The app is in the foreground while one of
+  its activities is started (an identity set, not a count), and an activity stopped with
+  `isChangingConfigurations` does not leave. Seed at registration: `getMyMemoryState` reporting
+  `IMPORTANCE_FOREGROUND` stands for one activity started before registration. The first activity
+  seen starting settles it, since `Application.onCreate` of a cold start already reports foreground,
+  and an unseen activity stopping consumes it. Every callback is guarded: a throw would crash the
+  host's activity.
+- Transitions become ops; the worker keeps `visible` and `opened` (Flutter's captured-or-not
+  contract). `autoTrack` (default on): `app_open` on foreground, `app_close` on background, sent
+  immediately. Backgrounding always drains the queue, backoff or not, and syncs storage at once and
+  again once the sends settle, even with `autoTrack` off.
 - `autoScreenViews` (default on): `screen_view{screenName = activity simple name, screenClass =
-  qualified name}` on `onActivityResumed`, consecutive duplicates suppressed. `Pug.screen(name)`
-  for Compose/Fragments shares the same dedup and `$url`/`$referrer` state (D18).
-- `autoInstallEvents` (default on): Flutter's `InstallTracker` exactly: `app_install{appVersion}`
-  when no prior-activity key exists, `app_update{appVersion, previousVersion}` when the stored
-  version differs, version advanced only when the event was captured. Runs before the launch
-  `app_open`.
+  qualified name}` on `onActivityResumed`. `Pug.screen(name)` tracks `screen_view{screenName}` for
+  Compose and fragments. Both share the dedup (a screen shown again while current is not tracked)
+  and the `$url`/`$referrer` state (D18); names are cut to 1024 bytes. Off: activities are ignored
+  (D22).
+- `autoInstallEvents` (default on): Flutter's `InstallTracker`: `app_install{appVersion}` when no
+  prior-activity key exists, `app_update{appVersion, previousVersion}` when the stored version
+  differs, the version advanced only once the event is captured. `check()` runs in `restore()`
+  before identity and queue are built, `emit()` after `enforceAtInit()` (so before the launch
+  `app_open`) and again on opt-in (D21).
+- Init after the first activity resumed (or off the main thread, which posts the registration)
+  misses that activity's `screen_view`; the seed still gets `app_open` and `app_close` right.
 
 ### 4.10 Auto-properties
 
@@ -311,14 +342,16 @@ dropped on load (Flutter).
 | `$os`, `$osVersion` | `Android`, `Build.VERSION.RELEASE` |
 | `$device`, `$deviceModel`, `$deviceManufacturer` | `Build.MODEL`, `Build.MODEL`, `Build.MANUFACTURER` |
 | `$deviceType` | `tv` (leanback / television feature) else `mobile` (Flutter value set) |
-| `$mobile` | bool: not a TV and smallest width < 600 dp |
-| `$screenWidth`, `$screenHeight`, `$screenScale` | display size in dp (ints), density |
-| `$locale`, `$timezone` | `Locale.getDefault().toLanguageTag()`, `TimeZone.getDefault().id` |
-| `$appName`, `$appPackage`, `$appVersion`, `$appBuild` | from `PackageManager` |
-| `$networkType` | `wifi`/`mobile`/`ethernet`/`vpn`/`bluetooth`/`other`/`none`/`unknown`; only when `ACCESS_NETWORK_STATE` is granted (not declared by the SDK) |
+| `$mobile` | bool: not a TV and smallest width < 600 dp, per event |
+| `$screenWidth`, `$screenHeight`, `$screenScale` | app display metrics in dp (ints, current orientation), density; per event |
+| `$locale`, `$timezone` | `Locale.getDefault().toLanguageTag()`, `TimeZone.getDefault().id`; per event |
+| `$appName`, `$appPackage`, `$appVersion`, `$appBuild` | from `PackageManager`; `$appBuild` is `longVersionCode` (API 28+) else `versionCode` |
+| `$networkType` | `wifi`/`mobile`/`ethernet`/`vpn`/`bluetooth`/`other`/`none`/`unknown`; per event, only when `ACCESS_NETWORK_STATE` is granted (not declared by the SDK). API 23+: the active network's transports in that order (a VPN also carries its underlying transport), `none` without one, `unknown` without capabilities; API 21-22: the active `NetworkInfo` |
 | `$url`, `$referrer` | current / previous screen name (D18) |
 
-The library manifest declares only `INTERNET`. The user-assigned device name is never collected.
+Fixed values are read once, on the worker at start; per-event ones on the worker for each event. A
+value that cannot be read is left out and warned once. The library manifest declares only
+`INTERNET`. The user-assigned device name is never collected.
 
 ### 4.11 Public API (target shape)
 
@@ -509,11 +542,51 @@ For phase 4:
 - `Pug.screen(name)`: a facade method with the same `isNull` check as `track`, and a worker op that
   updates the `$url`/`$referrer` state (D18).
 
-### Phase 4 — Android platform
+### Phase 4 — Android platform ✅
 
 `Pug.init(context, …)` wiring; `FilePugStorage` (D10); `AndroidAutoProperties` (§4.10);
 `ActivityLifecycleTracker` (foreground + screens); `InstallTracker`; `Pug.screen`. Robolectric tests
 for storage (real files), lifecycle (ActivityController), auto-properties.
+
+**Notes (done 2026-10-11).** `make check` green: 289 tests (64 new, 25 on Robolectric 4.17 at SDK
+36), lint clean, release AAR 216 KB.
+- Public: `Pug.screen(name)`. `Pug.init` now uses its context: the facade hands it to `newClient`,
+  which builds an `AndroidPlatform` from `applicationContext`.
+- `internal/platform/Platform` is what the runtime takes from the device (storage directory,
+  auto-properties, lifecycle observation), so `PugClient` still runs on a plain JVM; tests pass a
+  `FakePlatform`. `AndroidPlatform` is the real one. Context I/O (`noBackupFilesDir`, package info,
+  the app label) happens on the worker in `restore()`, never on the caller's thread, so `Pug.init`
+  on the main thread does no disk reads (StrictMode). The main thread only registers the callbacks
+  and asks `getMyMemoryState`.
+- `PugClient`: `capture()` reports whether consent let the event through, which `opened` and the
+  install tracker follow. Lifecycle callbacks are ops like calls, labelled for logs ("Tracking the
+  app moving to the background failed"). `Pug.flush()` also syncs storage. `restore()`: consent,
+  auto-properties, `InstallTracker.check`, identity, queue, dispatcher, `enforceAtInit()`,
+  `InstallTracker.emit`, `dispatcher.start()`. The teardown syncs file storage after
+  `dispatcher.dispose()`.
+- Deviations: D21 (opt-in tracks what consent kept from the launch; opt-out ends the visit) and D22
+  (`autoScreenViews` off leaves screens to the host). `$networkType` is read per event (Flutter: once
+  at start).
+- Surprises: Robolectric's Android 16 runtime needs `--add-exports=java.base/jdk.internal.access=
+  ALL-UNNAMED` on JDK 21 (`unitTests.all` in `pug/build.gradle.kts`). MockWebServer's OkHttp 5.5
+  resolves to `okhttp-android` in unit tests: under Robolectric it loads
+  `android.net.ssl.InvalidEchDataException` (API 37) and fails, so `AndroidEndToEndTest` serves with
+  the JDK's `com.sun.net.httpserver`; and `unitTests.isIncludeAndroidResources` makes AGP's
+  AAR-metadata check reject that artifact (it wants compileSdk 37), so it stays off. Robolectric
+  downloads its 213 MB `android-all-instrumented` jar into `~/.m2` at test time, which CI now
+  caches. `ActivityController.recreate()` does report `isChangingConfigurations`.
+- Mutation-checked: removing the configuration-change check, the seed settlement, the
+  stop-before-start guard, the opt-out visit reset, the immediate background sync, the teardown
+  sync or the opt-in replay each fails a test.
+
+For phase 5:
+- The kind constants `APP_OPEN`, `APP_CLOSE`, `SCREEN_VIEW` (`PugClient`) and `APP_INSTALL`,
+  `APP_UPDATE` (`InstallTracker`) can come from the generated `PugEvents.kt`.
+- Decide whether the typed `screenView(…)` delegates to `Pug.screen` (moving `$url`/`$referrer`)
+  or only tracks the event; Flutter's only tracks. The typed `appOpen`/`appClose`/`appInstall`/
+  `appUpdate` duplicate the automatic ones while those options are on: say so in their KDoc.
+- Typed methods should reuse `PugClient.track`'s caller-thread mapping and the `isNull` checks
+  (D20).
 
 ### Phase 5 — typed track
 
@@ -555,6 +628,11 @@ Raise these with the other SDKs rather than resolving them silently:
    generation first.
 9. D14 latest-call-wins: Flutter and sdk-web link overlapping `identify()` calls in the order their
    answers arrive, so an earlier call that answers last overrides a later one.
+10. D21: an opt-in during the first launch loses that install's `app_install` in Flutter; Android
+    tracks it, with `app_open` and the current `screen_view`, at the opt-in.
+11. D22: with automatic screen views off, Android leaves `$url`/`$referrer` to the host; Flutter
+    keeps tracking route state.
+12. `$networkType`: Flutter reads it once at start, so it goes stale; Android reads it per event.
 
 ## 8. Later / not planned
 

@@ -29,6 +29,13 @@ jobs:
       # platform or build-tools version it is missing.
       - uses: gradle/actions/setup-gradle@v6
 
+      # Robolectric downloads its Android runtime (about 210 MB) at test time, into ~/.m2 rather
+      # than Gradle's cache; the runtime version follows the Robolectric version.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-${{ hashFiles('gradle/libs.versions.toml', 'pug/src/test/resources/robolectric.properties') }}
+
       # buf-setup publishes no moving major tag, so this is pinned exactly. It resolves the
       # download URL through the GitHub API even for a pinned buf version, hence the token.
       - uses: bufbuild/buf-setup-action@v1.50.0

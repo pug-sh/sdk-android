@@ -47,7 +47,9 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 
 ## Testing notes
 
-- All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test.
+- All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test. The Android classes in
+  `internal/platform/` and `AndroidEndToEndTest` run on Robolectric
+  (`@RunWith(RobolectricTestRunner::class)`, SDK 36 from `src/test/resources/robolectric.properties`).
 - `unitTests.isReturnDefaultValues = true`, and the real `org.json` is a test dependency because
   `android.jar`'s copy is a stub.
 - Transport tests run `HttpPugTransport` against MockWebServer (`mockwebserver3`) with real
@@ -57,7 +59,10 @@ update `internal/wire` for any change to the encoded messages and run `make chec
   Gradle output.
 - Shared fakes live in `pug/src/test/kotlin/sh/pug/android/internal/Fakes.kt`: `RecordingLogger`
   (`.safe()` wraps it in `SafeLogger`), `FakeClock`, `SequentialIds` (valid, predictable UUIDs),
-  `FixedRandom` (0.5 removes retry jitter) and `ThrowingStorage`.
+  `FixedRandom` (0.5 removes retry jitter) and `ThrowingStorage`. `FakePlatform`
+  (`internal/platform/`) is a fixed device whose lifecycle a test drives (`foreground()`,
+  `background()`, `resume(screenClass)`), with an optional storage directory for real files.
+  `internal/runtime/RecordedRequests.kt` decodes captured requests with protobuf-java.
 - Runtime tests (`internal/runtime/`) run the worker on a `StandardTestDispatcher` and drive virtual
   time with its `TestCoroutineScheduler` (`runCurrent`, `advanceTimeBy`; each file opts in to
   `ExperimentalCoroutinesApi`). `FakeTransport` records requests and answers from a script; after
@@ -68,7 +73,15 @@ update `internal/wire` for any change to the encoded messages and run `make chec
   protobuf-java. Java tests live in `pug/src/test/java`: `PugJavaApiTest` pins the API as Java sees
   it, and `JavaCallers` passes the nulls Kotlin cannot (`PLAN.md` D20).
 - `Build.VERSION.SDK_INT` reads 0 in JVM tests, so code with an API-level branch takes the level as
-  a constructor parameter (`PropertyMapper(logger, sdkInt = 26)`).
+  a constructor parameter (`PropertyMapper(logger, sdkInt = 26)`). Robolectric runs SDK 36 only, so
+  `AndroidAutoProperties` takes it too, and its tests reach the older branches by passing 22 or 27.
+- Robolectric notes. Its Android 16 runtime needs
+  `--add-exports=java.base/jdk.internal.access=ALL-UNNAMED` on JDK 21, set for every unit test task
+  in `pug/build.gradle.kts`. It downloads that runtime (213 MB) into `~/.m2` on first use, which CI
+  caches. MockWebServer's OkHttp resolves to its Android build in unit tests and needs API 37 classes
+  under Robolectric, so Robolectric tests serve HTTP with the JDK's `com.sun.net.httpserver`. Leave
+  `unitTests.isIncludeAndroidResources` off: it makes AGP check that same OkHttp artifact's AAR
+  metadata, which demands compileSdk 37.
 
 ## Source layout
 
@@ -79,13 +92,18 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 | `PugOptions.kt`, `TrackOptions.kt`, `TrackingConsent.kt` | Public configuration; `PugOptions` validates numbers at `build()` |
 | `PugLogger.kt`, `PugStorage.kt` | Public logger and storage interfaces, `MemoryPugStorage` |
 | `internal/logging/SafeLogger.kt` | The logger internals call: debug gating, contains a throwing logger; `LogcatLogger` |
-| `internal/storage/` | `SafePugStorage` (memory failover), `PugStorageKeys` (`__pug_<projectId>_<name>__`) |
+| `internal/storage/` | `FilePugStorage` (default store: a file per key, write-behind), `SafePugStorage` (memory failover), `PugStorageKeys` (`__pug_<projectId>_<name>__`) |
 | `internal/PugClock.kt`, `Ids.kt`, `Utf8.kt` | Clock, UUIDv7 ids and `isUuid`, UTF-8 length and truncation |
 | `internal/JavaNulls.kt` | `isNull(Any?)`, for parameters a Java caller can pass null to (`PLAN.md` D20) |
 | `internal/runtime/PugFacade.kt` | State behind `Pug`: validation, pre-init warnings, the shared worker, the teardown handoff |
-| `internal/runtime/PugClient.kt` | One configured instance: caller-thread mapping, the op channel, start-up, consent getters, teardown |
+| `internal/runtime/PugClient.kt` | One configured instance: caller-thread mapping, the op channel, start-up, consent getters, lifecycle and screens, teardown |
 | `internal/runtime/EventDispatcher.kt` | Delivery: batching triggers, one batch in flight, retry backoff, drain |
 | `internal/json/JsonWriter.kt` | JSON text for persisted state and collection-valued properties |
+| `internal/platform/Platform.kt` | What the runtime takes from the device: storage directory, auto-properties, lifecycle observation |
+| `internal/platform/AndroidPlatform.kt` | The real `Platform`, from the application context |
+| `internal/platform/AndroidAutoProperties.kt` | Device, app, screen, locale and network auto-properties (PLAN.md §4.10) |
+| `internal/platform/ActivityLifecycleTracker.kt` | Activity callbacks to foreground/background and screens, on the main thread |
+| `internal/lifecycle/InstallTracker.kt` | `app_install` / `app_update`, once per app version |
 | `internal/event/` | `PropertyMapper`, `TraitsMapper`, `HostJson` (host values as JSON), `EventFactory` (D15 guards), limits |
 | `internal/identity/Identity.kt` | Session and profile: minted lazily, held in memory, written through |
 | `internal/consent/TrackingConsentController.kt` | Consent state, persistence and the D12 purges (through callbacks) |

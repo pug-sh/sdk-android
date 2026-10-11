@@ -31,18 +31,29 @@ JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untr
 Module `:pug` → `sh.pug:pug-android`, package `sh.pug.android`, explicit API mode. Public: the `Pug`
 object (the entry point, `@JvmStatic`), `PugOptions` (opaque, built by `PugOptions.Builder` or the
 Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
-`MemoryPugStorage`. Until phase 4, storage defaults to memory and there are no platform
-auto-properties.
+`MemoryPugStorage`. Storage defaults to files under `noBackupFilesDir/pug/`.
 
 - `internal/runtime/` — `PugFacade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
-  last one's teardown. `PugClient` is one configured instance: calls map their arguments on the
-  caller's thread and send an op into a channel that one coroutine runs in order on the worker,
-  after restoring state from storage; `destroy()` closes the channel and returns the job that ends
-  once the client no longer touches storage. `EventDispatcher` delivers: size/timer/immediate
-  triggers, one batch in flight, D16 backoff, `drain()` for explicit flushes and teardown.
+  last one's teardown. `PugClient` is one configured instance: calls (and lifecycle callbacks) map
+  their arguments on the caller's thread and send an op into a channel that one coroutine runs in
+  order on the worker, after restoring state from storage; it also owns the foreground state
+  (`app_open`/`app_close`), the current screen (`$url`/`$referrer`) and the D21 opt-in replay.
+  `destroy()` closes the channel and returns the job that ends once the client no longer touches
+  storage. `EventDispatcher` delivers: size/timer/immediate triggers, one batch in flight, D16
+  backoff, `drain()` for explicit flushes, backgrounding and teardown.
+- `internal/platform/` — `Platform` is what the runtime takes from the device (storage directory,
+  auto-properties, lifecycle observation), so `PugClient` runs on a plain JVM in tests.
+  `AndroidPlatform` is the real one: `AndroidAutoProperties` (`PLAN.md` §4.10: fixed values read
+  once, screen/locale/time zone/network per event) and `ActivityLifecycleTracker` (main thread:
+  foreground while an activity is started, resumed activities as screens, seeded from
+  `getMyMemoryState`).
+- `internal/lifecycle/InstallTracker` — `app_install`/`app_update`: decided at start before
+  anything is written, emitted once consent allows.
 - `internal/logging/SafeLogger` — the only logger internals call (debug gating, contains a throwing
-  host logger). `internal/storage/SafePugStorage` fails over to memory on the first throw.
+  host logger). `internal/storage/SafePugStorage` fails over to memory on the first throw;
+  `FilePugStorage` is the default store: a file per key, cached, written behind by 1 s and synced
+  on backgrounding, flush and teardown (`PLAN.md` §4.6).
 - `internal/event/` — `PropertyMapper` / `TraitsMapper` (host values → `PropertyValue` / Struct,
   D15 guards), `EventFactory` (kind gate, timestamps, SDK auto-properties, 4 MiB cap).
 - `internal/identity/Identity`, `internal/consent/TrackingConsentController`,
@@ -70,6 +81,10 @@ auto-properties.
 - **State lives on the worker.** Only ops and network continuations on the worker read or write
   client state and storage; after any network await, re-check (`disposed`, the anonymous id, the
   purge generation) before touching anything.
+- **No I/O on the caller's thread.** `Pug.init` usually runs on the main thread under StrictMode:
+  file paths from the `Context`, package info and storage are touched on the worker (`restore()`).
+  The main thread only registers activity callbacks, and those catch `Throwable` whole, since they
+  run inside the host's own activity callbacks.
 - **Runtime dependencies are kotlin-stdlib and kotlinx-coroutines-core only**, at the floors in
   `gradle/libs.versions.toml`. protobuf-java, MockWebServer and org.json are test-only. Do not add
   a runtime dependency without a PLAN.md decision.
@@ -91,5 +106,8 @@ auto-properties.
 - No comments that restate code. Comment only a non-obvious why (a protocol quirk, a workaround,
   a deliberate divergence from a reference SDK).
 - Tests are JVM unit tests under `pug/src/test` (JUnit 4 + kotlin.test, plus a few Java tests under
-  `src/test/java` for the Java API and Java nulls); Robolectric arrives in phase 4 for the Android
-  adapters. Runtime tests use virtual time (`TestCoroutineScheduler`) and `FakeTransport`.
+  `src/test/java` for the Java API and Java nulls). Runtime tests use virtual time
+  (`TestCoroutineScheduler`), `FakeTransport` and `FakePlatform`. Robolectric (SDK 36, set in
+  `src/test/resources/robolectric.properties`) runs the `internal/platform/` tests and
+  `AndroidEndToEndTest`; under it, serve HTTP with the JDK's `com.sun.net.httpserver`, not
+  MockWebServer (`docs/development.md`).

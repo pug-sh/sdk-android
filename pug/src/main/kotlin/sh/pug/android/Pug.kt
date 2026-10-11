@@ -4,15 +4,16 @@ import android.content.Context
 import sh.pug.android.internal.runtime.PugFacade
 
 /**
- * The Pug SDK. Call [init] once, typically in `Application.onCreate`. Every other call can be made
- * from any thread, returns at once, and never throws: failures, and calls made before [init], are
- * logged.
+ * The Pug SDK. Call [init] once, in `Application.onCreate`. Every other call can be made from any
+ * thread, returns at once, and never throws: failures, and calls made before [init], are logged.
  */
 public object Pug {
     private val facade = PugFacade.create()
 
     /**
-     * Starts the SDK for [projectId]. A second call is ignored with a warning until [destroy].
+     * Starts the SDK for [projectId]. A second call is ignored with a warning until [destroy]. Called
+     * on the main thread before any activity starts, as in `Application.onCreate`, it sees the first
+     * screen; called later, it tracks from the next one on.
      *
      * @throws IllegalArgumentException when [projectId] or the API key is blank, or the endpoint is
      *   not an http(s) URL.
@@ -43,6 +44,17 @@ public object Pug {
         facade.identify(externalId, traits)
     }
 
+    /**
+     * Records that the screen called [name] is showing: tracks a `screen_view` unless it already was
+     * the current screen, and reports [name] as `$url` (and the screen before it as `$referrer`) on
+     * the events that follow. For screens that are not activities, such as composables or fragments;
+     * activities are tracked on their own unless `autoScreenViews` is off.
+     */
+    @JvmStatic
+    public fun screen(name: String) {
+        facade.screen(name)
+    }
+
     /** For a logout: a new anonymous id and session, and no external id. Queued events are still sent. */
     @JvmStatic
     public fun reset() {
@@ -55,7 +67,7 @@ public object Pug {
         facade.rotateSession()
     }
 
-    /** Sends queued events now. */
+    /** Sends queued events now, and writes what the SDK keeps to storage. */
     @JvmStatic
     public fun flush() {
         facade.flush()

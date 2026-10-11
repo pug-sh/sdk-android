@@ -19,6 +19,10 @@ final class JavaCallers {
         facade.identify(null, null);
     }
 
+    static void screenWithNullName(PugFacade facade) {
+        facade.screen(null);
+    }
+
     static PugOptions optionsWithNullApiKey() {
         return new PugOptions.Builder(null).build();
     }

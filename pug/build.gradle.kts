@@ -20,6 +20,10 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.all {
+            // Robolectric's Android 16 runtime reaches into the JDK's FileDescriptor internals.
+            it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+        }
     }
 
     lint {
@@ -54,4 +58,5 @@ dependencies {
     testImplementation(libs.mockwebserver)
     testImplementation(libs.org.json)
     testImplementation(libs.protobuf.java)
+    testImplementation(libs.robolectric)
 }
