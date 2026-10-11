@@ -1,7 +1,7 @@
 # sdk-android developer tasks. Mirrors the proto vendoring of sdk-web / sdk-flutter / sdk-node /
 # sdk-go / sdk-rust: proto/ is committed, so builds and CI never touch the Buf Schema Registry.
 
-.PHONY: sync-protos proto-latest check-proto-pin protos descriptors typed-track check-codegen verify-version fmt lint test build check ci
+.PHONY: sync-protos proto-latest check-proto-pin protos descriptors typed-track check-codegen verify-version fmt lint test build abi-dump sample publish-bundle publish-central check ci
 
 # `ci` must run `protos` before `check-codegen` diffs the generated files. Keep everything serial
 # even under `make -jN`.
@@ -64,12 +64,15 @@ check-codegen:
 	test -z "$$drift" \
 	  || { git status --short -- $(GENERATED); echo "codegen drift: run 'make protos' and commit"; exit 1; }
 
-# $sdkVersion comes from SDK_VERSION; the published artifact version from VERSION_NAME.
+# $sdkVersion comes from SDK_VERSION; the published artifact version from VERSION_NAME, which the
+# README's install line names too.
 verify-version:
 	@gradle_version="$$(sed -n 's/^VERSION_NAME=//p' gradle.properties)"; \
 	kotlin_version="$$(sed -n 's/.*SDK_VERSION: String = "\(.*\)"/\1/p' pug/src/main/kotlin/sh/pug/android/Version.kt)"; \
 	test "$$gradle_version" = "$$kotlin_version" \
-	  || { echo "version mismatch: gradle.properties=$$gradle_version Version.kt=$$kotlin_version"; exit 1; }
+	  || { echo "version mismatch: gradle.properties=$$gradle_version Version.kt=$$kotlin_version"; exit 1; }; \
+	grep -qF "sh.pug:pug-android:$$gradle_version\"" README.md \
+	  || { echo "README.md does not install sh.pug:pug-android:$$gradle_version"; exit 1; }
 
 fmt:
 	$(GRADLE) spotlessApply
@@ -83,8 +86,37 @@ test:
 build:
 	$(GRADLE) :pug:assembleRelease
 
+# Rewrites pug/api/pug.api from the release AAR; review the diff before committing it.
+abi-dump:
+	$(GRADLE) :tools:abi-dump:abiDump
+
+# The sample app, debug and minified release.
+sample:
+	$(GRADLE) :sample:assemble
+
+VERSION := $(shell sed -n 's/^VERSION_NAME=//p' gradle.properties)
+BUNDLE := pug/build/central/pug-android-$(VERSION).zip
+
+# The signed Maven Central bundle. Needs ORG_GRADLE_PROJECT_signingInMemoryKey and
+# ORG_GRADLE_PROJECT_signingInMemoryKeyPassword; no configuration cache, which would store the key.
+publish-bundle: verify-version
+	$(GRADLE) --no-configuration-cache :pug:centralBundle
+	@echo "Built $(BUNDLE)"
+
+# Uploads the bundle to the Central Portal, where it waits for "Publish" (irreversible) after
+# validation. CENTRAL_TOKEN is base64 of a Portal user token's "username:password".
+publish-central:
+	@test -n "$$CENTRAL_TOKEN" || { echo "CENTRAL_TOKEN is not set (docs/development.md, Releasing)"; exit 1; }
+	$(MAKE) publish-bundle
+	@curl --fail-with-body --silent --show-error -X POST \
+	  -H "Authorization: Bearer $$CENTRAL_TOKEN" \
+	  -F "bundle=@$(BUNDLE)" \
+	  "https://central.sonatype.com/api/v1/publisher/upload?name=pug-android-$(VERSION)&publishingType=USER_MANAGED" \
+	  && echo " <- deployment id: release it at https://central.sonatype.com/publishing/deployments"
+
 # One Gradle invocation, so configuration runs once.
 check: verify-version
-	$(GRADLE) spotlessCheck :pug:lintDebug :pug:testDebugUnitTest :pug:assembleRelease
+	$(GRADLE) spotlessCheck :pug:lintDebug :pug:testDebugUnitTest :pug:assembleRelease :tools:abi-dump:abiCheck \
+	  :sample:assembleRelease
 
 ci: protos check-codegen check

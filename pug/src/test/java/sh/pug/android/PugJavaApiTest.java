@@ -1,5 +1,6 @@
 package sh.pug.android;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -73,6 +74,19 @@ public class PugJavaApiTest {
         assertNull(Pug.getTrackingConsent());
         assertFalse(Pug.isTrackingEnabled());
         assertTrue(Pug.isConsentPending());
+    }
+
+    @Test
+    public void memoryStorageIgnoresNulls() {
+        MemoryPugStorage storage = new MemoryPugStorage();
+        storage.putString("key", "value");
+
+        storage.putString(null, "value");
+        storage.putString("key", null);
+        storage.remove(null);
+
+        assertNull(storage.getString(null));
+        assertEquals("value", storage.getString("key"));
     }
 
     @Test

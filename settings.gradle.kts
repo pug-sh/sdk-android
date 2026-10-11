@@ -17,4 +17,6 @@ dependencyResolutionManagement {
 rootProject.name = "sdk-android"
 
 include(":pug")
+include(":sample")
+include(":tools:abi-dump")
 include(":tools:gen-track")

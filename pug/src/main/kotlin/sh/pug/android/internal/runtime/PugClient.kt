@@ -55,7 +55,8 @@ import sh.pug.android.internal.wire.PropertyValue
 // Bounds destroy()'s final flush, which the next init() waits for.
 internal const val TEARDOWN_TIMEOUT_MS: Long = 10_000L
 
-// How long a consent getter waits for start-up to read a stored choice before answering "unknown".
+// For how long after start the consent getters wait for start-up to read a stored choice; after
+// that they answer "unknown" at once.
 internal const val CONSENT_WAIT_MS: Long = 1_000L
 
 /**
@@ -96,11 +97,16 @@ internal class PugClient(
     private val factory = EventFactory(projectId, logger, propertyMapper, ids)
 
     // The consent getters answer on the caller's thread: the latest opt-in or opt-out wins, else
-    // what start-up restored.
+    // what start-up restored, which they wait for until the deadline start() sets and no longer.
     @Volatile private var chosenConsent: TrackingConsent? = null
+    private val consentLock = Any()
 
     @Volatile private var restoredConsent: RestoredConsent? = null
     private val consentRestored = CountDownLatch(1)
+
+    @Volatile private var consentDeadlineNanos = 0L
+
+    @Volatile private var consentUnknownReported = false
 
     // Worker-confined, from restore() on.
     private lateinit var consent: TrackingConsentController
@@ -132,6 +138,7 @@ internal class PugClient(
      * starts observing the app's lifecycle, whose events wait for start-up like any call.
      */
     fun start(previousTeardown: Job?) {
+        consentDeadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(consentWaitMs)
         lifetime = scope.launch { run(previousTeardown) }
         // The client is running now, so a failure here must not reach the facade, which would
         // leave it running unreachable.
@@ -278,21 +285,25 @@ internal class PugClient(
         }
 
     private fun setConsent(name: String, value: TrackingConsent) {
-        chosenConsent = value
         val now = clock.nowMillis()
-        submit(name) {
-            val wasGranted = consent.isGranted
-            consent.set(value)
-            logger.debug("Tracking consent is now ${value.name.lowercase()}")
-            if (value == TrackingConsent.DENIED) {
-                // The identity that saw this visit's app_open is gone; the next visit opens afresh.
-                opened = false
-            } else if (!wasGranted) {
-                // What a launch would have tracked, had consent allowed it then.
-                installs.emit(::captureInstallEvent)
-                if (visible) {
-                    open(now)
-                    screen?.let { captureScreenView(it, screenClass, now) }
+        // Choices made at once on two threads: the one the getters report must be the one queued
+        // last, which the worker applies last.
+        synchronized(consentLock) {
+            chosenConsent = value
+            submit(name) {
+                val wasGranted = consent.isGranted
+                consent.set(value)
+                logger.debug("Tracking consent is now ${value.name.lowercase()}")
+                if (value == TrackingConsent.DENIED) {
+                    // The identity that saw this visit's app_open is gone; the next visit opens afresh.
+                    opened = false
+                } else if (!wasGranted) {
+                    // What a launch would have tracked, had consent allowed it then.
+                    installs.emit(::captureInstallEvent)
+                    if (visible) {
+                        open(now)
+                        screen?.let { captureScreenView(it, screenClass, now) }
+                    }
                 }
             }
         }
@@ -308,12 +319,21 @@ internal class PugClient(
 
     private fun restored(): RestoredConsent? {
         restoredConsent?.let { return it }
-        try {
-            if (!consentRestored.await(consentWaitMs, TimeUnit.MILLISECONDS)) {
-                logger.warn("Tracking consent was asked for before Pug finished starting; it is reported as unknown")
+        val started =
+            try {
+                consentRestored.await(maxOf(consentDeadlineNanos - System.nanoTime(), 0L), TimeUnit.NANOSECONDS)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                false
             }
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
+        if (!started) {
+            val message = "Tracking consent was asked for before Pug finished starting; it is reported as unknown"
+            if (consentUnknownReported) {
+                logger.debug(message)
+            } else {
+                consentUnknownReported = true
+                logger.warn(message)
+            }
         }
         return restoredConsent
     }
@@ -335,6 +355,9 @@ internal class PugClient(
         } catch (t: Throwable) {
             logger.error("Pug failed to start; calls are ignored", t)
             ops.cancel()
+            // A storage sync or a send started before the failure would otherwise write to storage
+            // that the next client, which no longer waits for this one, is using.
+            root.cancel()
             return
         } finally {
             consentRestored.countDown()

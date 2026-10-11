@@ -23,6 +23,7 @@ import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.logging.SafeLogger
+import sh.pug.android.internal.platform.AutoProperties
 import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.platform.LifecycleObserver
 import sh.pug.android.internal.platform.Platform
@@ -366,6 +367,27 @@ class PugClientPlatformTest {
         scheduler.runCurrent()
 
         assertEquals(listOf(listOf("a"), listOf("a")), transport.kinds)
+    }
+
+    @Test
+    fun `a client that fails to start writes nothing afterwards`() {
+        val directory = folder.newFolder("pug")
+        val platform =
+            object : Platform by FakePlatform(directory) {
+                override fun autoProperties(logger: SafeLogger): AutoProperties = object : AutoProperties {
+                    override val appVersion: String = "1.0"
+
+                    override fun current(): Map<String, Any?> = throw IllegalStateException("boom")
+                }
+            }
+        client(platform) { storage = null }
+
+        scheduler.runCurrent()
+        scheduler.advanceTimeBy(STORAGE_SYNC_DELAY_MS)
+        scheduler.runCurrent()
+
+        assertEquals(listOf("Pug failed to start; calls are ignored"), logger.errors)
+        assertEquals(emptyList(), directory.list()?.toList())
     }
 
     @Test
