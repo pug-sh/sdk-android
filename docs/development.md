@@ -1,0 +1,97 @@
+# Development
+
+Internal guide for working on `sdk-android`. Design decisions and the phase plan live in
+[`PLAN.md`](../PLAN.md); end-user docs will live in the [README](../README.md).
+
+## Toolchain
+
+| Tool | Version | Where it comes from |
+| ---- | ------- | ------------------- |
+| JDK | 21 (Temurin) | `mise.toml` (`mise install`), or any JDK 17+ on `PATH` |
+| Android SDK | platform 36, build-tools 37.0.0 | `sdk.dir` in `local.properties` (not committed) or `ANDROID_HOME` |
+| Gradle | 9.8.1 | the wrapper |
+| Android Gradle Plugin | 9.4.1 | built-in Kotlin (no `kotlin-android` plugin) |
+| buf | 1.73.0 | `mise.toml`; only needed to sync or rebuild protos |
+
+The library compiles to Java 11 bytecode with Kotlin `apiVersion`/`languageVersion` 2.0 and
+`coreLibrariesVersion` 2.0.21, so apps on older Kotlin can consume it (PLAN.md D2).
+
+## Commands
+
+| Command | What it does |
+| ------- | ------------ |
+| `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease` |
+| `make fmt` | `spotlessApply` (ktlint 1.8, `android_studio` style) |
+| `make lint` / `test` / `build` | the individual Gradle steps |
+| `make protos` | `buf build` → `pug/src/test/resources/pug.binpb`, the descriptor set the conformance tests read |
+| `make check-codegen` | fails if the committed generated files differ from a fresh `make protos` |
+| `make ci` | `protos`, `check-codegen`, `check`: what CI runs |
+| `make sync-protos` | re-export `proto/` from the pinned BSR commit (network) |
+| `make check-proto-pin` | release gate: `proto/` equals the pinned export (network) |
+| `make proto-latest` | print the newest commit on `buf.build/pugsh/pug:main` |
+| `make verify-version` | `VERSION_NAME` in `gradle.properties` equals `SDK_VERSION` in `Version.kt` |
+
+## Protos
+
+`proto/` is vendored from `buf.build/pugsh/pug` at the commit pinned in the `Makefile` (the same
+commit as sdk-flutter, sdk-node, sdk-go and sdk-rust), allowlisted to `sdk/events`, `sdk/profiles`,
+`common/events/v1` and `common/v1/property_value.proto`. `sdk/devices` is excluded on purpose.
+
+No protobuf code is generated for the runtime: `internal/wire` encodes the handful of messages the
+SDK sends by hand (PLAN.md D4), which keeps protobuf off the host app's classpath. Correctness is
+pinned by `PugWireTest`, which builds the same messages with protobuf-java's `DynamicMessage` from
+the descriptor set and asserts byte-for-byte equality.
+
+To take a newer schema: `make proto-latest`, set `PROTO_COMMIT`, `make sync-protos protos`, then
+update `internal/wire` for any change to the encoded messages and run `make check`.
+
+## Testing notes
+
+- All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test.
+- `unitTests.isReturnDefaultValues = true`, and the real `org.json` is a test dependency because
+  `android.jar`'s copy is a stub.
+- Transport tests run `HttpPugTransport` against MockWebServer (`mockwebserver3`) with real
+  sockets. The JDK's `HttpURLConnection` retries a POST once when the connection drops before a
+  response, so tests that drop connections enqueue the failure twice.
+- Summarize results from `pug/build/test-results/testDebugUnitTest/*.xml` rather than scrolling
+  Gradle output.
+- Shared fakes live in `pug/src/test/kotlin/sh/pug/android/internal/Fakes.kt`: `RecordingLogger`
+  (`.safe()` wraps it in `SafeLogger`), `FakeClock`, `SequentialIds` (valid, predictable UUIDs),
+  `FixedRandom` (0.5 removes retry jitter) and `ThrowingStorage`.
+- Runtime tests (`internal/runtime/`) run the worker on a `StandardTestDispatcher` and drive virtual
+  time with its `TestCoroutineScheduler` (`runCurrent`, `advanceTimeBy`; each file opts in to
+  `ExperimentalCoroutinesApi`). `FakeTransport` records requests and answers from a script; after
+  `hold()` calls wait for `release(i)` or `releaseAll()`, which opens the race windows (a reset
+  during identify, a destroy during a flush). Beware `advanceUntilIdle()` while every send fails: the
+  retries never run out.
+- `EndToEndTest` runs a client on a real worker against MockWebServer and decodes the requests with
+  protobuf-java. Java tests live in `pug/src/test/java`: `PugJavaApiTest` pins the API as Java sees
+  it, and `JavaCallers` passes the nulls Kotlin cannot (`PLAN.md` D20).
+- `Build.VERSION.SDK_INT` reads 0 in JVM tests, so code with an API-level branch takes the level as
+  a constructor parameter (`PropertyMapper(logger, sdkInt = 26)`).
+
+## Source layout
+
+| Path | Responsibility |
+| ---- | -------------- |
+| `pug/src/main/kotlin/sh/pug/android/Version.kt` | `SDK_VERSION`, sent as `$sdkVersion` and in the User-Agent |
+| `Pug.kt` | The public entry point: thin `@JvmStatic` wrappers over `PugFacade` |
+| `PugOptions.kt`, `TrackOptions.kt`, `TrackingConsent.kt` | Public configuration; `PugOptions` validates numbers at `build()` |
+| `PugLogger.kt`, `PugStorage.kt` | Public logger and storage interfaces, `MemoryPugStorage` |
+| `internal/logging/SafeLogger.kt` | The logger internals call: debug gating, contains a throwing logger; `LogcatLogger` |
+| `internal/storage/` | `SafePugStorage` (memory failover), `PugStorageKeys` (`__pug_<projectId>_<name>__`) |
+| `internal/PugClock.kt`, `Ids.kt`, `Utf8.kt` | Clock, UUIDv7 ids and `isUuid`, UTF-8 length and truncation |
+| `internal/JavaNulls.kt` | `isNull(Any?)`, for parameters a Java caller can pass null to (`PLAN.md` D20) |
+| `internal/runtime/PugFacade.kt` | State behind `Pug`: validation, pre-init warnings, the shared worker, the teardown handoff |
+| `internal/runtime/PugClient.kt` | One configured instance: caller-thread mapping, the op channel, start-up, consent getters, teardown |
+| `internal/runtime/EventDispatcher.kt` | Delivery: batching triggers, one batch in flight, retry backoff, drain |
+| `internal/json/JsonWriter.kt` | JSON text for persisted state and collection-valued properties |
+| `internal/event/` | `PropertyMapper`, `TraitsMapper`, `HostJson` (host values as JSON), `EventFactory` (D15 guards), limits |
+| `internal/identity/Identity.kt` | Session and profile: minted lazily, held in memory, written through |
+| `internal/consent/TrackingConsentController.kt` | Consent state, persistence and the D12 purges (through callbacks) |
+| `internal/queue/` | `EventQueue` (lock/commit/rollback, overflow, persistence), `EventJson` (stored event shape) |
+| `internal/wire/Models.kt` | Domain types shared by the runtime and the codec |
+| `internal/wire/PugWire.kt` | Encode `BatchCreateRequest`/`IdentifyRequest`, decode `BatchCreateResponse`, `eventSize` |
+| `internal/wire/ProtoWriter.kt`, `ProtoReader.kt` | Protobuf wire primitives |
+| `internal/transport/HttpPugTransport.kt` | Connect unary client: headers, deadlines, cancellation, error mapping |
+| `internal/transport/RpcCode.kt` | Connect codes, permanent set, HTTP-status fallback, `PugTransportException` |

@@ -1,0 +1,25 @@
+[versions]
+agp = "9.4.1"
+ktlint = "1.8.0"
+spotless = "8.10.4"
+# Floors, not targets: Gradle resolves highest-wins, so these set the oldest versions a host app
+# can be on. See PLAN.md D2/D3 before raising them.
+coroutines = "1.9.0"
+kotlinStdlib = "2.0.21"
+junit = "4.13.2"
+okhttp = "5.5.0"
+orgJson = "20260814"
+protobuf = "4.36.2"
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinStdlib" }
+junit = { module = "junit:junit", version.ref = "junit" }
+mockwebserver = { module = "com.squareup.okhttp3:mockwebserver3", version.ref = "okhttp" }
+org-json = { module = "org.json:json", version.ref = "orgJson" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

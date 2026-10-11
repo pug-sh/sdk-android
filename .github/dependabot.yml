@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Runtime dependency versions in gradle/libs.versions.toml are deliberate floors (PLAN.md D2/D3):
+  # only test and build tooling should be bumped routinely.
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+      - dependency-name: "org.jetbrains.kotlin:kotlin-test-junit"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
