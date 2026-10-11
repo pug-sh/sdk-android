@@ -4,7 +4,7 @@ A release that regenerates the typed track API from newer event schemas says so:
 to an event inserts a parameter before `extras` and `options`, which Java callers passing those
 positionally must follow.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-10-12)
 
 The first release.
 
