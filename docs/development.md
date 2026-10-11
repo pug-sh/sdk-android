@@ -103,10 +103,33 @@ each event in dry run (`debug` is on in every build of the sample). The project,
 endpoint come from the Gradle properties `pug.sample.projectId`, `pug.sample.apiKey` and
 `pug.sample.endpoint`, read into `BuildConfig`; without an API key the sample runs in dry run.
 
+### On an emulator
+
+Before a release, run the sample on the target API level and on `minSdk`. The AOSP images are the
+smallest (about 800 MB for API 36, 280 MB for API 21) and boot headless:
+
+```bash
+sdkmanager "emulator" "system-images;android-36;default;x86_64" "system-images;android-21;default;x86_64"
+avdmanager create avd -n pug36 -k "system-images;android-36;default;x86_64" -d pixel_6
+avdmanager create avd -n pug21 -k "system-images;android-21;default;x86_64" -d pixel_6
+emulator -avd pug36 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &
+```
+
+To see what the SDK sends, serve the two Connect methods on the host's port 8080 (the Pug server,
+or a stub that saves each body and answers `BatchCreateResponse{accepted}`), build with
+`-Ppug.sample.apiKey=test-key -Ppug.sample.endpoint=http://10.0.2.2:8080` (10.0.2.2 is the host
+from the emulator), and decode a saved body with
+`buf convert pug/src/test/resources/pug.binpb --type sdk.events.v1.BatchCreateRequest --from body.binpb#format=binpb --to -#format=json`.
+Debug builds allow cleartext (`src/debug/AndroidManifest.xml`); release builds do not, so on API
+28 and later the minified build runs in dry run or against https, while API 21 predates the block.
+Watch `adb logcat -s Pug StrictMode AndroidRuntime`: a debug build dies on main-thread disk or
+network access, and logs any VM-policy violation, such as a socket without a TrafficStats tag.
+
 ## Testing notes
 
 - All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test. The Android classes in
-  `internal/platform/` and `AndroidEndToEndTest` run on Robolectric
+  `internal/platform/`, `AndroidEndToEndTest` and `HttpPugTransportTrafficStatsTest` (TrafficStats
+  tags are per thread under Robolectric) run on Robolectric
   (`@RunWith(RobolectricTestRunner::class)`, SDK 36 from `src/test/resources/robolectric.properties`).
 - `unitTests.isReturnDefaultValues = true`, and the real `org.json` is a test dependency because
   `android.jar`'s copy is a stub.
@@ -181,7 +204,7 @@ endpoint come from the Gradle properties `pug.sample.projectId`, `pug.sample.api
 | `internal/wire/Models.kt` | Domain types shared by the runtime and the codec |
 | `internal/wire/PugWire.kt` | Encode `BatchCreateRequest`/`IdentifyRequest`, decode `BatchCreateResponse`, `eventSize` |
 | `internal/wire/ProtoWriter.kt`, `ProtoReader.kt` | Protobuf wire primitives |
-| `internal/transport/HttpPugTransport.kt` | Connect unary client: headers, deadlines, cancellation, error mapping |
+| `internal/transport/HttpPugTransport.kt` | Connect unary client: headers, deadlines, cancellation, error mapping, the TrafficStats tag |
 | `internal/transport/RpcCode.kt` | Connect codes, permanent set, HTTP-status fallback, `PugTransportException` |
 | `tools/gen-track/` | The typed-track generator: `Catalog.kt` reads the image, `Render.kt` writes the sources |
 | `tools/abi-dump/` | The public API dump of the release AAR, and its check |

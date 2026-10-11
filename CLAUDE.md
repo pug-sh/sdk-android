@@ -84,7 +84,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   `BatchCreateResponse`). `PugWire` encodes `BatchCreateRequest` / `IdentifyRequest` and decodes
   `BatchCreateResponse`; `ProtoWriter` / `ProtoReader` are the wire primitives.
 - `internal/transport/` — `PugTransport` (suspend `sendBatch` / `identify`), implemented by
-  `HttpPugTransport`: Connect unary over `HttpURLConnection`. Every failure surfaces as
+  `HttpPugTransport`: Connect unary over `HttpURLConnection`, its sockets opened under a
+  TrafficStats tag (StrictMode's `detectUntaggedSockets`). Every failure surfaces as
   `PugTransportException(code, isPermanent)`; `RpcCode` holds the Connect codes, the
   permanent set and the HTTP-status fallback table.
 
@@ -129,5 +130,7 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   (`TestCoroutineScheduler`), `FakeTransport` and `FakePlatform`. `WellKnownEventsTest` and
   `TrackNamespaceTest` check the generated code against `pug.binpb` through protobuf-java, not
   through the generator. Robolectric (SDK 36, set in `src/test/resources/robolectric.properties`)
-  runs the `internal/platform/` tests and `AndroidEndToEndTest`; under it, serve HTTP with the
-  JDK's `com.sun.net.httpserver`, not MockWebServer (`docs/development.md`).
+  runs the `internal/platform/` tests, `AndroidEndToEndTest` and `HttpPugTransportTrafficStatsTest`;
+  under it, serve HTTP with the JDK's `com.sun.net.httpserver`, not MockWebServer
+  (`docs/development.md`). What only a device shows is checked by running the sample on an emulator
+  (`docs/development.md`, Sample app).

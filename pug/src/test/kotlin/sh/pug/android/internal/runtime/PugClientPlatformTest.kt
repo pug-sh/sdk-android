@@ -47,6 +47,9 @@ class PugClientPlatformTest {
     private val keys = PugStorageKeys(PROJECT)
     private val ids = SequentialIds()
 
+    // Time that passes on the main thread while the worker has not run yet.
+    private var elapsedMs = 0L
+
     @Test
     fun `device and app properties ride on every event`() {
         val platform = FakePlatform(properties = mapOf("\$os" to "Android", "\$screenWidth" to 411))
@@ -140,13 +143,16 @@ class PugClientPlatformTest {
         platform.resume("com.example.HomeActivity")
         scheduler.runCurrent()
         assertEquals(emptyList(), transport.batches)
+        elapsedMs = 10
         client.optInTracking()
         client.optInTracking()
         client.flush()
+        elapsedMs = 20
         scheduler.runCurrent()
 
         val events = transport.batches.single()
         assertEquals(listOf("app_install", "app_open", "screen_view"), events.map { it.kind })
+        assertEquals(listOf(START + 10), events.map { it.occurTimeMillis }.distinct())
         assertEquals(StringValue("HomeActivity"), events[2].customProperties["screenName"])
         assertEquals(StringValue("HomeActivity"), events[1].autoProperties["\$url"])
         assertEquals("1.0", storage.getString(keys.lastVersion))
@@ -258,17 +264,21 @@ class PugClientPlatformTest {
     }
 
     @Test
-    fun `the first launch tracks app_install, before the launch app_open`() {
+    fun `the first launch tracks app_install, dated at init and before the launch app_open`() {
         val platform = FakePlatform(appVersion = "1.0")
         client(platform) { batch(maxSize = 2) }
 
+        elapsedMs = 10
         platform.foreground()
+        elapsedMs = 20
         scheduler.runCurrent()
 
         val (install, open) = transport.batches.single()
         assertEquals("app_install", install.kind)
+        assertEquals(START, install.occurTimeMillis)
         assertEquals(mapOf("appVersion" to StringValue("1.0")), install.customProperties)
         assertEquals("app_open", open.kind)
+        assertEquals(START + 10, open.occurTimeMillis)
         assertEquals("1.0", storage.getString(keys.lastVersion))
     }
 
@@ -466,7 +476,7 @@ class PugClientPlatformTest {
             transport,
             worker,
             platform,
-            clock = { START + scheduler.currentTime },
+            clock = { START + scheduler.currentTime + elapsedMs },
             ids = ids,
             random = FixedRandom(),
             sdkInt = 26,

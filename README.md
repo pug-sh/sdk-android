@@ -48,7 +48,8 @@ background thread, and failures are logged rather than raised. The one exception
 which throws `IllegalArgumentException` for a blank project id or API key, or an endpoint that is
 not an http(s) URL. Calls made before `Pug.init` are ignored with a warning, and so is a second
 `Pug.init` until `Pug.destroy`. `Pug.init` does no disk or network work on the calling thread, so it
-is safe on the main thread under StrictMode. (Right after `Pug.init`, the consent getters may wait
+is safe on the main thread under StrictMode, and the SDK's connections carry a TrafficStats tag, so
+`detectUntaggedSockets` does not report them. (Right after `Pug.init`, the consent getters may wait
 briefly; see [Tracking consent](#tracking-consent).)
 
 ## Options

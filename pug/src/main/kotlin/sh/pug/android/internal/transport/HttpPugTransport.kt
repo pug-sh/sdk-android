@@ -1,5 +1,6 @@
 package sh.pug.android.internal.transport
 
+import android.net.TrafficStats
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -7,6 +8,7 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.SocketTimeoutException
 import java.net.URL
+import java.net.URLConnection
 import java.util.concurrent.Executor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -25,12 +27,16 @@ import sh.pug.android.internal.wire.PugWire
 internal const val DEFAULT_BATCH_TIMEOUT_MILLIS: Long = 10_000L
 internal const val DEFAULT_IDENTIFY_TIMEOUT_MILLIS: Long = 15_000L
 
+// "PUG" in ASCII; tags from 0xFFFFFF00 up are reserved for the system.
+internal const val TRAFFIC_STATS_TAG: Int = 0x505547
+
 internal class HttpPugTransport(
     endpoint: String,
     private val apiKey: String,
     private val batchTimeoutMillis: Long = DEFAULT_BATCH_TIMEOUT_MILLIS,
     private val identifyTimeoutMillis: Long = DEFAULT_IDENTIFY_TIMEOUT_MILLIS,
     private val executor: Executor = Dispatchers.IO.asExecutor(),
+    private val openConnection: (URL) -> URLConnection = URL::openConnection,
 ) : PugTransport {
     private val baseUrl = endpoint.trimEnd('/')
 
@@ -79,7 +85,7 @@ internal class HttpPugTransport(
     private fun open(path: String, contentLength: Int, timeoutMillis: Long): HttpURLConnection {
         val connection =
             try {
-                URL(baseUrl + path).openConnection() as HttpURLConnection
+                openConnection(URL(baseUrl + path)) as HttpURLConnection
             } catch (e: MalformedURLException) {
                 throw PugTransportException(RpcCode.INVALID_ARGUMENT, "invalid endpoint URL", e)
             } catch (e: ClassCastException) {
@@ -106,9 +112,22 @@ internal class HttpPugTransport(
         suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { connection.disconnect() }
             executor.execute {
-                continuation.resumeWith(runCatching { execute(connection, body) })
+                continuation.resumeWith(runCatching { tagged { execute(connection, body) } })
             }
         }
+
+    // StrictMode's detectUntaggedSockets, part of detectAll() from API 26, reports every socket
+    // opened without a TrafficStats tag, so a host whose VM policy has penaltyDeath would crash on
+    // the first send. The executor's threads are shared, so the thread's own tag is put back.
+    private inline fun <T> tagged(block: () -> T): T {
+        val previous = TrafficStats.getThreadStatsTag()
+        TrafficStats.setThreadStatsTag(TRAFFIC_STATS_TAG)
+        try {
+            return block()
+        } finally {
+            TrafficStats.setThreadStatsTag(previous)
+        }
+    }
 
     private fun execute(connection: HttpURLConnection, body: ByteArray): RawResponse = try {
         connection.outputStream.use { it.write(body) }

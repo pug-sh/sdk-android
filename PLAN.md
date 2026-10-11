@@ -14,11 +14,13 @@ session can continue from here without re-reading the reference SDKs.
 | 4 | Android platform: file storage, auto-properties, lifecycle, screens, install/update | ✅ done (2026-10-11) |
 | 5 | Typed track API (codegen from protos) | ✅ done (2026-10-11) |
 | 6 | Release readiness: sample app, docs, publishing, API dump, hardening audit | ✅ done (2026-10-11) |
+| 7 | First release: device run on emulators (API 36 and 21), fixes, release commit and tag | ✅ done (2026-10-12); publishing pending |
 
 **Resuming in a new session:** read this file, then `CLAUDE.md` and `docs/development.md`. Every
-phase is done; what remains is the first release (`docs/development.md`, Releasing: the Central
-Portal namespace and signing key are one-time setup outside this repo), the family-coordination
-items of §7, and §8. Work after this ends with `make check` green and this file updated.
+phase is done and `v0.1.0` is committed and tagged locally. What remains is publishing it (phase 7,
+"For publishing": push, the Central upload and the GitHub release, after one-time setup outside
+this repo), the family-coordination items of §7, and §8. Work after this ends with `make check`
+green and this file updated.
 
 ## 1. Scope
 
@@ -280,6 +282,9 @@ written.
   `failed_precondition`, `unimplemented`, `unauthenticated`. Everything else is transient.
 - 2xx: a non-empty content type without `proto` ⇒ transient (D6). `BatchCreateResponse.accepted <
   sent` ⇒ warn (sdk-web parity). A 2xx body that fails to decode is still a success.
+- Requests run under a TrafficStats tag (`TRAFFIC_STATS_TAG`), and the thread's own tag is put back
+  after: StrictMode's `detectUntaggedSockets` (in `detectAll()` from API 26) reports every socket
+  opened untagged, which a host whose VM policy has `penaltyDeath` would die of.
 
 ### 4.6 Storage and keys
 
@@ -348,7 +353,9 @@ dropped on load (Flutter).
   prior-activity key exists, `app_update{appVersion, previousVersion}` when the stored version
   differs, the version advanced only once the event is captured. `check()` runs in `restore()`
   before identity and queue are built, `emit()` after `enforceAtInit()` (so before the launch
-  `app_open`) and again on opt-in (D21).
+  `app_open`) and again on opt-in (D21). The event is dated at `Pug.init` (or at the opt-in): the
+  launch `app_open` is dated on the main thread when the activity starts, which can precede the
+  worker's start-up.
 - Init after the first activity resumed (or off the main thread, which posts the registration)
   misses that activity's `screen_view`; the seed still gets `app_open` and `app_close` right.
 
@@ -723,11 +730,66 @@ For the first release (`docs/development.md`, Releasing):
 - Install the minified sample on a device (`./gradlew :sample:installRelease`) and check Logcat
   before tagging.
 
+### Phase 7 — first release ✅
+
+Run the sample on devices before tagging: emulators at the target API level (36) and at `minSdk`
+(21), debug builds under StrictMode and minified release builds, sending to a stub backend on the
+host. Fix what that finds, then take the release steps of `docs/development.md` up to a local commit
+and tag. Publishing waits for the one-time setup.
+
+**Notes (done 2026-10-12).** `make ci` green: 313 tests (2 new), lint clean, release AAR 272 KB,
+minified sample APK 142 KB; `make check-proto-pin` passes.
+- Emulators: AOSP `default` x86_64 images of Android 16 (API 36) and 5.0.2 (API 21), headless,
+  from `sdkmanager` (1.4 GB with the emulator). The sample sent to a stub Connect server on the host
+  (`http://10.0.2.2:8080`) that saved each body and answered with `accepted`; the bodies were
+  decoded with `buf convert` against `pug.binpb`. Setup: `docs/development.md`, Sample app.
+- Seen working on both levels, debug and minified: the first-launch batch (`app_install`,
+  `app_open`, `screen_view`) with the device's auto-properties (`$osVersion` 16 and 5.0.2,
+  `$networkType` from `NetworkCapabilities` and from `NetworkInfo`, screen metrics); custom, typed
+  and Java calls; `Pug.screen` and `$url`/`$referrer`; `identify` (the anonymous id on the first
+  call); `reset`; immediate sends; opt-out (queue and identity purged, later events dropped) and the
+  D21 replay on opt-in; a rotation (no `app_close`/`app_open`, the screen not tracked again); Home
+  (`app_close` sent at once, the queue drained); a force-stop and relaunch (identity, session and
+  queued events restored, no second `app_install`); state files 0600 in `no_backup/pug`. On
+  Android's `HttpURLConnection` (OkHttp inside): the headers; a 503 and a captive-portal 200 retried
+  with backoff under the same event ids; a 401 with and without a Connect body and a 413 dropped; a
+  hung server cut off at the 10 s deadline. No crash, and no main-thread StrictMode violation.
+- Fixed: (1) every new connection raised StrictMode's `UntaggedSocketViolation` (API 26+), which a
+  VM policy with `penaltyDeath` turns into a crash; requests now run under a TrafficStats tag (§4.5;
+  `HttpPugTransportTrafficStatsTest`, on Robolectric, which keeps tags per thread). (2) `app_install`
+  was dated when the worker finished start-up, after the launch `app_open` that the main thread had
+  dated (by 12 ms on the emulator), so a first launch read install-after-open; it is now dated at
+  `Pug.init`, and an opt-in replay at the opt-in (§4.9; Flutter dates both in order on one isolate).
+  Mutation-checked: dropping the tag, not restoring the thread's own tag, or dating either install
+  on the worker fails a test.
+- Observed and kept: an event tracked in an activity's `onCreate` carries the previous screen in
+  `$url`, since screens change at `onActivityResumed` (§4.9). A release build with an `http://`
+  endpoint on API 28+ fails every send with "Cleartext HTTP traffic … not permitted", an
+  `IOException`, so it is retried as `unavailable` and nothing is sent until the endpoint is https.
+  In a minified app the SDK's stack traces in Logcat are obfuscated by the host's R8, whose mapping
+  file reads them.
+- Publication: the unsigned publication (`publishReleasePublicationToCentralRepository`, into
+  `pug/build/central/repository`) holds the AAR (its manifest declares only `INTERNET`; no consumer
+  rules), the sources and javadoc jars, Gradle module metadata, and a POM with kotlin-stdlib 2.0.21
+  (compile) and kotlinx-coroutines-core 1.9.0 (runtime). The CI workflow's action versions exist
+  (checkout v7, setup-java v6, setup-gradle v6, cache v6, buf-setup v1.50.0), but CI has never run:
+  nothing is pushed.
+- Committed and tagged `v0.1.0` locally; the CHANGELOG entry is dated 2026-10-12.
+
+For publishing (`docs/development.md`, Releasing):
+- `github.com/pug-sh/sdk-android` exists but is private and empty, and the POM's URLs point at it:
+  make it public, add it as `origin`, push `main` and `v0.1.0`, and let CI pass (nothing is
+  published yet, so a fix can still move the tag).
+- One-time setup: the Central Portal namespace `sh.pug` (a DNS TXT record on `pug.sh`), a Portal
+  user token, and a GPG key on a keyserver (this machine has none).
+- Then `make publish-central`, Publish on the Portal's Deployments page, and the GitHub release
+  from the CHANGELOG entry.
+
 ## 6. Toolchain
 
 - JDK 21 via `mise` (`mise.toml`), Android SDK at `~/Android/Sdk` (platform 36, build-tools 37.0.0;
   `local.properties` → `sdk.dir`, not committed), buf 1.73.0 via `mise`, Gradle 9.8.1 wrapper,
-  AGP 9.4.1.
+  AGP 9.4.1. Emulator 37.2.12 with the AVDs `pug36` and `pug21` (AOSP x86_64 images, KVM).
 - Run Gradle once into a scratch log and grep it; Kotlin diagnostics start `e: ` / `w: `.
 
 ## 7. Family-coordination items
