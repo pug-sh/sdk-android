@@ -1,0 +1,95 @@
+# CLAUDE.md
+
+Guidance for Claude Code working in this repository.
+
+## Start here
+
+`PLAN.md` is the source of truth: the phase status table, every design decision (D1–D19) with its
+reasoning, the wire and transport contracts, and the family-coordination list. Read it before
+changing behavior; a decision recorded there is not re-litigated in code review. Build details live
+in `docs/development.md`.
+
+The reference SDKs are siblings: `../sdk-flutter` (mobile semantics) and `../sdk-web` (product
+semantics). Out of scope by user instruction: FCM/push and device registration
+(`sdk.devices.v1`, `IdentifyRequest.device_id`).
+
+## Commands
+
+```bash
+make check      # verify-version + spotlessCheck + lint + unit tests + release AAR (one Gradle run)
+make fmt        # spotlessApply (ktlint, android_studio style)
+make protos     # regenerate pug/src/test/resources/pug.binpb from proto/ (needs buf)
+make ci         # protos + check-codegen + check: what CI runs
+```
+
+JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untracked
+`local.properties`. Gradle is slow to start: run it once into a log file and grep the file
+(Kotlin diagnostics start with `e: ` / `w: `), don't re-run it to try a different filter.
+
+## Architecture (current)
+
+Module `:pug` → `sh.pug:pug-android`, package `sh.pug.android`, explicit API mode. Public: the `Pug`
+object (the entry point, `@JvmStatic`), `PugOptions` (opaque, built by `PugOptions.Builder` or the
+Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
+`MemoryPugStorage`. Until phase 4, storage defaults to memory and there are no platform
+auto-properties.
+
+- `internal/runtime/` — `PugFacade` is the state behind `Pug`: init validation, pre-init warnings,
+  never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
+  last one's teardown. `PugClient` is one configured instance: calls map their arguments on the
+  caller's thread and send an op into a channel that one coroutine runs in order on the worker,
+  after restoring state from storage; `destroy()` closes the channel and returns the job that ends
+  once the client no longer touches storage. `EventDispatcher` delivers: size/timer/immediate
+  triggers, one batch in flight, D16 backoff, `drain()` for explicit flushes and teardown.
+- `internal/logging/SafeLogger` — the only logger internals call (debug gating, contains a throwing
+  host logger). `internal/storage/SafePugStorage` fails over to memory on the first throw.
+- `internal/event/` — `PropertyMapper` / `TraitsMapper` (host values → `PropertyValue` / Struct,
+  D15 guards), `EventFactory` (kind gate, timestamps, SDK auto-properties, 4 MiB cap).
+- `internal/identity/Identity`, `internal/consent/TrackingConsentController`,
+  `internal/queue/EventQueue` — session/profile, consent (D12 purges via callbacks), and the
+  persisted lock/commit/rollback queue. Each holds its state in memory, reads storage once at
+  construction and writes through; ids are minted on first use so a denied client writes nothing.
+- `internal/wire/` — hand-rolled protobuf codec. `Models.kt` holds the domain types the rest of the
+  SDK builds (`Event`, `PropertyValue`, `JsonValue` for identify traits, `IdentifyRequest`,
+  `BatchCreateResponse`). `PugWire` encodes `BatchCreateRequest` / `IdentifyRequest` and decodes
+  `BatchCreateResponse`; `ProtoWriter` / `ProtoReader` are the wire primitives.
+- `internal/transport/` — `PugTransport` (suspend `sendBatch` / `identify`), implemented by
+  `HttpPugTransport`: Connect unary over `HttpURLConnection`. Every failure surfaces as
+  `PugTransportException(code, isPermanent)`; `RpcCode` holds the Connect codes, the
+  permanent set and the HTTP-status fallback table.
+
+## Invariants
+
+- **Never crash the host** (sdk-web parity). The only host-facing throw is `Pug.init` argument
+  validation. Catch `Throwable` at coroutine boundaries and rethrow `CancellationException` first
+  (it is an `IllegalStateException`); code that never suspends (ops, host loggers and storage)
+  catches it whole.
+- **Java nulls** (`PLAN.md` D20): `-Xno-param-assertions` lets a Java null reach a non-null
+  parameter, so public entry points check required parameters with `isNull(Any?)` and log-and-drop
+  (or, in `Pug.init`, throw `IllegalArgumentException`). Optional parameters are nullable.
+- **State lives on the worker.** Only ops and network continuations on the worker read or write
+  client state and storage; after any network await, re-check (`disposed`, the anonymous id, the
+  purge generation) before touching anything.
+- **Runtime dependencies are kotlin-stdlib and kotlinx-coroutines-core only**, at the floors in
+  `gradle/libs.versions.toml`. protobuf-java, MockWebServer and org.json are test-only. Do not add
+  a runtime dependency without a PLAN.md decision.
+- **minSdk 21.** Lint `NewApi` runs with warnings as errors; `java.time`, `java.util.Base64`,
+  `Math.floorDiv` and `ConcurrentHashMap.newKeySet()` are all above 21 (use the Kotlin stdlib
+  equivalents).
+- **Wire pitfalls** (`PLAN.md` §4.4): a selected oneof member is written even when it holds a
+  default value; empty ids are omitted (edition 2023 explicit presence); map entries are written
+  key-sorted. `PugWireTest` compares against protobuf-java byte for byte; keep it passing.
+- **Transport contract** (`PLAN.md` §4.5): permanent = invalid_argument, not_found,
+  already_exists, permission_denied, failed_precondition, unimplemented, unauthenticated. A 2xx
+  that is not protobuf is transient (captive portals). A timeout or caller cancellation must
+  `disconnect()` the connection, because socket reads ignore interrupts.
+
+## Conventions
+
+- ktlint `android_studio` style via Spotless, 120 columns, trailing commas allowed. `make fmt`
+  before committing.
+- No comments that restate code. Comment only a non-obvious why (a protocol quirk, a workaround,
+  a deliberate divergence from a reference SDK).
+- Tests are JVM unit tests under `pug/src/test` (JUnit 4 + kotlin.test, plus a few Java tests under
+  `src/test/java` for the Java API and Java nulls); Robolectric arrives in phase 4 for the Android
+  adapters. Runtime tests use virtual time (`TestCoroutineScheduler`) and `FakeTransport`.
