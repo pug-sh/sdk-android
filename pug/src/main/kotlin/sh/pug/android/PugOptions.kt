@@ -77,11 +77,18 @@ public class PugOptions private constructor(builder: Builder) {
         @set:JvmSynthetic
         public var dryRun: Boolean = false
 
-        /** Tracks `app_open` and `app_close` as the app moves between foreground and background. */
+        /**
+         * Tracks `app_open` and `app_close` as the app moves between foreground and background.
+         * Queued events are sent when the app leaves the foreground either way.
+         */
         @set:JvmSynthetic
         public var autoTrack: Boolean = true
 
-        /** Tracks a `screen_view` each time an activity resumes. */
+        /**
+         * Tracks a `screen_view` named after the activity's class each time an activity resumes on a
+         * different screen. Turn it off to name every screen yourself with `Pug.screen`, which
+         * activities then leave alone.
+         */
         @set:JvmSynthetic
         public var autoScreenViews: Boolean = true
 

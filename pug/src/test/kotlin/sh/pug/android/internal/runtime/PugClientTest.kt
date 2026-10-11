@@ -26,6 +26,7 @@ import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.ThrowingStorage
 import sh.pug.android.internal.isUuid
+import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.queue.EventJson
 import sh.pug.android.internal.storage.PugStorageKeys
 import sh.pug.android.internal.transport.RpcCode
@@ -581,6 +582,7 @@ class PugClientTest {
             options,
             transport,
             worker,
+            FakePlatform(),
             clock = { START + scheduler.currentTime },
             ids = ids,
             random = FixedRandom(),

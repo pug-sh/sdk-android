@@ -19,6 +19,7 @@ import sh.pug.android.TrackingConsent
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
+import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.wire.PropertyValue
 
 class PugFacadeTest {
@@ -31,8 +32,17 @@ class PugFacadeTest {
     private val ids = SequentialIds()
     private val context = ContextWrapper(null)
     private val facade =
-        PugFacade(fallbackLogger.safe(debug = false)) { projectId, options ->
-            PugClient(projectId, options, transport, worker, ids = ids, random = FixedRandom(), sdkInt = 26)
+        PugFacade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
+            PugClient(
+                projectId,
+                options,
+                transport,
+                worker,
+                FakePlatform(),
+                ids = ids,
+                random = FixedRandom(),
+                sdkInt = 26,
+            )
         }
 
     @Test
@@ -85,9 +95,13 @@ class PugFacadeTest {
 
         JavaCallers.trackWithNullKind(facade)
         JavaCallers.identifyWithNullId(facade)
+        JavaCallers.screenWithNullName(facade)
         scheduler.runCurrent()
 
-        assertEquals(listOf("An event with a null kind was dropped"), logger.warnings)
+        assertEquals(
+            listOf("An event with a null kind was dropped", "A screen with a null name was dropped"),
+            logger.warnings,
+        )
         assertEquals(listOf("identify() was dropped: externalId is null"), logger.errors)
     }
 
@@ -95,6 +109,7 @@ class PugFacadeTest {
     fun `calls before init are ignored with a warning`() {
         facade.track("a", null, null)
         facade.identify("user-1", null)
+        facade.screen("Home")
         facade.reset()
         facade.rotateSession()
         facade.flush()
@@ -106,7 +121,17 @@ class PugFacadeTest {
         assertFalse(facade.isTrackingEnabled())
         assertTrue(facade.isConsentPending())
         assertEquals(
-            listOf("track", "identify", "reset", "rotateSession", "flush", "optInTracking", "optOutTracking", "destroy")
+            listOf(
+                "track",
+                "identify",
+                "screen",
+                "reset",
+                "rotateSession",
+                "flush",
+                "optInTracking",
+                "optOutTracking",
+                "destroy",
+            )
                 .map { "Pug.$it() was called before Pug.init(); it was ignored" } +
                 listOf(
                     "Pug.getTrackingConsent() was called before Pug.init(); returning null",
@@ -198,7 +223,7 @@ class PugFacadeTest {
 
     @Test
     fun `a client that cannot be built leaves Pug uninitialized`() {
-        val failing = PugFacade(fallbackLogger.safe(debug = false)) { _, _ -> throw IllegalStateException("boom") }
+        val failing = PugFacade(fallbackLogger.safe(debug = false)) { _, _, _ -> throw IllegalStateException("boom") }
 
         failing.init(context, PROJECT, options())
         failing.track("a", null, null)
