@@ -5,8 +5,8 @@ import sh.pug.android.internal.isNull
 
 /**
  * Persists identity, consent and queued events. Calls are synchronous and come from the SDK's own
- * worker thread, one at a time. If an implementation throws, the SDK keeps its state in memory for
- * the rest of the process.
+ * worker thread, one at a time. If an implementation throws, the SDK keeps its state in memory
+ * until `Pug.destroy()` or the process ends.
  */
 public interface PugStorage {
     public fun getString(key: String): String?

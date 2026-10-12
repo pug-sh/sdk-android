@@ -32,14 +32,11 @@ internal object PugWire {
     fun decodeBatchCreateResponse(bytes: ByteArray): BatchCreateResponse {
         val reader = ProtoReader(bytes)
         var accepted = 0L
-        var dropped = 0L
         val droppedByReason = LinkedHashMap<String, Long>()
         while (!reader.isAtEnd) {
             val tag = reader.readTag()
             when (tag) {
                 fieldKey(1, WIRE_VARINT) -> accepted = reader.readVarint() and UINT32_MASK
-
-                fieldKey(2, WIRE_VARINT) -> dropped = reader.readVarint() and UINT32_MASK
 
                 fieldKey(3, WIRE_LEN) -> {
                     val entry = reader.readMessage()
@@ -58,7 +55,7 @@ internal object PugWire {
                 else -> reader.skip(tag and 7)
             }
         }
-        return BatchCreateResponse(accepted, dropped, droppedByReason)
+        return BatchCreateResponse(accepted, droppedByReason)
     }
 
     // edition 2023 gives singular fields explicit presence, so an empty id would be sent as a set
@@ -75,11 +72,14 @@ internal object PugWire {
         return message
     }
 
-    private fun ProtoWriter.writePropertyMap(field: Int, properties: Map<String, PropertyValue>) {
-        for (key in properties.keys.sorted()) {
+    private fun ProtoWriter.writePropertyMap(field: Int, properties: Map<String, PropertyValue>) =
+        writeSortedMap(field, properties, ::propertyValue)
+
+    private inline fun <V> ProtoWriter.writeSortedMap(field: Int, map: Map<String, V>, value: (V) -> ProtoWriter) {
+        for (key in map.keys.sorted()) {
             val entry = ProtoWriter()
             entry.writeString(1, key)
-            entry.writeMessage(2, propertyValue(properties.getValue(key)))
+            entry.writeMessage(2, value(map.getValue(key)))
             writeMessage(field, entry)
         }
     }
@@ -109,12 +109,7 @@ internal object PugWire {
 
     private fun struct(fields: Map<String, JsonValue>): ProtoWriter {
         val message = ProtoWriter()
-        for (key in fields.keys.sorted()) {
-            val entry = ProtoWriter()
-            entry.writeString(1, key)
-            entry.writeMessage(2, value(fields.getValue(key)))
-            message.writeMessage(1, entry)
-        }
+        message.writeSortedMap(1, fields, ::value)
         return message
     }
 

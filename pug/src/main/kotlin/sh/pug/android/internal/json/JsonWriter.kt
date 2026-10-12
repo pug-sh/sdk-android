@@ -1,5 +1,7 @@
 package sh.pug.android.internal.json
 
+import sh.pug.android.internal.appendHex
+
 /** Appends JSON text; callers pass finite doubles only. */
 internal class JsonWriter(capacity: Int = 64) {
     private val out = StringBuilder(capacity)
@@ -21,40 +23,15 @@ internal class JsonWriter(capacity: Int = 64) {
         return this
     }
 
-    fun value(value: String): JsonWriter {
-        separate()
-        string(value)
-        needsComma = true
-        return this
-    }
+    fun value(value: String): JsonWriter = scalar { string(value) }
 
-    fun value(value: Long): JsonWriter {
-        separate()
-        out.append(value)
-        needsComma = true
-        return this
-    }
+    fun value(value: Long): JsonWriter = scalar { out.append(value) }
 
-    fun value(value: Double): JsonWriter {
-        separate()
-        out.append(value)
-        needsComma = true
-        return this
-    }
+    fun value(value: Double): JsonWriter = scalar { out.append(value) }
 
-    fun value(value: Boolean): JsonWriter {
-        separate()
-        out.append(value)
-        needsComma = true
-        return this
-    }
+    fun value(value: Boolean): JsonWriter = scalar { out.append(value) }
 
-    fun nullValue(): JsonWriter {
-        separate()
-        out.append("null")
-        needsComma = true
-        return this
-    }
+    fun nullValue(): JsonWriter = scalar { out.append("null") }
 
     override fun toString(): String = out.toString()
 
@@ -67,6 +44,13 @@ internal class JsonWriter(capacity: Int = 64) {
 
     private fun close(bracket: Char): JsonWriter {
         out.append(bracket)
+        needsComma = true
+        return this
+    }
+
+    private inline fun scalar(write: () -> Unit): JsonWriter {
+        separate()
+        write()
         needsComma = true
         return this
     }
@@ -90,15 +74,11 @@ internal class JsonWriter(capacity: Int = 64) {
                 '\t' -> out.append("\\t")
                 '\b' -> out.append("\\b")
                 '\u000C' -> out.append("\\f")
-                else -> out.append("\\u00").append(HEX[c.code shr 4]).append(HEX[c.code and 0x0F])
+                else -> out.append("\\u00").appendHex(c.code)
             }
             start = i + 1
         }
         out.append(value, start, value.length)
         out.append('"')
-    }
-
-    private companion object {
-        const val HEX = "0123456789abcdef"
     }
 }

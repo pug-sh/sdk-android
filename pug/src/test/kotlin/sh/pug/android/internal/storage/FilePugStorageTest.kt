@@ -142,6 +142,21 @@ class FilePugStorageTest {
     }
 
     @Test
+    fun `an unreadable file reads as absent, is logged, and leaves the files in use`() {
+        // A directory where the file should be cannot be read.
+        file(KEY).mkdirs()
+        val files = storage()
+        val storage = SafePugStorage(files, logger.safe())
+
+        assertNull(storage.getString(KEY))
+        storage.putString(OTHER_KEY, "v1")
+        files.sync()
+
+        assertTrue(logger.warnings.single().startsWith("Storage file "))
+        assertEquals("v1", file(OTHER_KEY).readText())
+    }
+
+    @Test
     fun `a failed write is logged once and retried with the next change`() {
         // A file where the directory should be makes every write fail.
         directory.writeText("in the way")

@@ -2,8 +2,11 @@
 
 package sh.pug.android.internal.runtime
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,12 +16,14 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.json.JSONArray
 import sh.pug.android.MemoryPugStorage
 import sh.pug.android.PugLogger
 import sh.pug.android.PugOptions
+import sh.pug.android.PugStorage
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent.DENIED
 import sh.pug.android.TrackingConsent.GRANTED
@@ -47,7 +52,7 @@ class PugClientTest {
 
     @Test
     fun `an event carries the session, the anonymous id and the time of the call`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
         scheduler.advanceTimeBy(1_000)
         client.track("add_to_cart", mapOf("productId" to "p1", "quantity" to 2), null)
@@ -67,7 +72,7 @@ class PugClientTest {
 
     @Test
     fun `properties are read during the call`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
         val count = AtomicInteger(1)
         val tags = mutableListOf("a")
         val properties = mutableMapOf<String, Any?>("count" to count, "tags" to tags)
@@ -100,9 +105,9 @@ class PugClientTest {
 
     @Test
     fun `a timestamp option sets when the event happened`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
-        client.track("imported", null, TrackOptions(timestamp = 42L))
+        client.track("imported", null, TrackOptions { timestamp = 42L })
         scheduler.runCurrent()
 
         assertEquals(42L, transport.batches.single().single().occurTimeMillis)
@@ -126,7 +131,7 @@ class PugClientTest {
         val client = client()
 
         client.track("queued", null, null)
-        client.track("urgent", null, TrackOptions(immediate = true))
+        client.track("urgent", null, TrackOptions { immediate = true })
         scheduler.runCurrent()
 
         assertEquals(listOf(listOf("urgent")), transport.kinds)
@@ -134,7 +139,7 @@ class PugClientTest {
 
     @Test
     fun `nothing is tracked or identified while consent is denied`() {
-        val client = client { trackingConsent(default = DENIED) }
+        val client = client { defaultTrackingConsent = DENIED }
 
         client.track("a", null, null)
         client.identify("user-1", null)
@@ -153,7 +158,7 @@ class PugClientTest {
     fun `dryRun logs events and identify without sending them`() {
         val client = client { dryRun = true }
 
-        client.track("a", null, TrackOptions(immediate = true))
+        client.track("a", null, TrackOptions { immediate = true })
         client.identify("user-1", null)
         client.flush()
         scheduler.advanceUntilIdle()
@@ -167,7 +172,7 @@ class PugClientTest {
 
     @Test
     fun `the first identify links the anonymous id, and later events carry the external id`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
         client.track("before", null, null)
         client.identify("user-1", mapOf("plan" to "pro"))
@@ -294,7 +299,7 @@ class PugClientTest {
     fun `reset while consent is denied clears an identity kept from before`() {
         storage.putString(keys.profile, """{"anonymousId":"anon-1","externalId":"user-1"}""")
         storage.putString(keys.externalId, "user-1")
-        val client = client { trackingConsent(default = DENIED) }
+        val client = client { defaultTrackingConsent = DENIED }
 
         client.reset()
         scheduler.runCurrent()
@@ -305,7 +310,7 @@ class PugClientTest {
 
     @Test
     fun `rotateSession starts a new session for the same user`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
         client.track("a", null, null)
         client.rotateSession()
@@ -335,7 +340,7 @@ class PugClientTest {
 
     @Test
     fun `opting back in starts a fresh identity`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
         client.track("a", null, null)
         scheduler.runCurrent()
 
@@ -354,7 +359,7 @@ class PugClientTest {
         storage.putString(keys.consent, "denied")
         storage.putString(keys.profile, """{"anonymousId":"anon-1"}""")
         storage.putString(keys.queue, "[${EventJson.encode(event("a"))}]")
-        val client = client { trackingConsent(persist = true) }
+        val client = client { persistTrackingConsent = true }
 
         scheduler.runCurrent()
 
@@ -381,7 +386,10 @@ class PugClientTest {
     @Test
     fun `consent getters report the restored choice once started`() {
         storage.putString(keys.consent, "granted")
-        val client = client { trackingConsent(default = DENIED, persist = true) }
+        val client = client {
+            defaultTrackingConsent = DENIED
+            persistTrackingConsent = true
+        }
 
         scheduler.runCurrent()
 
@@ -416,6 +424,54 @@ class PugClientTest {
     }
 
     @Test
+    fun `consent getters called right after start wait for the stored choice`() {
+        storage.putString(keys.consent, "granted")
+        val read = CountDownLatch(1)
+        val slowStorage =
+            object : PugStorage by storage {
+                override fun getString(key: String): String? {
+                    if (key == keys.consent) read.await()
+                    return storage.getString(key)
+                }
+            }
+        val worker = Executors.newSingleThreadExecutor()
+        try {
+            val options =
+                PugOptions("pub_key") {
+                    logger = this@PugClientTest.logger
+                    storage = slowStorage
+                    defaultTrackingConsent = DENIED
+                    persistTrackingConsent = true
+                }
+            val client =
+                PugClient(
+                    PROJECT,
+                    options,
+                    transport,
+                    worker.asCoroutineDispatcher(),
+                    FakePlatform(),
+                    clock = { START },
+                    ids = ids,
+                    random = FixedRandom(),
+                    sdkInt = 26,
+                    consentWaitMs = 5_000,
+                )
+            client.start(null)
+            thread {
+                Thread.sleep(100)
+                read.countDown()
+            }
+
+            assertEquals(GRANTED, client.trackingConsent)
+            assertFalse(client.isConsentPending)
+            assertEquals(emptyList(), logger.warnings)
+            client.destroy()
+        } finally {
+            worker.shutdownNow()
+        }
+    }
+
+    @Test
     fun `consent getters stop waiting for start-up once the deadline after start has passed`() {
         val client = client(previousTeardown = Job(), consentWaitMs = 100)
 
@@ -433,7 +489,7 @@ class PugClientTest {
     @Test
     fun `nothing runs until the previous client's teardown is over, then calls run in order`() {
         val previous = Job()
-        val client = client(previousTeardown = previous) { batch(maxSize = 1) }
+        val client = client(previousTeardown = previous) { batchMaxSize = 1 }
 
         client.track("a", null, null)
         client.optOutTracking()
@@ -451,7 +507,10 @@ class PugClientTest {
     @Test
     fun `flush sends now, even while a retry is pending`() {
         transport.failNextBatch(RpcCode.UNAVAILABLE)
-        val client = client { batch(maxSize = 1, maxWaitMs = 60_000) }
+        val client = client {
+            batchMaxSize = 1
+            batchMaxWaitMs = 60_000
+        }
 
         client.track("a", null, null)
         scheduler.runCurrent()
@@ -480,7 +539,7 @@ class PugClientTest {
 
     @Test
     fun `destroy waits for a batch in flight before letting go of storage`() {
-        val client = client { batch(maxSize = 2) }
+        val client = client { batchMaxSize = 2 }
         transport.hold()
         client.track("a", null, null)
         client.track("b", null, null)
@@ -496,6 +555,39 @@ class PugClientTest {
         assertTrue(teardown.isCompleted)
         assertEquals(listOf(listOf("a", "b"), listOf("c")), transport.kinds)
         assertNull(storage.getString(keys.queue))
+    }
+
+    @Test
+    fun `destroy waits for an identify and an immediate event in flight`() {
+        val client = client()
+        transport.hold()
+        client.identify("user-1", null)
+        client.track("x", null, TrackOptions { immediate = true })
+        scheduler.runCurrent()
+
+        val teardown = client.destroy()
+        scheduler.advanceTimeBy(5_000)
+        assertFalse(teardown.isCompleted)
+        transport.releaseAll()
+        scheduler.runCurrent()
+
+        assertTrue(teardown.isCompleted)
+        assertEquals("user-1", storage.getString(keys.externalId))
+        assertEquals(listOf(listOf("x")), transport.kinds)
+        assertNull(storage.getString(keys.queue))
+    }
+
+    @Test
+    fun `an immediate event that destroy stops waiting for is kept`() {
+        val client = client()
+        transport.hold()
+        client.track("x", null, TrackOptions { immediate = true })
+
+        client.destroy()
+        scheduler.advanceTimeBy(TEARDOWN_TIMEOUT_MS)
+        scheduler.runCurrent()
+
+        assertEquals(listOf("x"), stored().map { it.kind })
     }
 
     @Test
@@ -564,7 +656,7 @@ class PugClientTest {
     fun `a failing storage falls back to memory and tracking goes on`() {
         val client = client {
             storage = ThrowingStorage(IllegalStateException("disk full"))
-            batch(maxSize = 1)
+            batchMaxSize = 1
         }
 
         client.track("a", null, null)
@@ -589,7 +681,7 @@ class PugClientTest {
             }
         val client = client {
             logger = throwing
-            batch(maxSize = 1)
+            batchMaxSize = 1
         }
 
         client.track("bad kind", null, null)

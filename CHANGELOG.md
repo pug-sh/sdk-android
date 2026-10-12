@@ -14,7 +14,8 @@ The first release.
 - Typed methods for the 123 well-known events, generated from the event schemas:
   `Pug.track.addToCart(productId = "p1", price = 9.99)`, with `extras` for further properties and
   overloads for Java. Their kinds are `PugEvents` constants.
-- Automatic `app_open` and `app_close`, a `screen_view` for each activity, and `app_install` and
+- Automatic `app_open` and `app_close`, a `screen_view` each time an activity
+  resumes on a different screen, and `app_install` and
   `app_update` on the first launch of each app version.
 - Tracking consent (granted or denied, optionally persisted): opting out drops queued events and
   the stored identity; opting in tracks what consent held back during the launch.

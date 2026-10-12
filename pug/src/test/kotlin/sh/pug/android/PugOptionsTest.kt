@@ -46,9 +46,13 @@ class PugOptionsTest {
                 autoInstallEvents = false
                 this.logger = logger
                 this.storage = storage
-                batch(maxSize = 20, maxWaitMs = 1_000, maxQueueSize = 50)
-                session(idleTimeoutMs = 60_000, maxDurationMs = 120_000)
-                trackingConsent(default = TrackingConsent.DENIED, persist = true)
+                batchMaxSize = 20
+                batchMaxWaitMs = 1_000
+                batchMaxQueueSize = 50
+                sessionIdleTimeoutMs = 60_000
+                sessionMaxDurationMs = 120_000
+                defaultTrackingConsent = TrackingConsent.DENIED
+                persistTrackingConsent = true
             }
         val builder =
             PugOptions
@@ -61,9 +65,13 @@ class PugOptionsTest {
                 .autoInstallEvents(false)
                 .logger(logger)
                 .storage(storage)
-                .batch(20, 1_000, 50)
-                .session(60_000, 120_000)
-                .trackingConsent(TrackingConsent.DENIED, true)
+                .batchMaxSize(20)
+                .batchMaxWaitMs(1_000)
+                .batchMaxQueueSize(50)
+                .sessionIdleTimeoutMs(60_000)
+                .sessionMaxDurationMs(120_000)
+                .defaultTrackingConsent(TrackingConsent.DENIED)
+                .persistTrackingConsent(true)
                 .build()
 
         for (options in listOf(dsl, builder)) {
@@ -87,13 +95,20 @@ class PugOptionsTest {
     }
 
     @Test
-    fun `group setters leave unnamed members at their defaults`() {
+    fun `each setter changes only its own option`() {
         val options =
             PugOptions("pub_test") {
-                batch(maxWaitMs = 0)
-                session(maxDurationMs = 60_000)
-                trackingConsent(persist = true)
+                batchMaxWaitMs = 0
+                sessionMaxDurationMs = 60_000
+                persistTrackingConsent = true
             }
+        val consent =
+            PugOptions("pub_test") {
+                defaultTrackingConsent = TrackingConsent.DENIED
+                persistTrackingConsent = true
+            }
+
+        assertEquals(TrackingConsent.DENIED, consent.defaultTrackingConsent)
 
         assertEquals(10, options.batchMaxSize)
         assertEquals(0L, options.batchMaxWaitMs)
@@ -111,8 +126,11 @@ class PugOptionsTest {
         val options =
             PugOptions("pub_test") {
                 this.logger = logger
-                batch(maxSize = 0, maxWaitMs = -1, maxQueueSize = 0)
-                session(idleTimeoutMs = 0, maxDurationMs = -5)
+                batchMaxSize = 0
+                batchMaxWaitMs = -1
+                batchMaxQueueSize = 0
+                sessionIdleTimeoutMs = 0
+                sessionMaxDurationMs = -5
             }
 
         assertEquals(10, options.batchMaxSize)
@@ -122,11 +140,11 @@ class PugOptionsTest {
         assertEquals(24 * 60 * 60_000L, options.sessionMaxDurationMs)
         assertEquals(
             listOf(
-                "batch maxSize 0 must be at least 1; using 10",
-                "batch maxWaitMs -1 must be at least 0; using 5000",
-                "batch maxQueueSize 0 must be at least 1; using 1000",
-                "session idleTimeoutMs 0 must be at least 1; using 1800000",
-                "session maxDurationMs -5 must be at least 1; using 86400000",
+                "batchMaxSize 0 must be at least 1; using 10",
+                "batchMaxWaitMs -1 must be at least 0; using 5000",
+                "batchMaxQueueSize 0 must be at least 1; using 1000",
+                "sessionIdleTimeoutMs 0 must be at least 1; using 1800000",
+                "sessionMaxDurationMs -5 must be at least 1; using 86400000",
             ),
             logger.warnings,
         )
@@ -139,11 +157,11 @@ class PugOptionsTest {
         val options =
             PugOptions("pub_test") {
                 this.logger = logger
-                batch(maxSize = 5_000)
+                batchMaxSize = 5_000
             }
 
         assertEquals(1_000, options.batchMaxSize)
-        assertEquals(listOf("batch maxSize 5000 is above the server's limit; using 1000"), logger.warnings)
+        assertEquals(listOf("batchMaxSize 5000 is above the server's limit; using 1000"), logger.warnings)
     }
 
     @Test
@@ -160,10 +178,10 @@ class PugOptionsTest {
 
     @Test
     fun `a builder can be reused`() {
-        val builder = PugOptions.Builder("pub_test").batch(maxSize = 20)
+        val builder = PugOptions.Builder("pub_test").batchMaxSize(20)
 
         val first = builder.build()
-        val second = builder.batch(maxSize = 30).build()
+        val second = builder.batchMaxSize(30).build()
 
         assertEquals(20, first.batchMaxSize)
         assertEquals(30, second.batchMaxSize)

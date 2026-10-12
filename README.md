@@ -41,7 +41,7 @@ Pug.identify("user-42", mapOf("plan" to "pro"))
 ```
 
 From there the SDK tracks `app_open` and `app_close` as the app comes and goes, a `screen_view`
-for each activity shown, and `app_install` or `app_update` on the first launch of each app version.
+each time an activity resumes on a different screen, and `app_install` or `app_update` on the first launch of each app version.
 
 Every call returns at once, can be made from any thread, and never throws: calls run in order on one
 background thread, and failures are logged rather than raised. The one exception is `Pug.init`,
@@ -60,8 +60,10 @@ Pug.init(
     "your-project-id",
     PugOptions("your-api-key") {
         debug = BuildConfig.DEBUG
-        batch(maxSize = 20, maxWaitMs = 10_000)
-        trackingConsent(default = TrackingConsent.DENIED, persist = true)
+        batchMaxSize = 20
+        batchMaxWaitMs = 10_000
+        defaultTrackingConsent = TrackingConsent.DENIED
+        persistTrackingConsent = true
     },
 )
 ```
@@ -71,11 +73,15 @@ Pug.init(
 | `endpoint` | `https://api.pugs.dev` | Base URL of the Pug API. |
 | `debug` | `false` | Logs debug messages: each event tracked, sent or dropped, and why. Warnings and errors are always logged. |
 | `dryRun` | `false` | Builds and logs events without sending anything; `identify` is not sent either. Consent is unaffected. |
-| `batch(maxSize, maxWaitMs, maxQueueSize)` | `10`, `5000`, `1000` | Events go out in requests of up to `maxSize` (at most 1000): once that many are queued, or `maxWaitMs` after the first of them. Beyond `maxQueueSize` undelivered events, the oldest is dropped. |
-| `session(idleTimeoutMs, maxDurationMs)` | 30 min, 24 h | A session ends after `idleTimeoutMs` without events, or `maxDurationMs` after it began. |
-| `trackingConsent(default, persist)` | `GRANTED`, `false` | See [Tracking consent](#tracking-consent). |
+| `batchMaxSize` | `10` | Events go out in requests of up to this many (at most 1000): once that many are queued, or `batchMaxWaitMs` after the first of them. |
+| `batchMaxWaitMs` | `5000` | How long the first queued event waits for a full batch. |
+| `batchMaxQueueSize` | `1000` | Beyond this many undelivered events, the oldest is dropped. |
+| `sessionIdleTimeoutMs` | 30 min | A session ends after this long without events. |
+| `sessionMaxDurationMs` | 24 h | A session ends this long after it began. |
+| `defaultTrackingConsent` | `GRANTED` | See [Tracking consent](#tracking-consent). |
+| `persistTrackingConsent` | `false` | See [Tracking consent](#tracking-consent). |
 | `autoTrack` | `true` | Tracks `app_open` and `app_close`. |
-| `autoScreenViews` | `true` | Tracks a `screen_view` for each activity shown. |
+| `autoScreenViews` | `true` | Tracks a `screen_view` each time an activity resumes on a different screen. |
 | `autoInstallEvents` | `true` | Tracks `app_install` and `app_update`. |
 | `logger` | Logcat | A `PugLogger` to receive the SDK's messages instead. |
 | `storage` | files | A `PugStorage` to keep the SDK's state in instead; `MemoryPugStorage` keeps nothing on the device. |
@@ -90,7 +96,7 @@ above 1000 is capped.
 
 ```kotlin
 Pug.track("video_shared", mapOf("videoId" to "v1", "network" to "mastodon", "duration" to 31.5))
-Pug.track("order_completed", mapOf("orderId" to "o-1"), TrackOptions(immediate = true))
+Pug.track("order_completed", mapOf("orderId" to "o-1"), TrackOptions { immediate = true })
 ```
 
 An event kind may contain letters, digits, `_`, `.` and `-`; any other kind is dropped with a
@@ -110,8 +116,8 @@ Anything else is dropped with a warning, as is a key starting with `$`, which is
 auto-properties. Properties are read during the call, so the map can be changed or reused as soon
 as `track` returns.
 
-`TrackOptions(immediate = true)` sends the event on its own right away instead of with the next
-batch; if that send fails it joins the queue for a retry. `TrackOptions(timestamp = …)` sets when
+`TrackOptions { immediate = true }` sends the event on its own right away instead of with the next
+batch; if that send fails it joins the queue for a retry. `TrackOptions { timestamp = … }` sets when
 the event happened, in epoch milliseconds, for an event recorded after the fact.
 
 ### Well-known events
@@ -127,7 +133,7 @@ Pug.track.videoPlay(videoId = "v1", positionMs = 1_500)
 Pug.track.addToCart(
     productId = "sku-1",
     extras = mapOf("coupon" to "SPRING"),
-    options = TrackOptions(immediate = true),
+    options = TrackOptions { immediate = true },
 )
 ```
 
@@ -193,7 +199,7 @@ Pug.destroy()        // Stop the SDK after a final flush of at most ten seconds.
 ```
 
 Events queued before `reset()` keep the user they were tracked for, and `reset()` sends them without
-waiting for the next batch. `destroy()` keeps identity, consent and undelivered events for the next
+waiting for the next batch. `destroy()` keeps identity, persisted consent and undelivered events for the next
 `Pug.init`, which waits for the teardown to finish.
 
 ## Tracking consent
@@ -202,7 +208,8 @@ Consent is granted by default. To wait for the user's choice, start denied and p
 
 ```kotlin
 PugOptions("your-api-key") {
-    trackingConsent(default = TrackingConsent.DENIED, persist = true)
+    defaultTrackingConsent = TrackingConsent.DENIED
+    persistTrackingConsent = true
 }
 ```
 
@@ -220,7 +227,7 @@ Pug.optOutTracking()  // the user declined
   could not track at launch and, if the app is on screen, `app_open` and a `screen_view` of the
   current screen. A consent banner on the first launch therefore loses none of them.
 - With `persist = true` the choice is stored and restored by the next `Pug.init`; without it, it
-  lasts until the process ends.
+  lasts until `Pug.destroy()` or the process ends.
 - `getTrackingConsent()` is the consent in effect (null before `Pug.init`), `isTrackingEnabled()`
   whether it is granted, and `isConsentPending()` whether the user has yet to choose. Right after
   `Pug.init` the getters may wait up to a second for a stored choice to be read.
@@ -260,7 +267,7 @@ the rest once per launch.
 - Requests are capped at 4 MiB. A single event over that, which only very large properties make, is
   dropped when tracked.
 - Pass `storage = MemoryPugStorage()` to keep nothing on the device, or your own `PugStorage`. If
-  your storage throws, the SDK falls back to memory for the rest of the process.
+  your storage throws, the SDK falls back to memory until `Pug.destroy()` or the process ends.
 
 In a multi-process app, call `Pug.init` in one process only, usually the main one: processes would
 otherwise share the SDK's files.
@@ -288,18 +295,20 @@ A logger that throws is contained.
 Pug.init(this, "your-project-id",
         new PugOptions.Builder("your-api-key")
                 .debug(BuildConfig.DEBUG)
-                .batch(20, 10_000L)
-                .trackingConsent(TrackingConsent.DENIED, true)
+                .batchMaxSize(20)
+                .batchMaxWaitMs(10_000L)
+                .defaultTrackingConsent(TrackingConsent.DENIED)
+                .persistTrackingConsent(true)
                 .build());
 
 Map<String, Object> properties = new HashMap<>();
 properties.put("cartId", "c1");
 Pug.track("checkout_started", properties);
-Pug.track("order_completed", properties, new TrackOptions(true));
+Pug.track("order_completed", properties, new TrackOptions.Builder().immediate(true).build());
 
 Pug.track.addToCart("sku-1");                  // the required arguments
 Pug.track.addToCart("sku-1", 9.99, "USD");     // then the optional ones, in schema order
-Pug.track.addToCart("sku-1", 9.99, "USD", null, 2, null, null, null, extras, new TrackOptions(true));
+Pug.track.addToCart("sku-1", 9.99, "USD", null, 2, null, null, null, extras, new TrackOptions.Builder().immediate(true).build());
 Pug.track.videoPlay("v1", 1_500L);
 ```
 

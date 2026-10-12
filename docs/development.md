@@ -128,7 +128,7 @@ network access, and logs any VM-policy violation, such as a socket without a Tra
 ## Testing notes
 
 - All tests are JVM unit tests (`pug/src/test`), JUnit 4 + kotlin.test. The Android classes in
-  `internal/platform/`, `AndroidEndToEndTest` and `HttpPugTransportTrafficStatsTest` (TrafficStats
+  `internal/platform/`, `AndroidEndToEndTest`, `MainThreadIoTest` and `HttpPugTransportTrafficStatsTest` (TrafficStats
   tags are per thread under Robolectric) run on Robolectric
   (`@RunWith(RobolectricTestRunner::class)`, SDK 36 from `src/test/resources/robolectric.properties`).
 - `unitTests.isReturnDefaultValues = true`, and the real `org.json` is a test dependency because

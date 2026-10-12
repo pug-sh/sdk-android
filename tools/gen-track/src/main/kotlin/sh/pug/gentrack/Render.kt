@@ -21,8 +21,8 @@ private val NOTES =
             "`autoInstallEvents` is off: calling this as well tracks it twice.",
         "screen_view" to
             "Only tracks the event: unlike [Pug.screen], it neither makes [screenName] the `\$url` of the events " +
-            "that follow nor skips a screen that is already showing. Pug tracks a `screen_view` itself for each " +
-            "activity shown, unless `autoScreenViews` is off.",
+            "that follow nor skips a screen that is already showing. Pug tracks a `screen_view` itself each time " +
+            "an activity resumes on a different screen, unless `autoScreenViews` is off.",
     )
 
 private val TRACK_NAMESPACE_DOC =

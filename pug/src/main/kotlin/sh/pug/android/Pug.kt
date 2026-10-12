@@ -82,8 +82,8 @@ public object Pug {
     }
 
     /**
-     * Stops the SDK after a final flush of at most ten seconds. Identity, consent and undelivered
-     * events stay stored for the next [init], which waits for this to finish.
+     * Stops the SDK after a final flush of at most ten seconds. Identity, persisted consent and
+     * undelivered events stay stored for the next [init], which waits for this to finish.
      */
     @JvmStatic
     public fun destroy() {
@@ -108,7 +108,7 @@ public object Pug {
 
     /**
      * The consent in effect, or null before [init]. Right after [init] this may wait up to a second
-     * for a stored choice to be read.
+     * for a stored choice to be read, and is null if it has not been read by then.
      */
     @JvmStatic
     public fun getTrackingConsent(): TrackingConsent? = facade.getTrackingConsent()

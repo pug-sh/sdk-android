@@ -212,7 +212,7 @@ class EventDispatcherTest {
 
     @Test
     fun `a short acceptance is reported`() {
-        transport.answerNextBatch(BatchCreateResponse(accepted = 1, dropped = 2, mapOf("salt_unavailable" to 2L)))
+        transport.answerNextBatch(BatchCreateResponse(accepted = 1, mapOf("salt_unavailable" to 2L)))
         val dispatcher = dispatcher()
 
         events(0 until 3).forEach(dispatcher::enqueue)
@@ -358,6 +358,50 @@ class EventDispatcherTest {
 
         assertNull(storage.getString(KEY))
         assertEquals(0, dispatcher.undelivered)
+    }
+
+    @Test
+    fun `a batch in flight when the queue is cleared does not back off`() {
+        val dispatcher = dispatcher()
+        transport.hold()
+
+        events(0 until 3).forEach(dispatcher::enqueue)
+        scheduler.runCurrent()
+        dispatcher.clear()
+        transport.failNextBatch(RpcCode.UNAVAILABLE)
+        transport.releaseAll()
+        scheduler.runCurrent()
+        events(3 until 6).forEach(dispatcher::enqueue)
+        scheduler.runCurrent()
+
+        assertEquals(listOf(events(0 until 3), events(3 until 6)), transport.batches)
+        assertEquals(emptyList(), logger.warnings)
+    }
+
+    @Test
+    fun `an immediate event in flight at dispose stays stored`() {
+        val dispatcher = dispatcher()
+        transport.hold()
+
+        dispatcher.sendNow(event(0))
+        scheduler.runCurrent()
+        dispatcher.dispose()
+
+        assertEquals(listOf(event(0)), stored())
+        assertEquals(1, dispatcher.undelivered)
+    }
+
+    @Test
+    fun `an immediate event in flight when the queue is cleared is not stored at dispose`() {
+        val dispatcher = dispatcher()
+        transport.hold()
+
+        dispatcher.sendNow(event(0))
+        scheduler.runCurrent()
+        dispatcher.clear()
+        dispatcher.dispose()
+
+        assertNull(storage.getString(KEY))
     }
 
     @Test

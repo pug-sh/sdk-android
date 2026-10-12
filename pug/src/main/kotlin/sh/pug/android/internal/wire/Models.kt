@@ -42,4 +42,4 @@ internal data class IdentifyRequest(
     val anonymousId: String?,
 )
 
-internal data class BatchCreateResponse(val accepted: Long, val dropped: Long, val droppedByReason: Map<String, Long>)
+internal data class BatchCreateResponse(val accepted: Long, val droppedByReason: Map<String, Long>)

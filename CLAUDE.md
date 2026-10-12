@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## Start here
 
-`PLAN.md` is the source of truth: the phase status table, every design decision (D1–D25) with its
+`PLAN.md` is the source of truth: the phase status table, every design decision (D1–D26) with its
 reasoning, the wire and transport contracts, and the family-coordination list. Read it before
 changing behavior; a decision recorded there is not re-litigated in code review. Build details live
 in `docs/development.md`.
@@ -106,7 +106,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   The main thread only registers activity callbacks, and those catch `Throwable` whole, since they
   run inside the host's own activity callbacks.
 - **Runtime dependencies are kotlin-stdlib and kotlinx-coroutines-core only**, at the floors in
-  `gradle/libs.versions.toml`. protobuf-java, MockWebServer and org.json are test-only. Do not add
+  `gradle/libs.versions.toml`. protobuf-java, MockWebServer and the org.json artifact are test-only (runtime uses the
+  platform's org.json). Do not add
   a runtime dependency without a PLAN.md decision.
 - **minSdk 21.** Lint `NewApi` runs with warnings as errors; `java.time`, `java.util.Base64`,
   `Math.floorDiv` and `ConcurrentHashMap.newKeySet()` are all above 21 (use the Kotlin stdlib
@@ -130,7 +131,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   (`TestCoroutineScheduler`), `FakeTransport` and `FakePlatform`. `WellKnownEventsTest` and
   `TrackNamespaceTest` check the generated code against `pug.binpb` through protobuf-java, not
   through the generator. Robolectric (SDK 36, set in `src/test/resources/robolectric.properties`)
-  runs the `internal/platform/` tests, `AndroidEndToEndTest` and `HttpPugTransportTrafficStatsTest`;
+  runs the `internal/platform/` tests, `AndroidEndToEndTest`, `MainThreadIoTest` and
+  `HttpPugTransportTrafficStatsTest`;
   under it, serve HTTP with the JDK's `com.sun.net.httpserver`, not MockWebServer
   (`docs/development.md`). What only a device shows is checked by running the sample on an emulator
   (`docs/development.md`, Sample app).

@@ -1456,8 +1456,8 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * auto-properties on every event. Only screen-specific fields belong here.
      *
      * Only tracks the event: unlike [Pug.screen], it neither makes [screenName] the `$url` of the events that follow
-     * nor skips a screen that is already showing. Pug tracks a `screen_view` itself for each activity shown, unless
-     * `autoScreenViews` is off.
+     * nor skips a screen that is already showing. Pug tracks a `screen_view` itself each time an activity resumes on a
+     * different screen, unless `autoScreenViews` is off.
      */
     @JvmOverloads
     public fun screenView(

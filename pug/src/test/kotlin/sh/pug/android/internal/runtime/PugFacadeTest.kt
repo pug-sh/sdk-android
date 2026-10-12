@@ -148,7 +148,7 @@ class PugFacadeTest {
         facade.init(context, PROJECT, options())
 
         facade.init(context, "other", PugOptions("pub_other") { logger = otherLogger })
-        facade.track("a", null, TrackOptions(immediate = true))
+        facade.track("a", null, TrackOptions { immediate = true })
         scheduler.runCurrent()
 
         assertEquals(listOf("Pug.init() was called again; the first configuration stays"), otherLogger.warnings)
@@ -160,7 +160,7 @@ class PugFacadeTest {
 
     @Test
     fun `the consent getters answer through the running client`() {
-        facade.init(context, PROJECT, options { trackingConsent(default = TrackingConsent.DENIED) })
+        facade.init(context, PROJECT, options { defaultTrackingConsent = TrackingConsent.DENIED })
         scheduler.runCurrent()
 
         assertEquals(TrackingConsent.DENIED, facade.getTrackingConsent())
@@ -173,7 +173,7 @@ class PugFacadeTest {
 
     @Test
     fun `a new client waits for the last one's teardown before reading storage`() {
-        val options = options { batch(maxSize = 2) }
+        val options = options { batchMaxSize = 2 }
         facade.init(context, PROJECT, options)
         transport.hold()
         facade.track("a", null, null)
@@ -203,7 +203,7 @@ class PugFacadeTest {
 
         facade.destroy()
         facade.init(context, PROJECT, options())
-        facade.track("a", null, TrackOptions(immediate = true))
+        facade.track("a", null, TrackOptions { immediate = true })
         scheduler.runCurrent()
 
         assertEquals("user-1", transport.batches.single().single().distinctId)

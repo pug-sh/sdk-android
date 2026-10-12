@@ -24,19 +24,20 @@ public class PugJavaApiTest {
                 .autoInstallEvents(false)
                 .logger(null)
                 .storage(new MemoryPugStorage())
-                .batch(20)
-                .batch(20, 1_000L)
-                .batch(20, 1_000L, 500)
-                .session(60_000L)
-                .session(60_000L, 3_600_000L)
-                .trackingConsent(TrackingConsent.DENIED)
-                .trackingConsent(TrackingConsent.DENIED, true)
+                .batchMaxSize(20)
+                .batchMaxWaitMs(1_000L)
+                .batchMaxQueueSize(500)
+                .sessionIdleTimeoutMs(60_000L)
+                .sessionMaxDurationMs(3_600_000L)
+                .defaultTrackingConsent(TrackingConsent.DENIED)
+                .persistTrackingConsent(true)
                 .build();
 
         assertNotNull(options);
-        assertNotNull(new TrackOptions());
-        assertNotNull(new TrackOptions(true));
-        assertNotNull(new TrackOptions(false, 1_760_000_000_000L));
+        TrackOptions trackOptions = new TrackOptions.Builder().immediate(true).timestamp(1_760_000_000_000L).build();
+        assertTrue(trackOptions.getImmediate());
+        assertEquals(Long.valueOf(1_760_000_000_000L), trackOptions.getTimestamp());
+        assertNull(new TrackOptions.Builder().timestamp(null).build().getTimestamp());
     }
 
     @Test
@@ -95,7 +96,7 @@ public class PugJavaApiTest {
         Pug.track.addToCart("p1", 9.99, "USD");
         Pug.track.addToCart(
                 "p1", null, null, null, 2, null, null, null, Collections.singletonMap("coupon", "SPRING"),
-                new TrackOptions(true));
+                new TrackOptions.Builder().immediate(true).build());
         Pug.track.addToCart(null);
         Pug.track.videoPlay("v1", 1_500L);
         Pug.track.appOpen();

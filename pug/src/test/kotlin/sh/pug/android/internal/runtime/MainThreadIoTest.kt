@@ -78,7 +78,7 @@ class MainThreadIoTest {
             }
 
         facade.init(application, "proj_main_thread", PugOptions("pub_test") { dryRun = true })
-        facade.track("checkout_started", mapOf("cartId" to "c1"), TrackOptions(immediate = true))
+        facade.track("checkout_started", mapOf("cartId" to "c1"), TrackOptions { immediate = true })
         facade.trackTyped(WellKnownEvents.SEARCH, null, null, "trail shoes")
         facade.screen("Settings")
         facade.identify("user-42", mapOf("plan" to "pro"))

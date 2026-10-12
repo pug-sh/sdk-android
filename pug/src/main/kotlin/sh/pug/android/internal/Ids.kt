@@ -21,19 +21,12 @@ internal class UuidV7Generator(
         }
         bytes[6] = ((bytes[6].toInt() and 0x0F) or 0x70).toByte()
         bytes[8] = ((bytes[8].toInt() and 0x3F) or 0x80).toByte()
-        val chars = CharArray(36)
-        var position = 0
+        val id = StringBuilder(36)
         for (i in bytes.indices) {
-            if (i == 4 || i == 6 || i == 8 || i == 10) chars[position++] = '-'
-            val byte = bytes[i].toInt()
-            chars[position++] = HEX[(byte ushr 4) and 0x0F]
-            chars[position++] = HEX[byte and 0x0F]
+            if (i == 4 || i == 6 || i == 8 || i == 10) id.append('-')
+            id.appendHex(bytes[i].toInt())
         }
-        return String(chars)
-    }
-
-    private companion object {
-        val HEX = "0123456789abcdef".toCharArray()
+        return id.toString()
     }
 }
 

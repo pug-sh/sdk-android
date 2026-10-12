@@ -150,7 +150,12 @@ class TrackNamespaceTest {
         start()
 
         track.appOpen()
-        track.appClose(options = TrackOptions(immediate = true, timestamp = 42L))
+        track.appClose(
+            options = TrackOptions {
+                immediate = true
+                timestamp = 42L
+            },
+        )
         scheduler.runCurrent()
 
         val event = transport.batches.single().single()
@@ -204,7 +209,7 @@ class TrackNamespaceTest {
                 logger = this@TrackNamespaceTest.logger
                 storage = MemoryPugStorage()
                 debug = true
-                batch(maxSize = 1_000)
+                batchMaxSize = 1_000
             }
         facade.init(ContextWrapper(null), "proj_1", options)
     }
