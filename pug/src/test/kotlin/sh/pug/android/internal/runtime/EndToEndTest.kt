@@ -38,7 +38,7 @@ class EndToEndTest {
     @Test
     fun `tracked events reach the server as one batch`() {
         server.enqueue(protobufResponse(ReferenceMessages.batchResponse(accepted = 3, dropped = 0, emptyMap())))
-        val client = client { batch(maxSize = 3) }
+        val client = client { batchMaxSize = 3 }
 
         client.track("checkout_started", mapOf("cartId" to "c1", "items" to 2), null)
         client.track("add_to_cart", mapOf("price" to 9.99), null)
@@ -62,7 +62,7 @@ class EndToEndTest {
         server.enqueue(protobufResponse(ByteArray(0)))
         server.enqueue(protobufResponse(ReferenceMessages.batchResponse(accepted = 1, dropped = 0, emptyMap())))
         val storage = MemoryPugStorage()
-        val client = client(storage) { batch(maxSize = 1) }
+        val client = client(storage) { batchMaxSize = 1 }
 
         client.identify("user-42", mapOf("plan" to "pro"))
         val identify = server.takeRequestWithin()
@@ -82,7 +82,10 @@ class EndToEndTest {
     fun `a batch the server could not take is sent again`() {
         server.enqueue(MockResponse.Builder().code(503).build())
         server.enqueue(protobufResponse(ReferenceMessages.batchResponse(accepted = 1, dropped = 0, emptyMap())))
-        val client = client { batch(maxSize = 1, maxWaitMs = 0) }
+        val client = client {
+            batchMaxSize = 1
+            batchMaxWaitMs = 0
+        }
 
         client.track("app_open", null, null)
         val failed = server.takeRequestWithin()

@@ -164,7 +164,7 @@ class PugWireTest {
 
         val decoded = PugWire.decodeBatchCreateResponse(response.toByteArray())
 
-        assertEquals(BatchCreateResponse(7, 3, mapOf("salt_unavailable" to 2L, "day_out_of_range" to 1L)), decoded)
+        assertEquals(BatchCreateResponse(7, mapOf("salt_unavailable" to 2L, "day_out_of_range" to 1L)), decoded)
     }
 
     @Test
@@ -176,7 +176,7 @@ class PugWireTest {
 
     @Test
     fun `an empty body decodes as nothing accepted`() {
-        assertEquals(BatchCreateResponse(0, 0, emptyMap()), PugWire.decodeBatchCreateResponse(ByteArray(0)))
+        assertEquals(BatchCreateResponse(0, emptyMap()), PugWire.decodeBatchCreateResponse(ByteArray(0)))
     }
 
     @Test

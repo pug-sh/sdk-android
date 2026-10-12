@@ -10,6 +10,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import sh.pug.android.PugStorage
+import sh.pug.android.internal.appendHex
 import sh.pug.android.internal.logging.SafeLogger
 
 // Long enough to turn a burst of events into one write per key, short enough that a process killed
@@ -84,11 +85,16 @@ internal class FilePugStorage(
             }
     }
 
-    // A file that cannot be opened reads as absent, as FileInputStream reports both the same way.
-    private fun read(key: String): String? = try {
-        file(key).readText()
-    } catch (e: FileNotFoundException) {
-        null
+    // An unreadable file reads as absent rather than throwing: a throw would move SafePugStorage to
+    // memory while this store's earlier changes still sync, freezing the disk at a stale state.
+    private fun read(key: String): String? {
+        val file = file(key)
+        return try {
+            file.readText()
+        } catch (e: IOException) {
+            if (e !is FileNotFoundException || file.exists()) logger.warn("Storage file $file could not be read", e)
+            null
+        }
     }
 
     private fun write(key: String, value: String?) {
@@ -127,8 +133,6 @@ internal class FilePugStorage(
     private fun file(key: String): File = File(directory, fileName(key))
 
     internal companion object {
-        private val HEX = "0123456789abcdef".toCharArray()
-
         /**
          * Keys embed the host's project id, so anything outside `[A-Za-z0-9_.-]` is percent-encoded,
          * and a name too long for the file system is replaced by its hash.
@@ -141,16 +145,13 @@ internal class FilePugStorage(
                 if (c.toChar().let { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it in "_.-" }) {
                     name.append(c.toChar())
                 } else {
-                    name.append('%').append(HEX[c ushr 4]).append(HEX[c and 0x0F])
+                    name.append('%').appendHex(c)
                 }
             }
             if (name.length <= MAX_FILE_NAME_LENGTH) return name.toString()
             val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
             val hashed = StringBuilder("sha256-")
-            for (byte in digest) {
-                val c = byte.toInt() and 0xFF
-                hashed.append(HEX[c ushr 4]).append(HEX[c and 0x0F])
-            }
+            for (byte in digest) hashed.appendHex(byte.toInt())
             return hashed.toString()
         }
     }

@@ -11,7 +11,7 @@ internal interface Platform {
     /** Where the default storage keeps its files, or null when there is nowhere. Called on the worker. */
     fun storageDirectory(): File?
 
-    /** Reads what stays fixed while the process runs. Called once, on the worker. */
+    /** Reads the fixed values once; the rest are read per event by [AutoProperties.current]. Called on the worker. */
     fun autoProperties(logger: SafeLogger): AutoProperties
 
     /**

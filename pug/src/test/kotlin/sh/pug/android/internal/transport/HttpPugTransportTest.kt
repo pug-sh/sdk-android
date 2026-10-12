@@ -1,6 +1,12 @@
 package sh.pug.android.internal.transport
 
+import java.io.IOException
+import java.net.ServerSocket
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -14,6 +20,7 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -59,7 +66,7 @@ class HttpPugTransportTest {
 
         val response = transport().sendBatch(events)
 
-        assertEquals(BatchCreateResponse(1, 1, mapOf("salt_unavailable" to 1L)), response)
+        assertEquals(BatchCreateResponse(1, mapOf("salt_unavailable" to 1L)), response)
         val request = assertNotNull(server.takeRequest(1, TimeUnit.SECONDS))
         assertEquals("POST", request.method)
         assertEquals("/sdk.events.v1.EventsService/BatchCreate", request.url.encodedPath)
@@ -204,7 +211,7 @@ class HttpPugTransportTest {
     fun `a 2xx without a content type is accepted`() = runBlocking {
         server.enqueue(MockResponse.Builder().code(200).build())
 
-        assertEquals(BatchCreateResponse(0, 0, emptyMap()), transport().sendBatch(listOf(event("first"))))
+        assertEquals(BatchCreateResponse(0, emptyMap()), transport().sendBatch(listOf(event("first"))))
     }
 
     @Test
@@ -268,11 +275,44 @@ class HttpPugTransportTest {
     }
 
     @Test
-    fun `cancelling the caller aborts the request promptly`() = runBlocking {
+    fun `a body slower than the deadline times out and frees the request thread`() = runBlocking {
+        val finished = CountDownLatch(1)
+        // Each byte arrives well within the read timeout, so only the overall deadline can stop it.
+        // MockWebServer's throttling outlives the test, hence a bare socket.
+        ServerSocket(0).use { listener ->
+            thread(isDaemon = true) {
+                try {
+                    listener.accept().use { socket ->
+                        val out = socket.getOutputStream()
+                        val headers =
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/proto\r\nContent-Length: 100\r\n\r\n"
+                        out.write(headers.toByteArray())
+                        repeat(100) {
+                            out.write(0)
+                            out.flush()
+                            Thread.sleep(100)
+                        }
+                    }
+                } catch (e: IOException) {
+                    // The client hung up.
+                }
+            }
+            val endpoint = "http://127.0.0.1:${listener.localPort}"
+
+            val error = sendFailure(transport(endpoint, timeoutMillis = 1_000, executor = signalling(finished)))
+
+            assertEquals(RpcCode.DEADLINE_EXCEEDED, error.code)
+            assertTrue(finished.await(2, TimeUnit.SECONDS), "the request thread was freed")
+        }
+    }
+
+    @Test
+    fun `cancelling the caller aborts the request promptly and frees the request thread`() = runBlocking {
         server.enqueue(protobuf(ByteArray(0)).newBuilder().headersDelay(10, TimeUnit.SECONDS).build())
+        val finished = CountDownLatch(1)
         val call =
             async(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
-                transport(timeoutMillis = 20_000).sendBatch(listOf(event("first")))
+                transport(timeoutMillis = 20_000, executor = signalling(finished)).sendBatch(listOf(event("first")))
             }
         server.takeRequest(1, TimeUnit.SECONDS)
         delay(100)
@@ -282,18 +322,49 @@ class HttpPugTransportTest {
 
         assertFailsWith<CancellationException> { withTimeout(2_000) { call.await() } }
         assertTrue(System.nanoTime() - started < TimeUnit.SECONDS.toNanos(2), "cancelled promptly")
+        assertTrue(finished.await(2, TimeUnit.SECONDS), "the request thread was freed")
+    }
+
+    @Test
+    fun `a request cancelled before its thread starts is never sent`() = runBlocking {
+        val tasks = CopyOnWriteArrayList<Runnable>()
+        val call =
+            async(Dispatchers.Default, start = CoroutineStart.UNDISPATCHED) {
+                transport(executor = { tasks += it }).sendBatch(listOf(event("first")))
+            }
+
+        call.cancel()
+        assertFailsWith<CancellationException> { call.await() }
+        tasks.single().run()
+
+        assertEquals(0, server.requestCount)
     }
 
     private suspend fun sendFailure(transport: HttpPugTransport = transport()): PugTransportException =
         assertFailsWith<PugTransportException> { transport.sendBatch(listOf(event("first"))) }
 
-    private fun transport(endpoint: String = server.url("/").toString(), timeoutMillis: Long = 5_000) =
-        HttpPugTransport(
-            endpoint,
-            apiKey = "pub_test",
-            batchTimeoutMillis = timeoutMillis,
-            identifyTimeoutMillis = timeoutMillis,
-        )
+    private fun transport(
+        endpoint: String = server.url("/").toString(),
+        timeoutMillis: Long = 5_000,
+        executor: Executor = Dispatchers.IO.asExecutor(),
+    ) = HttpPugTransport(
+        endpoint,
+        apiKey = "pub_test",
+        batchTimeoutMillis = timeoutMillis,
+        identifyTimeoutMillis = timeoutMillis,
+        executor = executor,
+    )
+
+    // Runs requests on the default threads, counting [finished] down once one has returned.
+    private fun signalling(finished: CountDownLatch) = Executor { task ->
+        Dispatchers.IO.asExecutor().execute {
+            try {
+                task.run()
+            } finally {
+                finished.countDown()
+            }
+        }
+    }
 
     private fun protobuf(message: com.google.protobuf.Message): MockResponse = protobuf(message.toByteArray())
 

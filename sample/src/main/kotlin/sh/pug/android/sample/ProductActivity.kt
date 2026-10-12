@@ -28,7 +28,7 @@ class ProductActivity : Activity() {
                 currency = "USD",
                 orderId = "order-${System.currentTimeMillis()}",
                 extras = mapOf("giftWrap" to false),
-                options = TrackOptions(immediate = true),
+                options = TrackOptions { immediate = true },
             )
         }
     }

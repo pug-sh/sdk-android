@@ -294,6 +294,8 @@ internal class PugClient(
             submit(name) {
                 val wasGranted = consent.isGranted
                 consent.set(value)
+                // An opt-out and its purge must survive a process killed before the write-behind.
+                fileStorage?.sync()
                 logger.debug("Tracking consent is now ${value.name.lowercase()}")
                 if (value == TrackingConsent.DENIED) {
                     // The identity that saw this visit's app_open is gone; the next visit opens afresh.

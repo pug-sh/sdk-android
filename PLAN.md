@@ -96,7 +96,7 @@ with the family (collected again in §7).
   disk on background/flush/destroy. Key names keep the family scheme `__pug_<projectId>_<name>__`.
 - **D11 `destroy()` is a runtime teardown, not a purge (F).** It stops timers and observers, makes a
   final flush bounded at 10 s (in-flight sends and identify calls included; whatever is cut off stays
-  queued), persists, and keeps identity, queue, consent and `last_version` (sdk-web:
+  queued), persists, and keeps identity, queue, persisted consent and `last_version` (sdk-web:
   "teardown, not logout"). Flutter purges everything but consent, which makes a destroy/re-init look
   like a fresh install and a new user. `reset()` and opt-out are the deliberate clears. A following
   `init()` waits for the previous teardown before touching storage (Flutter's `_pendingTeardown`).
@@ -193,6 +193,15 @@ with the family (collected again in §7).
   An untyped well-known event without a required property is still sent, with a debug hint. An
   `extras` entry named like an argument is dropped (warn) when that argument is set and kept when
   it is null (Flutter; sdk-rust always drops it).
+- **D26 Options are one setter per field, never defaulted parameters.** `PugOptions.Builder` has
+  `batchMaxSize`, `batchMaxWaitMs`, `batchMaxQueueSize`, `sessionIdleTimeoutMs`,
+  `sessionMaxDurationMs`, `defaultTrackingConsent` and `persistTrackingConsent` (a Kotlin `var`
+  plus a Java fluent method each), and `TrackOptions` is built the same way. The grouped setters
+  of phase 2 (`trackingConsent(default, persist)` and the like) reset what a call left out, so
+  `trackingConsent(persist = true)` silently put the default back to GRANTED. Adding a parameter
+  to a defaulted function or constructor also replaces its synthetic `$default` method and breaks
+  compiled Kotlin callers; a new setter on a builder is binary-compatible. Changed before 0.1.0
+  was published, so no caller was broken.
 
 ## 4. Architecture
 
@@ -393,11 +402,12 @@ Pug.getTrackingConsent(); Pug.isTrackingEnabled(); Pug.isConsentPending()
 ```
 
 `PugOptions` has a builder for Java plus a Kotlin DSL factory: `apiKey`, `endpoint`, `debug`,
-`dryRun`, `batch(maxSize = 10 ≤ 1000, maxWaitMs = 5000 ≥ 0, maxQueueSize = 1000 ≥ 1)`,
-`session(idleTimeoutMs = 30 min, maxDurationMs = 24 h)`,
-`trackingConsent(default = GRANTED, persist = false)`, `autoTrack`, `autoScreenViews`,
-`autoInstallEvents`, `logger`, `storage`. Out-of-range numbers warn and fall back to the default
-(sdk-web). `TrackOptions(immediate = false, timestamp: Long? = null)`.
+`dryRun`, `batchMaxSize = 10 ≤ 1000`, `batchMaxWaitMs = 5000 ≥ 0`, `batchMaxQueueSize = 1000 ≥ 1`,
+`sessionIdleTimeoutMs = 30 min`, `sessionMaxDurationMs = 24 h`, `defaultTrackingConsent = GRANTED`,
+`persistTrackingConsent = false`, `autoTrack`, `autoScreenViews`, `autoInstallEvents`, `logger`,
+`storage`. Out-of-range numbers warn and fall back to the default (sdk-web). `TrackOptions` has the
+same shape (D26): a Java builder plus the Kotlin factory `TrackOptions { immediate = true }`, with
+`immediate = false` and `timestamp: Long? = null`.
 
 ## 5. Phases
 
@@ -451,8 +461,8 @@ persistence, reserved-prefix filter on load, dedupe on lock). All pure JVM, unit
   `PugOptions` is opaque (internal getters). `build()` never throws: out-of-range numbers warn and
   take their default, except `maxSize > 1000`, which is capped at 1000 (D15). Durations are `Long`
   milliseconds (`maxWaitMs`, `idleTimeoutMs`, `maxDurationMs`). Builder `var`s are
-  `@set:JvmSynthetic`, so Java sees one fluent setter per option. `batch()`/`session()`/
-  `trackingConsent()` replace their whole group (unnamed members reset to defaults).
+  `@set:JvmSynthetic`, so Java sees one fluent setter per option. (The grouped `batch()`/
+  `session()`/`trackingConsent()` setters first chosen here were replaced before publishing: D26.)
 - D9 refinement: `debug` gates debug messages for any logger, a custom one included (`SafeLogger`);
   a throwing logger is reported once to Logcat. Internals only ever call `SafeLogger`.
 - `SafePugStorage`: the first throw moves the client to memory for good (Flutter); a failed read

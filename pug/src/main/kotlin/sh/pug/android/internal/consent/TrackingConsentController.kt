@@ -27,10 +27,11 @@ internal class TrackingConsentController(
     var consent: TrackingConsent = defaultConsent
         private set
 
-    // Whether consent is the user's recorded choice rather than the configured default. Only a
-    // recorded denial may purge identity at init: purging on a default would mint a new user on
-    // every launch.
+    // Whether consent was restored from storage. Only a recorded denial may purge identity at init:
+    // purging on a default would mint a new user on every launch.
     private var restored = false
+
+    // Whether consent is a user's choice, restored or made in this process, rather than the default.
     private var decided = false
 
     init {

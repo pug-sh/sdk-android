@@ -18,7 +18,8 @@ internal const val MAX_BATCH_SIZE: Int = 1_000
  * Configuration for `Pug.init`. In Kotlin: `PugOptions("pub_…") { debug = true }`; in Java:
  * `new PugOptions.Builder("pub_…").debug(true).build()`.
  *
- * Nothing here throws: an out-of-range number is logged and replaced by its default. The API key and
+ * Nothing here throws: an out-of-range number is logged and replaced by its default (a
+ * `batchMaxSize` above 1000 is capped instead). The API key and
  * endpoint are checked by `Pug.init`.
  */
 public class PugOptions private constructor(builder: Builder) {
@@ -43,21 +44,21 @@ public class PugOptions private constructor(builder: Builder) {
         val log = SafeLogger(builder.logger ?: LogcatLogger, builder.debug)
         batchMaxSize =
             if (builder.batchMaxSize > MAX_BATCH_SIZE) {
-                log.warn("batch maxSize ${builder.batchMaxSize} is above the server's limit; using $MAX_BATCH_SIZE")
+                log.warn("batchMaxSize ${builder.batchMaxSize} is above the server's limit; using $MAX_BATCH_SIZE")
                 MAX_BATCH_SIZE
             } else {
-                atLeast("batch maxSize", builder.batchMaxSize, 1, DEFAULT_BATCH_MAX_SIZE, log)
+                atLeast("batchMaxSize", builder.batchMaxSize, 1, DEFAULT_BATCH_MAX_SIZE, log)
             }
-        batchMaxWaitMs = atLeast("batch maxWaitMs", builder.batchMaxWaitMs, 0, DEFAULT_BATCH_MAX_WAIT_MS, log)
+        batchMaxWaitMs = atLeast("batchMaxWaitMs", builder.batchMaxWaitMs, 0, DEFAULT_BATCH_MAX_WAIT_MS, log)
         batchMaxQueueSize =
-            atLeast("batch maxQueueSize", builder.batchMaxQueueSize, 1, DEFAULT_BATCH_MAX_QUEUE_SIZE, log)
+            atLeast("batchMaxQueueSize", builder.batchMaxQueueSize, 1, DEFAULT_BATCH_MAX_QUEUE_SIZE, log)
         sessionIdleTimeoutMs =
-            atLeast("session idleTimeoutMs", builder.sessionIdleTimeoutMs, 1, DEFAULT_SESSION_IDLE_TIMEOUT_MS, log)
+            atLeast("sessionIdleTimeoutMs", builder.sessionIdleTimeoutMs, 1, DEFAULT_SESSION_IDLE_TIMEOUT_MS, log)
         sessionMaxDurationMs =
-            atLeast("session maxDurationMs", builder.sessionMaxDurationMs, 1, DEFAULT_SESSION_MAX_DURATION_MS, log)
+            atLeast("sessionMaxDurationMs", builder.sessionMaxDurationMs, 1, DEFAULT_SESSION_MAX_DURATION_MS, log)
         defaultTrackingConsent =
             if (isNull(builder.defaultTrackingConsent)) {
-                log.warn("trackingConsent default is null; using ${TrackingConsent.GRANTED}")
+                log.warn("defaultTrackingConsent is null; using ${TrackingConsent.GRANTED}")
                 TrackingConsent.GRANTED
             } else {
                 builder.defaultTrackingConsent
@@ -104,13 +105,39 @@ public class PugOptions private constructor(builder: Builder) {
         @set:JvmSynthetic
         public var storage: PugStorage? = null
 
-        internal var batchMaxSize: Int = DEFAULT_BATCH_MAX_SIZE
-        internal var batchMaxWaitMs: Long = DEFAULT_BATCH_MAX_WAIT_MS
-        internal var batchMaxQueueSize: Int = DEFAULT_BATCH_MAX_QUEUE_SIZE
-        internal var sessionIdleTimeoutMs: Long = DEFAULT_SESSION_IDLE_TIMEOUT_MS
-        internal var sessionMaxDurationMs: Long = DEFAULT_SESSION_MAX_DURATION_MS
-        internal var defaultTrackingConsent: TrackingConsent = TrackingConsent.GRANTED
-        internal var persistTrackingConsent: Boolean = false
+        /**
+         * Events are sent in requests of up to this many (at most 1000): as soon as that many are
+         * queued, otherwise [batchMaxWaitMs] after the first of them.
+         */
+        @set:JvmSynthetic
+        public var batchMaxSize: Int = DEFAULT_BATCH_MAX_SIZE
+
+        /** How long the first queued event waits for a full batch. */
+        @set:JvmSynthetic
+        public var batchMaxWaitMs: Long = DEFAULT_BATCH_MAX_WAIT_MS
+
+        /** Beyond this many undelivered events the oldest is dropped. */
+        @set:JvmSynthetic
+        public var batchMaxQueueSize: Int = DEFAULT_BATCH_MAX_QUEUE_SIZE
+
+        /** A session ends after this long without events. */
+        @set:JvmSynthetic
+        public var sessionIdleTimeoutMs: Long = DEFAULT_SESSION_IDLE_TIMEOUT_MS
+
+        /** A session ends this long after it began. */
+        @set:JvmSynthetic
+        public var sessionMaxDurationMs: Long = DEFAULT_SESSION_MAX_DURATION_MS
+
+        /** The consent in effect until the user makes a choice. */
+        @set:JvmSynthetic
+        public var defaultTrackingConsent: TrackingConsent = TrackingConsent.GRANTED
+
+        /**
+         * Stores opt-in and opt-out so the next `Pug.init` restores them; without it they last until
+         * `Pug.destroy()` or the process ends.
+         */
+        @set:JvmSynthetic
+        public var persistTrackingConsent: Boolean = false
 
         public fun endpoint(endpoint: String): Builder = apply { this.endpoint = endpoint }
 
@@ -129,44 +156,24 @@ public class PugOptions private constructor(builder: Builder) {
 
         public fun storage(storage: PugStorage?): Builder = apply { this.storage = storage }
 
-        /**
-         * Events are sent in requests of up to [maxSize] (at most 1000): as soon as that many are
-         * queued, otherwise [maxWaitMs] after the first of them. Beyond [maxQueueSize] undelivered
-         * events the oldest is dropped.
-         */
-        @JvmOverloads
-        public fun batch(
-            maxSize: Int = DEFAULT_BATCH_MAX_SIZE,
-            maxWaitMs: Long = DEFAULT_BATCH_MAX_WAIT_MS,
-            maxQueueSize: Int = DEFAULT_BATCH_MAX_QUEUE_SIZE,
-        ): Builder = apply {
-            batchMaxSize = maxSize
-            batchMaxWaitMs = maxWaitMs
-            batchMaxQueueSize = maxQueueSize
-        }
+        public fun batchMaxSize(batchMaxSize: Int): Builder = apply { this.batchMaxSize = batchMaxSize }
 
-        /** A session ends after [idleTimeoutMs] without events, or [maxDurationMs] after it began. */
-        @JvmOverloads
-        public fun session(
-            idleTimeoutMs: Long = DEFAULT_SESSION_IDLE_TIMEOUT_MS,
-            maxDurationMs: Long = DEFAULT_SESSION_MAX_DURATION_MS,
-        ): Builder = apply {
-            sessionIdleTimeoutMs = idleTimeoutMs
-            sessionMaxDurationMs = maxDurationMs
-        }
+        public fun batchMaxWaitMs(batchMaxWaitMs: Long): Builder = apply { this.batchMaxWaitMs = batchMaxWaitMs }
 
-        /**
-         * [default] applies until the user makes a choice. With [persist], opt-in and opt-out are
-         * stored and restored by the next `Pug.init`; without it they last for the process.
-         */
-        @JvmOverloads
-        public fun trackingConsent(
-            default: TrackingConsent = TrackingConsent.GRANTED,
-            persist: Boolean = false,
-        ): Builder = apply {
-            defaultTrackingConsent = default
-            persistTrackingConsent = persist
-        }
+        public fun batchMaxQueueSize(batchMaxQueueSize: Int): Builder =
+            apply { this.batchMaxQueueSize = batchMaxQueueSize }
+
+        public fun sessionIdleTimeoutMs(sessionIdleTimeoutMs: Long): Builder =
+            apply { this.sessionIdleTimeoutMs = sessionIdleTimeoutMs }
+
+        public fun sessionMaxDurationMs(sessionMaxDurationMs: Long): Builder =
+            apply { this.sessionMaxDurationMs = sessionMaxDurationMs }
+
+        public fun defaultTrackingConsent(defaultTrackingConsent: TrackingConsent): Builder =
+            apply { this.defaultTrackingConsent = defaultTrackingConsent }
+
+        public fun persistTrackingConsent(persistTrackingConsent: Boolean): Builder =
+            apply { this.persistTrackingConsent = persistTrackingConsent }
 
         public fun build(): PugOptions = PugOptions(this)
     }

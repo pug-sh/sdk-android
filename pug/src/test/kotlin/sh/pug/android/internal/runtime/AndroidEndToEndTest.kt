@@ -61,7 +61,7 @@ class AndroidEndToEndTest {
             PROJECT,
             PugOptions("pub_test") {
                 endpoint = "http://127.0.0.1:${server.address.port}"
-                batch(maxSize = 3)
+                batchMaxSize = 3
             },
         )
         val home = Robolectric.buildActivity(HomeActivity::class.java).setup()

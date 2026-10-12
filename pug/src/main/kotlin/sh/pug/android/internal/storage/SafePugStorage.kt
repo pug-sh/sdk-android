@@ -7,7 +7,7 @@ import sh.pug.android.internal.logging.SafeLogger
 /**
  * Never throws. After the first failure of the primary store every call goes to memory for the rest
  * of the client's life; components hold their state in memory and only write through, so nothing is
- * lost until the process ends. Throwables are caught whole: storage is plain host code, not a
+ * lost until the client is destroyed. Throwables are caught whole: storage is plain host code, not a
  * suspension point, so nothing it throws is a cancellation of ours.
  */
 internal class SafePugStorage(primary: PugStorage, private val logger: SafeLogger) : PugStorage {

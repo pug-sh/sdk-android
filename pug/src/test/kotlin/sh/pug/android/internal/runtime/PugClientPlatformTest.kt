@@ -53,7 +53,7 @@ class PugClientPlatformTest {
     @Test
     fun `device and app properties ride on every event`() {
         val platform = FakePlatform(properties = mapOf("\$os" to "Android", "\$screenWidth" to 411))
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         client.track("a", null, null)
         scheduler.runCurrent()
@@ -68,7 +68,7 @@ class PugClientPlatformTest {
     @Test
     fun `each visit to the foreground opens with app_open and closes with app_close`() {
         val platform = FakePlatform()
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         platform.foreground()
         platform.foreground()
@@ -85,7 +85,7 @@ class PugClientPlatformTest {
     @Test
     fun `leaving the foreground sends app_close at once, and the queue with it`() {
         val platform = FakePlatform()
-        val client = client(platform) { batch(maxWaitMs = 60_000) }
+        val client = client(platform) { batchMaxWaitMs = 60_000 }
 
         platform.foreground()
         client.track("a", null, null)
@@ -103,7 +103,8 @@ class PugClientPlatformTest {
         val platform = FakePlatform()
         val client = client(platform) {
             autoTrack = false
-            batch(maxSize = 1, maxWaitMs = 60_000)
+            batchMaxSize = 1
+            batchMaxWaitMs = 60_000
         }
 
         platform.foreground()
@@ -118,7 +119,7 @@ class PugClientPlatformTest {
     @Test
     fun `an app_open that consent dropped leaves no app_close to follow`() {
         val platform = FakePlatform()
-        val client = client(platform) { trackingConsent(default = DENIED) }
+        val client = client(platform) { defaultTrackingConsent = DENIED }
 
         platform.foreground()
         platform.background()
@@ -135,8 +136,8 @@ class PugClientPlatformTest {
     fun `opting in on screen tracks what the launch could not`() {
         val platform = FakePlatform(appVersion = "1.0")
         val client = client(platform) {
-            trackingConsent(default = DENIED)
-            batch(maxSize = 3)
+            defaultTrackingConsent = DENIED
+            batchMaxSize = 3
         }
 
         platform.foreground()
@@ -161,7 +162,7 @@ class PugClientPlatformTest {
     @Test
     fun `opting out ends the visit, and opting back in opens one for the new identity`() {
         val platform = FakePlatform()
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         platform.foreground()
         scheduler.runCurrent()
@@ -179,7 +180,7 @@ class PugClientPlatformTest {
     @Test
     fun `resumed activities are screens, named by $url and $referrer on what follows`() {
         val platform = FakePlatform()
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         platform.resume("com.example.HomeActivity")
         platform.resume("com.example.DetailActivity")
@@ -206,7 +207,7 @@ class PugClientPlatformTest {
     @Test
     fun `the current screen shown again is not tracked again`() {
         val platform = FakePlatform()
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         platform.resume("com.example.HomeActivity")
         platform.resume("com.example.HomeActivity")
@@ -218,7 +219,7 @@ class PugClientPlatformTest {
 
     @Test
     fun `screen names screens that are not activities`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
         client.screen("Settings")
         scheduler.runCurrent()
@@ -234,7 +235,7 @@ class PugClientPlatformTest {
         val platform = FakePlatform()
         val client = client(platform) {
             autoScreenViews = false
-            batch(maxSize = 1)
+            batchMaxSize = 1
         }
 
         client.screen("Feed")
@@ -248,7 +249,7 @@ class PugClientPlatformTest {
 
     @Test
     fun `a blank screen name is dropped and a long one cut short`() {
-        val client = client { batch(maxSize = 1) }
+        val client = client { batchMaxSize = 1 }
 
         client.screen(" ")
         client.screen("é".repeat(600))
@@ -266,7 +267,7 @@ class PugClientPlatformTest {
     @Test
     fun `the first launch tracks app_install, dated at init and before the launch app_open`() {
         val platform = FakePlatform(appVersion = "1.0")
-        client(platform) { batch(maxSize = 2) }
+        client(platform) { batchMaxSize = 2 }
 
         elapsedMs = 10
         platform.foreground()
@@ -285,7 +286,7 @@ class PugClientPlatformTest {
     @Test
     fun `a new app version tracks app_update`() {
         storage.putString(keys.lastVersion, "1.0")
-        client(FakePlatform(appVersion = "1.1")) { batch(maxSize = 1) }
+        client(FakePlatform(appVersion = "1.1")) { batchMaxSize = 1 }
 
         scheduler.runCurrent()
 
@@ -301,7 +302,7 @@ class PugClientPlatformTest {
     fun `with autoInstallEvents off neither is tracked`() {
         client(FakePlatform(appVersion = "1.0")) {
             autoInstallEvents = false
-            batch(maxSize = 1)
+            batchMaxSize = 1
         }
 
         scheduler.runCurrent()
@@ -312,12 +313,12 @@ class PugClientPlatformTest {
 
     @Test
     fun `an init after destroy does not track the install again`() {
-        val first = client(FakePlatform(appVersion = "1.0")) { batch(maxSize = 1) }
+        val first = client(FakePlatform(appVersion = "1.0")) { batchMaxSize = 1 }
         scheduler.runCurrent()
         val teardown = first.destroy()
         scheduler.runCurrent()
 
-        val second = client(FakePlatform(appVersion = "1.0"), teardown) { batch(maxSize = 1) }
+        val second = client(FakePlatform(appVersion = "1.0"), teardown) { batchMaxSize = 1 }
         second.track("a", null, null)
         scheduler.runCurrent()
 
@@ -329,7 +330,7 @@ class PugClientPlatformTest {
         val directory = folder.newFolder("pug")
         val client = client(FakePlatform(directory)) {
             storage = null
-            batch(maxWaitMs = 60_000)
+            batchMaxWaitMs = 60_000
         }
 
         client.track("a", null, null)
@@ -339,6 +340,53 @@ class PugClientPlatformTest {
         scheduler.runCurrent()
 
         assertEquals(listOf("a"), storedKinds(directory))
+    }
+
+    @Test
+    fun `an opt-out reaches the disk at once`() {
+        val directory = folder.newFolder("pug")
+        val client = client(FakePlatform(directory)) {
+            storage = null
+            batchMaxWaitMs = 60_000
+            persistTrackingConsent = true
+        }
+        client.track("a", null, null)
+        scheduler.advanceTimeBy(STORAGE_SYNC_DELAY_MS)
+        scheduler.runCurrent()
+        assertEquals(listOf("a"), storedKinds(directory))
+
+        client.optOutTracking()
+        scheduler.runCurrent()
+
+        assertEquals(emptyList(), storedKinds(directory))
+        assertEquals("denied", File(directory, FilePugStorage.fileName(keys.consent)).readText())
+    }
+
+    @Test
+    fun `an op that throws is logged and the ops behind it still run`() {
+        var failing = false
+        val properties =
+            object : AbstractMap<String, Any?>() {
+                override val entries: Set<Map.Entry<String, Any?>>
+                    get() = if (failing) throw IllegalStateException("boom") else emptySet()
+            }
+        val client = client(FakePlatform(properties = properties)) { autoInstallEvents = false }
+
+        client.track("a", null, null)
+        scheduler.runCurrent()
+        failing = true
+        client.track("boom", null, null)
+        scheduler.runCurrent()
+        failing = false
+        client.track("b", null, null)
+        client.flush()
+        scheduler.runCurrent()
+
+        assertEquals(listOf("Pug.track() failed"), logger.errors)
+        assertEquals(listOf(listOf("a", "b")), transport.kinds)
+        val teardown = client.destroy()
+        scheduler.runCurrent()
+        assertTrue(teardown.isCompleted)
     }
 
     @Test
@@ -404,7 +452,7 @@ class PugClientPlatformTest {
     fun `without a storage directory state stays in memory`() {
         val client = client(FakePlatform(directory = null)) {
             storage = null
-            batch(maxSize = 1)
+            batchMaxSize = 1
         }
 
         client.track("a", null, null)
@@ -449,7 +497,7 @@ class PugClientPlatformTest {
                 override fun observeLifecycle(observer: LifecycleObserver, logger: SafeLogger): (() -> Unit)? =
                     throw IllegalStateException("boom")
             }
-        val client = client(platform) { batch(maxSize = 1) }
+        val client = client(platform) { batchMaxSize = 1 }
 
         client.track("a", null, null)
         scheduler.runCurrent()

@@ -30,7 +30,7 @@ class SampleApplication : Application() {
                 dryRun = BuildConfig.PUG_API_KEY.isEmpty()
                 // Every event in Logcat (tag Pug), in the minified build too.
                 debug = true
-                trackingConsent(persist = true)
+                persistTrackingConsent = true
             },
         )
     }

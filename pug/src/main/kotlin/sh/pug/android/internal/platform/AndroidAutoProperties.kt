@@ -101,12 +101,9 @@ internal class AndroidAutoProperties(
     // sdkInt is Build.VERSION.SDK_INT, injected so tests reach both branches.
     @SuppressLint("NewApi")
     @Suppress("DEPRECATION")
-    private fun versionCode(info: PackageInfo): Long = if (sdkInt >=
-        28
-    ) {
-        info.longVersionCode
-    } else {
-        info.versionCode.toLong()
+    private fun versionCode(info: PackageInfo): Long {
+        if (sdkInt >= 28) return info.longVersionCode
+        return info.versionCode.toLong()
     }
 
     // ACCESS_NETWORK_STATE was found granted at construction; the SDK does not declare it. sdkInt as above.

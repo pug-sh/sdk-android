@@ -20,15 +20,17 @@ internal class EventQueue(
     private val logger: SafeLogger,
     private val maxQueueSize: Int,
 ) {
-    class Batch internal constructor(val events: List<Event>)
+    class Batch internal constructor(internal val entries: List<Entry>) {
+        val events: List<Event> = entries.map { it.event }
+    }
 
     // Each event's JSON is kept so persisting a change re-joins strings instead of re-encoding
     // every event, which matters when a long offline spell fills the queue.
-    private class Entry(val event: Event, val json: String, val size: Int)
+    class Entry(val event: Event, val json: String, val size: Int)
 
     private val pending = ArrayDeque<Entry>()
-    private var locked: List<Entry> = emptyList()
     private var lockedBatch: Batch? = null
+    private val locked: List<Entry> get() = lockedBatch?.entries.orEmpty()
     private var overflowWarned = false
 
     init {
@@ -92,19 +94,14 @@ internal class EventQueue(
                 }
             }
         }
-        val batch = if (taken.isEmpty()) null else Batch(taken.map { it.event })
-        if (batch != null) {
-            locked = taken
-            lockedBatch = batch
-        }
+        lockedBatch = if (taken.isEmpty()) null else Batch(taken)
         if (dropped > 0) persist()
-        return batch
+        return lockedBatch
     }
 
     /** Drops the delivered (or permanently rejected) [batch]; a batch from before [clear] is ignored. */
     fun commit(batch: Batch) {
         if (batch !== lockedBatch) return
-        locked = emptyList()
         lockedBatch = null
         overflowWarned = false
         persist()
@@ -113,8 +110,7 @@ internal class EventQueue(
     /** Returns [batch] to the front of the queue; a batch from before [clear] is ignored. */
     fun rollback(batch: Batch) {
         if (batch !== lockedBatch) return
-        for (entry in locked.asReversed()) pending.addFirst(entry)
-        locked = emptyList()
+        for (entry in batch.entries.asReversed()) pending.addFirst(entry)
         lockedBatch = null
         // Storage already holds the locked batch ahead of the pending events.
     }
@@ -123,7 +119,6 @@ internal class EventQueue(
     fun clear(): Int {
         val dropped = totalSize
         pending.clear()
-        locked = emptyList()
         lockedBatch = null
         overflowWarned = false
         storage.remove(key)

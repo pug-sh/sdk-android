@@ -62,15 +62,12 @@ internal class Identity(
             } else {
                 Session(current.id, current.startTime, nowMillis)
             }
-        session = next
         storeSession(next)
         return next.id
     }
 
     fun rotateSession(nowMillis: Long) {
-        val next = Session(ids.nextId(), nowMillis, nowMillis)
-        session = next
-        storeSession(next)
+        storeSession(Session(ids.nextId(), nowMillis, nowMillis))
     }
 
     fun link(externalId: String) {
@@ -80,7 +77,6 @@ internal class Identity(
         storage.putString(keys.externalId, externalId)
     }
 
-    /** A new anonymous id and session, and no external id: the next user starts fresh. */
     fun reset(nowMillis: Long) {
         externalId = null
         currentAnonymousId = newAnonymousId()
@@ -150,6 +146,7 @@ internal class Identity(
     }
 
     private fun storeSession(session: Session) {
+        this.session = session
         val json =
             JsonWriter()
                 .beginObject()

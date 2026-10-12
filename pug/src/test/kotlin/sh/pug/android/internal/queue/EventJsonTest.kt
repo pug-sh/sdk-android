@@ -70,6 +70,13 @@ class EventJsonTest {
                 { it.put("distinctId", "") },
                 { it.put("kind", "has space") },
                 { it.put("occurTime", "soon") },
+                { it.put("occurTime", -1) },
+                { it.put("occurTime", 253_402_300_800_000L) },
+                { it.getJSONObject("customProperties").put("a", JSONObject().put("stringValue", "é".repeat(513))) },
+                {
+                    it.getJSONObject("customProperties")
+                        .put("a", JSONObject().put("timestampValue", 253_402_300_800_000L))
+                },
                 { it.getJSONObject("customProperties").put("\$reserved", JSONObject("""{"intValue":1}""")) },
                 { it.getJSONObject("autoProperties").put("plain", JSONObject("""{"intValue":1}""")) },
                 { it.getJSONObject("customProperties").put("a", JSONObject("""{"floatValue":1}""")) },

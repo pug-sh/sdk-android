@@ -38,6 +38,9 @@ internal class EventDispatcher(
     private var timer: Job? = null
     private var failures = 0
 
+    // Immediate events awaiting their send, which teardown puts back in the queue should it stop waiting.
+    private val sendingNow = ArrayList<Event>()
+
     // Bumped by clear(), so an immediate send that fails after a purge does not refill the queue.
     private var generation = 0
     private var closed = false
@@ -59,9 +62,15 @@ internal class EventDispatcher(
     /** Sends [event] on its own right away. It joins the queue only if that fails transiently. */
     fun sendNow(event: Event) {
         val generationAtSend = generation
+        sendingNow.add(event)
         scope.launch {
-            val failure = deliver(listOf(event)) ?: return@launch
-            if (disposed || generation != generationAtSend) return@launch
+            val failure =
+                try {
+                    deliver(listOf(event))
+                } finally {
+                    sendingNow.remove(event)
+                }
+            if (failure == null || disposed || generation != generationAtSend) return@launch
             queue.push(event)
             retryLater(failure, events = 1)
         }
@@ -82,6 +91,7 @@ internal class EventDispatcher(
     fun clear(): Int {
         generation++
         cancelTimer()
+        sendingNow.clear()
         return queue.clear()
     }
 
@@ -91,9 +101,14 @@ internal class EventDispatcher(
         cancelTimer()
     }
 
-    /** From here on nothing touches the queue, whose storage may then belong to a successor client. */
+    /**
+     * From here on nothing touches the queue, whose storage may then belong to a successor client.
+     * Immediate events still in flight are queued first, so they are kept for the next launch.
+     */
     fun dispose() {
         close()
+        for (event in sendingNow) queue.push(event)
+        sendingNow.clear()
         disposed = true
     }
 
@@ -107,8 +122,11 @@ internal class EventDispatcher(
         try {
             while (true) {
                 val batch = queue.lock(maxSize, MAX_BATCH_BYTES) ?: break
+                val generationAtSend = generation
                 val failure = deliver(batch.events)
                 if (disposed) return
+                // Purged while in flight: there is nothing to put back or to back off for.
+                if (generation != generationAtSend) continue
                 if (failure != null) {
                     queue.rollback(batch)
                     retryLater(failure, batch.events.size)

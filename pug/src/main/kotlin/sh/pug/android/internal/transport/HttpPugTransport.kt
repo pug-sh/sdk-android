@@ -106,13 +106,17 @@ internal class HttpPugTransport(
         return connection
     }
 
-    // Socket reads ignore thread interrupts, so a timeout or cancellation unblocks the worker
-    // thread by disconnecting; its late result then lands on a cancelled continuation and is dropped.
+    // Socket reads ignore thread interrupts, so a timeout or cancellation unblocks the executor thread
+    // by disconnecting; its late result then lands on a cancelled continuation and is dropped.
+    // Disconnecting before the connection opens does nothing, so a task that starts after the
+    // cancellation must not send at all.
     private suspend fun exchange(connection: HttpURLConnection, body: ByteArray): RawResponse =
         suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { connection.disconnect() }
             executor.execute {
-                continuation.resumeWith(runCatching { tagged { execute(connection, body) } })
+                if (continuation.isActive) {
+                    continuation.resumeWith(runCatching { tagged { execute(connection, body) } })
+                }
             }
         }
 
@@ -136,23 +140,24 @@ internal class HttpPugTransport(
         val stream = if (status in 200..299) connection.inputStream else connection.errorStream
         val bytes = stream?.use { it.readUpTo(MAX_RESPONSE_BYTES) } ?: ByteArray(0)
         RawResponse(status, contentType, bytes)
-    } catch (e: SocketTimeoutException) {
+    } catch (e: Exception) {
         connection.disconnect()
-        throw PugTransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out", e)
-    } catch (e: IOException) {
-        connection.disconnect()
-        throw PugTransportException(RpcCode.UNAVAILABLE, "network request failed (${e.javaClass.simpleName})", e)
-    } catch (e: SecurityException) {
-        connection.disconnect()
-        throw PugTransportException(RpcCode.UNAVAILABLE, "network access was denied", e)
-    } catch (e: RuntimeException) {
-        connection.disconnect()
-        throw PugTransportException(
-            RpcCode.INTERNAL,
-            "HTTP client failed (${e.javaClass.simpleName})",
-            e,
-            isPermanent = true,
-        )
+        throw when (e) {
+            is SocketTimeoutException -> PugTransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out", e)
+
+            is IOException ->
+                PugTransportException(RpcCode.UNAVAILABLE, "network request failed (${e.javaClass.simpleName})", e)
+
+            is SecurityException -> PugTransportException(RpcCode.UNAVAILABLE, "network access was denied", e)
+
+            else ->
+                PugTransportException(
+                    RpcCode.INTERNAL,
+                    "HTTP client failed (${e.javaClass.simpleName})",
+                    e,
+                    isPermanent = true,
+                )
+        }
     }
 
     private fun errorFrom(response: RawResponse): PugTransportException {

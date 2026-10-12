@@ -170,42 +170,50 @@ public final class sh/pug/android/PugOptions$Builder {
 	public final fun autoInstallEvents (Z)Lsh/pug/android/PugOptions$Builder;
 	public final fun autoScreenViews (Z)Lsh/pug/android/PugOptions$Builder;
 	public final fun autoTrack (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun batch ()Lsh/pug/android/PugOptions$Builder;
-	public final fun batch (I)Lsh/pug/android/PugOptions$Builder;
-	public final fun batch (IJ)Lsh/pug/android/PugOptions$Builder;
-	public final fun batch (IJI)Lsh/pug/android/PugOptions$Builder;
-	public static synthetic fun batch$default (Lsh/pug/android/PugOptions$Builder;IJIILjava/lang/Object;)Lsh/pug/android/PugOptions$Builder;
+	public final fun batchMaxQueueSize (I)Lsh/pug/android/PugOptions$Builder;
+	public final fun batchMaxSize (I)Lsh/pug/android/PugOptions$Builder;
+	public final fun batchMaxWaitMs (J)Lsh/pug/android/PugOptions$Builder;
 	public final fun build ()Lsh/pug/android/PugOptions;
 	public final fun debug (Z)Lsh/pug/android/PugOptions$Builder;
+	public final fun defaultTrackingConsent (Lsh/pug/android/TrackingConsent;)Lsh/pug/android/PugOptions$Builder;
 	public final fun dryRun (Z)Lsh/pug/android/PugOptions$Builder;
 	public final fun endpoint (Ljava/lang/String;)Lsh/pug/android/PugOptions$Builder;
 	public final fun getApiKey ()Ljava/lang/String;
 	public final fun getAutoInstallEvents ()Z
 	public final fun getAutoScreenViews ()Z
 	public final fun getAutoTrack ()Z
+	public final fun getBatchMaxQueueSize ()I
+	public final fun getBatchMaxSize ()I
+	public final fun getBatchMaxWaitMs ()J
 	public final fun getDebug ()Z
+	public final fun getDefaultTrackingConsent ()Lsh/pug/android/TrackingConsent;
 	public final fun getDryRun ()Z
 	public final fun getEndpoint ()Ljava/lang/String;
 	public final fun getLogger ()Lsh/pug/android/PugLogger;
+	public final fun getPersistTrackingConsent ()Z
+	public final fun getSessionIdleTimeoutMs ()J
+	public final fun getSessionMaxDurationMs ()J
 	public final fun getStorage ()Lsh/pug/android/PugStorage;
 	public final fun logger (Lsh/pug/android/PugLogger;)Lsh/pug/android/PugOptions$Builder;
-	public final fun session ()Lsh/pug/android/PugOptions$Builder;
-	public final fun session (J)Lsh/pug/android/PugOptions$Builder;
-	public final fun session (JJ)Lsh/pug/android/PugOptions$Builder;
-	public static synthetic fun session$default (Lsh/pug/android/PugOptions$Builder;JJILjava/lang/Object;)Lsh/pug/android/PugOptions$Builder;
+	public final fun persistTrackingConsent (Z)Lsh/pug/android/PugOptions$Builder;
+	public final fun sessionIdleTimeoutMs (J)Lsh/pug/android/PugOptions$Builder;
+	public final fun sessionMaxDurationMs (J)Lsh/pug/android/PugOptions$Builder;
 	public final synthetic fun setAutoInstallEvents (Z)V
 	public final synthetic fun setAutoScreenViews (Z)V
 	public final synthetic fun setAutoTrack (Z)V
+	public final synthetic fun setBatchMaxQueueSize (I)V
+	public final synthetic fun setBatchMaxSize (I)V
+	public final synthetic fun setBatchMaxWaitMs (J)V
 	public final synthetic fun setDebug (Z)V
+	public final synthetic fun setDefaultTrackingConsent (Lsh/pug/android/TrackingConsent;)V
 	public final synthetic fun setDryRun (Z)V
 	public final synthetic fun setEndpoint (Ljava/lang/String;)V
 	public final synthetic fun setLogger (Lsh/pug/android/PugLogger;)V
+	public final synthetic fun setPersistTrackingConsent (Z)V
+	public final synthetic fun setSessionIdleTimeoutMs (J)V
+	public final synthetic fun setSessionMaxDurationMs (J)V
 	public final synthetic fun setStorage (Lsh/pug/android/PugStorage;)V
 	public final fun storage (Lsh/pug/android/PugStorage;)Lsh/pug/android/PugOptions$Builder;
-	public final fun trackingConsent ()Lsh/pug/android/PugOptions$Builder;
-	public final fun trackingConsent (Lsh/pug/android/TrackingConsent;)Lsh/pug/android/PugOptions$Builder;
-	public final fun trackingConsent (Lsh/pug/android/TrackingConsent;Z)Lsh/pug/android/PugOptions$Builder;
-	public static synthetic fun trackingConsent$default (Lsh/pug/android/PugOptions$Builder;Lsh/pug/android/TrackingConsent;ZILjava/lang/Object;)Lsh/pug/android/PugOptions$Builder;
 }
 
 public final class sh/pug/android/PugOptionsKt {
@@ -965,12 +973,24 @@ public final class sh/pug/android/TrackNamespace {
 }
 
 public final class sh/pug/android/TrackOptions {
-	public fun <init> ()V
-	public fun <init> (Z)V
-	public fun <init> (ZLjava/lang/Long;)V
-	public synthetic fun <init> (ZLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lsh/pug/android/TrackOptions$Builder;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getImmediate ()Z
 	public final fun getTimestamp ()Ljava/lang/Long;
+}
+
+public final class sh/pug/android/TrackOptions$Builder {
+	public fun <init> ()V
+	public final fun build ()Lsh/pug/android/TrackOptions;
+	public final fun getImmediate ()Z
+	public final fun getTimestamp ()Ljava/lang/Long;
+	public final fun immediate (Z)Lsh/pug/android/TrackOptions$Builder;
+	public final synthetic fun setImmediate (Z)V
+	public final synthetic fun setTimestamp (Ljava/lang/Long;)V
+	public final fun timestamp (Ljava/lang/Long;)Lsh/pug/android/TrackOptions$Builder;
+}
+
+public final class sh/pug/android/TrackOptionsKt {
+	public static final synthetic fun TrackOptions (Lkotlin/jvm/functions/Function1;)Lsh/pug/android/TrackOptions;
 }
 
 public final class sh/pug/android/TrackingConsent : java/lang/Enum {

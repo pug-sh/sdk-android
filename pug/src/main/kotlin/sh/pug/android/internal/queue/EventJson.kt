@@ -1,9 +1,13 @@
 package sh.pug.android.internal.queue
 
 import org.json.JSONObject
+import sh.pug.android.internal.event.MAX_STRING_BYTES
+import sh.pug.android.internal.event.MAX_TIMESTAMP_MILLIS
+import sh.pug.android.internal.event.MIN_TIMESTAMP_MILLIS
 import sh.pug.android.internal.event.isValidKind
 import sh.pug.android.internal.isUuid
 import sh.pug.android.internal.json.JsonWriter
+import sh.pug.android.internal.utf8Length
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
 
@@ -40,14 +44,15 @@ internal object EventJson {
         val kind = json.opt("kind") as? String ?: return null
         val sessionId = json.opt("sessionId") as? String ?: return null
         val distinctId = json.opt("distinctId") as? String ?: return null
-        val occurTime = json.opt("occurTime") as? Number ?: return null
+        val occurTime = (json.opt("occurTime") as? Number)?.toLong() ?: return null
         if (!eventId.isUuid() || !sessionId.isUuid() || distinctId.isEmpty() || !isValidKind(kind)) return null
+        if (occurTime !in 0..MAX_TIMESTAMP_MILLIS) return null
         return Event(
             eventId = eventId,
             kind = kind,
             distinctId = distinctId,
             sessionId = sessionId,
-            occurTimeMillis = occurTime.toLong(),
+            occurTimeMillis = occurTime,
             autoProperties = properties(json.opt("autoProperties"), auto = true) ?: return null,
             customProperties = properties(json.opt("customProperties"), auto = false) ?: return null,
         )
@@ -85,13 +90,23 @@ internal object EventJson {
         val type = json.keys().next()
         val value = json.opt(type)
         return when (type) {
-            "stringValue" -> (value as? String)?.let { PropertyValue.StringValue(it) }
+            "stringValue" -> string(value)
             "intValue" -> (value as? Number)?.let { PropertyValue.IntValue(it.toLong()) }
             "doubleValue" -> finiteDouble(value)
             "boolValue" -> (value as? Boolean)?.let { PropertyValue.BoolValue(it) }
-            "timestampValue" -> (value as? Number)?.let { PropertyValue.TimestampValue(it.toLong()) }
+            "timestampValue" -> timestamp(value)
             else -> null
         }
+    }
+
+    private fun string(value: Any?): PropertyValue? {
+        val string = value as? String ?: return null
+        return if (string.utf8Length() <= MAX_STRING_BYTES) PropertyValue.StringValue(string) else null
+    }
+
+    private fun timestamp(value: Any?): PropertyValue? {
+        val millis = (value as? Number)?.toLong() ?: return null
+        return if (millis in MIN_TIMESTAMP_MILLIS..MAX_TIMESTAMP_MILLIS) PropertyValue.TimestampValue(millis) else null
     }
 
     private fun finiteDouble(value: Any?): PropertyValue? {
