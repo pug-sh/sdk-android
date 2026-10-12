@@ -1,14 +1,17 @@
 version: 2
 updates:
   # Runtime dependency versions in gradle/libs.versions.toml are deliberate floors (PLAN.md D2/D3):
-  # only test and build tooling should be bumped routinely.
+  # only test and build tooling should be bumped routinely. A version ref shared with a floor moves
+  # the floor too, so every library on it is ignored. abi-tools must match the Kotlin AGP builds with.
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
     ignore:
       - dependency-name: "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+      - dependency-name: "org.jetbrains.kotlinx:kotlinx-coroutines-test"
       - dependency-name: "org.jetbrains.kotlin:kotlin-test-junit"
+      - dependency-name: "org.jetbrains.kotlin:abi-tools"
 
   - package-ecosystem: "github-actions"
     directory: "/"
