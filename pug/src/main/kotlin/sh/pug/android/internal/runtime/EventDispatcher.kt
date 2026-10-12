@@ -155,7 +155,7 @@ internal class EventDispatcher(
                 if (!e.isPermanent) return e
                 recovered()
                 logger.error(
-                    "${eventCount(events.size)} dropped: rejected by the server (${e.code.wireName}: ${e.message})",
+                    "${eventCount(events.size)} dropped: rejected by the server (${e.detail})",
                     e,
                 )
                 return null
@@ -166,7 +166,7 @@ internal class EventDispatcher(
             }
         recovered()
         if (response != null && response.accepted < events.size) warnPartiallyAccepted(response, events.size)
-        logger.debug("Sent ${eventCount(events.size)}")
+        if (logger.isDebugEnabled) logger.debug("Sent ${eventCount(events.size)}")
         return null
     }
 
@@ -179,7 +179,7 @@ internal class EventDispatcher(
     private fun retryLater(failure: PugTransportException, events: Int) {
         failures++
         cancelTimer()
-        val reason = "Sending ${eventCount(events)} failed (${failure.code.wireName}: ${failure.message})"
+        val reason = "Sending ${eventCount(events)} failed (${failure.detail})"
         if (closed) {
             logger.warn("$reason; kept in the queue", failure)
             return

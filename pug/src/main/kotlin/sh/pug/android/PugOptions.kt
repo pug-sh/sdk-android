@@ -40,8 +40,11 @@ public class PugOptions private constructor(builder: Builder) {
     internal val sessionIdleTimeoutMs: Long
     internal val sessionMaxDurationMs: Long
 
+    /** A fresh logger per caller, since each reports a throwing host logger once. */
+    internal fun newLogger(): SafeLogger = SafeLogger(logger ?: LogcatLogger, debug)
+
     init {
-        val log = SafeLogger(builder.logger ?: LogcatLogger, builder.debug)
+        val log = newLogger()
         batchMaxSize =
             if (builder.batchMaxSize > MAX_BATCH_SIZE) {
                 log.warn("batchMaxSize ${builder.batchMaxSize} is above the server's limit; using $MAX_BATCH_SIZE")

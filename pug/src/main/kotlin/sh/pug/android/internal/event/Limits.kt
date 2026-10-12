@@ -11,3 +11,7 @@ internal const val MAX_BATCH_BYTES: Int = 4 * 1024 * 1024
 // google.protobuf.Timestamp spans 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
 internal const val MIN_TIMESTAMP_MILLIS: Long = -62_135_596_800_000L
 internal const val MAX_TIMESTAMP_MILLIS: Long = 253_402_300_799_999L
+internal val TIMESTAMP_MILLIS: LongRange = MIN_TIMESTAMP_MILLIS..MAX_TIMESTAMP_MILLIS
+
+// Event.occur_time must fall in 1970 to 9999.
+internal val OCCUR_TIME_MILLIS: LongRange = 0L..MAX_TIMESTAMP_MILLIS

@@ -1,9 +1,6 @@
 package sh.pug.android.internal.event
 
 import android.os.Build
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.truncateUtf8
 import sh.pug.android.internal.wire.PropertyValue
@@ -25,7 +22,6 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
         val mapped = LinkedHashMap<String, PropertyValue>()
         val schema = if (auto) null else WellKnownEvents.byKind[kind]
         try {
-            if (properties.isEmpty()) return emptyMap()
             for (entry in properties.entries) {
                 val key: String? = entry.key
                 val value = entry.value ?: continue
@@ -65,27 +61,14 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
         null
     }
 
-    private fun toPropertyValue(value: Any): PropertyValue = when (value) {
-        is String -> PropertyValue.StringValue(value)
-        is Boolean -> PropertyValue.BoolValue(value)
-        is Int, is Long, is Short, is Byte, is AtomicInteger, is AtomicLong -> integer(value as Number)
-        is Double -> finite(value)
-        is Float -> finite(value.toDecimalDouble())
-        is CharSequence, is Char -> PropertyValue.StringValue(value.toString())
-        is Enum<*> -> PropertyValue.StringValue(value.name)
-        is BigInteger -> if (value.bitLength() < 64) PropertyValue.IntValue(value.toLong()) else digits(value)
-        is Number -> finite(value.toDouble())
-        is UByte -> PropertyValue.IntValue(value.toLong())
-        is UShort -> PropertyValue.IntValue(value.toLong())
-        is UInt -> PropertyValue.IntValue(value.toLong())
-        is ULong -> if (value <= Long.MAX_VALUE.toULong()) PropertyValue.IntValue(value.toLong()) else digits(value)
-        else -> other(value)
+    private fun toPropertyValue(value: Any): PropertyValue = when (val scalar = scalarOf(value)) {
+        is HostScalar.Text -> PropertyValue.StringValue(scalar.value)
+        is HostScalar.Bool -> PropertyValue.BoolValue(scalar.value)
+        is HostScalar.Integer -> PropertyValue.IntValue(scalar.value)
+        is HostScalar.Decimal -> finite(scalar.value)
+        is HostScalar.Digits -> PropertyValue.StringValue(scalar.value)
+        null -> other(value)
     }
-
-    private fun integer(value: Number): PropertyValue = PropertyValue.IntValue(value.toLong())
-
-    // An integer too wide for int64 keeps its exact digits rather than rounding through a double.
-    private fun digits(value: Any): PropertyValue = PropertyValue.StringValue(value.toString())
 
     private fun other(value: Any): PropertyValue {
         if (HostJson.isCollection(value)) {

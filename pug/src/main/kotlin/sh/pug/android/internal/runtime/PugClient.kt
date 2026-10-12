@@ -36,7 +36,6 @@ import sh.pug.android.internal.event.durationText
 import sh.pug.android.internal.identity.Identity
 import sh.pug.android.internal.identity.RESERVED_ID_PREFIX
 import sh.pug.android.internal.lifecycle.InstallTracker
-import sh.pug.android.internal.logging.LogcatLogger
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.platform.AutoProperties
 import sh.pug.android.internal.platform.LifecycleObserver
@@ -77,7 +76,7 @@ internal class PugClient(
     sdkInt: Int = Build.VERSION.SDK_INT,
     private val consentWaitMs: Long = CONSENT_WAIT_MS,
 ) {
-    val logger: SafeLogger = SafeLogger(options.logger ?: LogcatLogger, options.debug)
+    val logger: SafeLogger = options.newLogger()
 
     private val root = SupervisorJob()
     private val scope =
@@ -170,12 +169,10 @@ internal class PugClient(
     fun track(kind: String, properties: Map<String, Any?>?, trackOptions: TrackOptions?) {
         val callTime = clock.nowMillis()
         if (!factory.acceptsKind(kind)) return
-        val occurTime = factory.occurTime(kind, trackOptions?.timestamp, callTime)
         // Mapped now, because the host may change the map or its values once track() returns.
         val custom = if (properties == null) emptyMap() else propertyMapper.mapCustom(kind, properties)
         WellKnownEvents.byKind[kind]?.let { reportMissing(it, custom) }
-        val immediate = trackOptions?.immediate == true
-        submit("track") { capture(kind, custom, callTime, occurTime, immediate) }
+        submitCapture("track", kind, custom, callTime, trackOptions)
     }
 
     /** [values] are [event]'s properties in schema order, null where the caller left them out. */
@@ -201,7 +198,6 @@ internal class PugClient(
                 }
             }
         }
-        val occurTime = factory.occurTime(event.kind, trackOptions?.timestamp, callTime)
         val custom = LinkedHashMap<String, PropertyValue>()
         if (extras != null) custom.putAll(propertyMapper.mapCustom(event.kind, extras))
         for ((name, value) in propertyMapper.mapCustom(event.kind, typed)) {
@@ -209,8 +205,19 @@ internal class PugClient(
                 logger.warn("Extra \"$name\" of Pug.${event.label}() was dropped: an argument sets it")
             }
         }
+        submitCapture(event.label, event.kind, custom, callTime, trackOptions)
+    }
+
+    private fun submitCapture(
+        name: String,
+        kind: String,
+        custom: Map<String, PropertyValue>,
+        callTime: Long,
+        trackOptions: TrackOptions?,
+    ) {
+        val occurTime = factory.occurTime(kind, trackOptions?.timestamp, callTime)
         val immediate = trackOptions?.immediate == true
-        submit(event.label) { capture(event.kind, custom, callTime, occurTime, immediate) }
+        submit(name) { capture(kind, custom, callTime, occurTime, immediate) }
     }
 
     fun identify(externalId: String, traits: Map<String, Any?>?) {
@@ -466,8 +473,8 @@ internal class PugClient(
         kind: String,
         properties: Map<String, PropertyValue>,
         callTime: Long,
-        occurTime: Long,
-        immediate: Boolean,
+        occurTime: Long = callTime,
+        immediate: Boolean = false,
     ): Boolean {
         if (!consent.isGranted) {
             logger.debug("Event \"$kind\" was dropped: tracking consent is denied")
@@ -482,7 +489,7 @@ internal class PugClient(
             return true
         }
         if (immediate) dispatcher.sendNow(event) else dispatcher.enqueue(event)
-        logger.debug("Tracked \"$kind\"")
+        if (logger.isDebugEnabled) logger.debug("Tracked \"$kind\"")
         return true
     }
 
@@ -494,7 +501,7 @@ internal class PugClient(
     }
 
     private fun captureInstallEvent(kind: String, properties: Map<String, Any?>, time: Long): Boolean =
-        capture(kind, propertyMapper.mapCustom(kind, properties), time, time, immediate = false)
+        capture(kind, propertyMapper.mapCustom(kind, properties), time)
 
     private fun enterForeground(now: Long) {
         visible = true
@@ -503,12 +510,12 @@ internal class PugClient(
 
     private fun open(now: Long) {
         if (!options.autoTrack || opened) return
-        opened = capture(PugEvents.APP_OPEN, emptyMap(), now, now, immediate = false)
+        opened = capture(PugEvents.APP_OPEN, emptyMap(), now)
     }
 
     private fun enterBackground(now: Long) {
         visible = false
-        if (options.autoTrack && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, now, immediate = true)) {
+        if (options.autoTrack && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, immediate = true)) {
             opened = false
         }
         // The process may be frozen or killed from here on: whatever is queued gets its send now.
@@ -544,7 +551,7 @@ internal class PugClient(
             PugEvents.SCREEN_VIEW,
             mapOf("screenName" to name, "screenClass" to screenClass),
         )
-        capture(PugEvents.SCREEN_VIEW, properties, callTime, callTime, immediate = false)
+        capture(PugEvents.SCREEN_VIEW, properties, callTime)
     }
 
     private fun sendIdentify(externalId: String, traits: Map<String, JsonValue>) {
@@ -566,7 +573,7 @@ internal class PugClient(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: PugTransportException) {
-                logger.error("identify() failed (${e.code.wireName}: ${e.message})", e)
+                logger.error("identify() failed (${e.detail})", e)
                 return@launch
             } catch (t: Throwable) {
                 logger.error("identify() failed unexpectedly", t)

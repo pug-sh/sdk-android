@@ -1,6 +1,7 @@
 package sh.pug.android.internal.event
 
 import java.math.BigInteger
+import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import sh.pug.android.internal.json.JsonWriter
@@ -43,26 +44,26 @@ internal object HostJson {
 
     private class Conversion(private val sdkInt: Int) {
         private var values = 0
+        private val dates by lazy(LazyThreadSafetyMode.NONE, ::iso8601Format)
 
         fun convert(value: Any?, depth: Int): JsonValue {
             if (++values > MAX_VALUES) throw UnsupportedValueException("it holds more than $MAX_VALUES values")
-            return when (value) {
-                null -> JsonValue.Null
-                is String -> JsonValue.StringValue(value)
-                is Boolean -> JsonValue.BoolValue(value)
-                is Int, is Long, is Short, is Byte, is AtomicInteger, is AtomicLong -> integer(value as Number)
-                is Double -> decimal(value)
-                is Float -> decimal(value.toDecimalDouble())
-                is CharSequence, is Char -> JsonValue.StringValue(value.toString())
-                is Enum<*> -> JsonValue.StringValue(value.name)
-                is BigInteger -> bigInteger(value)
-                is Number -> decimal(value.toDouble())
-                is UByte -> integer(value.toLong())
-                is UShort -> integer(value.toLong())
-                is UInt -> integer(value.toLong())
-                is ULong -> unsignedLong(value)
-                is Map<*, *> -> nested(depth) { obj(value, depth + 1) }
-                else -> other(value, depth)
+            return when (val scalar = value?.let(::scalarOf)) {
+                is HostScalar.Text -> JsonValue.StringValue(scalar.value)
+
+                is HostScalar.Bool -> JsonValue.BoolValue(scalar.value)
+
+                is HostScalar.Integer -> integer(scalar.value)
+
+                is HostScalar.Decimal -> decimal(scalar.value)
+
+                is HostScalar.Digits -> JsonValue.StringValue(scalar.value)
+
+                null -> when (value) {
+                    null -> JsonValue.Null
+                    is Map<*, *> -> nested(depth) { obj(value, depth + 1) }
+                    else -> other(value, depth)
+                }
             }
         }
 
@@ -70,7 +71,7 @@ internal object HostJson {
             val elements = elementsOf(value)
             if (elements != null) return nested(depth) { array(elements, depth + 1) }
             val millis = epochMillisOf(value, sdkInt) ?: throw unsupported(value)
-            return JsonValue.StringValue(iso8601(millis))
+            return JsonValue.StringValue(dates.format(Date(millis)))
         }
 
         private inline fun nested(depth: Int, convert: () -> JsonValue): JsonValue {
@@ -89,19 +90,11 @@ internal object HostJson {
         private fun array(values: Iterable<*>, depth: Int): JsonValue =
             JsonValue.ArrayValue(values.map { convert(it, depth) })
 
-        private fun integer(value: Number): JsonValue = integer(value.toLong())
-
         private fun integer(value: Long): JsonValue = if (value in -MAX_SAFE_INTEGER..MAX_SAFE_INTEGER) {
             JsonValue.NumberValue(value.toDouble())
         } else {
             JsonValue.StringValue(value.toString())
         }
-
-        private fun bigInteger(value: BigInteger): JsonValue =
-            if (value.bitLength() < 64) integer(value.toLong()) else JsonValue.StringValue(value.toString())
-
-        private fun unsignedLong(value: ULong): JsonValue =
-            if (value <= Long.MAX_VALUE.toULong()) integer(value.toLong()) else JsonValue.StringValue(value.toString())
 
         private fun decimal(value: Double): JsonValue =
             if (value.isFinite()) JsonValue.NumberValue(value) else JsonValue.Null
@@ -141,6 +134,41 @@ internal object HostJson {
         }
     }
 }
+
+/** The host types properties and traits both accept as a single value, in the order they are tested. */
+internal sealed interface HostScalar {
+    class Text(val value: String) : HostScalar
+
+    class Bool(val value: Boolean) : HostScalar
+
+    class Integer(val value: Long) : HostScalar
+
+    class Decimal(val value: Double) : HostScalar
+
+    // An integer too wide for int64 keeps its exact digits rather than rounding through a double.
+    class Digits(val value: String) : HostScalar
+}
+
+internal fun scalarOf(value: Any): HostScalar? = when (value) {
+    is String -> HostScalar.Text(value)
+    is Boolean -> HostScalar.Bool(value)
+    is Int, is Long, is Short, is Byte, is AtomicInteger, is AtomicLong -> integer((value as Number).toLong())
+    is Double -> HostScalar.Decimal(value)
+    is Float -> HostScalar.Decimal(value.toDecimalDouble())
+    is CharSequence, is Char -> HostScalar.Text(value.toString())
+    is Enum<*> -> HostScalar.Text(value.name)
+    is BigInteger -> if (value.bitLength() < 64) integer(value.toLong()) else digits(value)
+    is Number -> HostScalar.Decimal(value.toDouble())
+    is UByte -> integer(value.toLong())
+    is UShort -> integer(value.toLong())
+    is UInt -> integer(value.toLong())
+    is ULong -> if (value <= Long.MAX_VALUE.toULong()) integer(value.toLong()) else digits(value)
+    else -> null
+}
+
+private fun integer(value: Long): HostScalar = HostScalar.Integer(value)
+
+private fun digits(value: Any): HostScalar = HostScalar.Digits(value.toString())
 
 internal fun unsupported(value: Any): UnsupportedValueException =
     UnsupportedValueException("${value.javaClass.name} is not a supported type")

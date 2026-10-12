@@ -29,14 +29,12 @@ internal class ActivityLifecycleTracker(
     // activity seen starting settles the question.
     private var assumedStarted = false
     private var foreground = false
-    private var registered = false
     private var stopped = false
 
     fun start() {
         onMainThread {
             if (stopped) return@onMainThread
             application.registerActivityLifecycleCallbacks(this)
-            registered = true
             if (startsInForeground()) {
                 assumedStarted = true
                 enterForeground()
@@ -47,8 +45,7 @@ internal class ActivityLifecycleTracker(
     fun stop() {
         onMainThread {
             stopped = true
-            if (registered) application.unregisterActivityLifecycleCallbacks(this)
-            registered = false
+            application.unregisterActivityLifecycleCallbacks(this)
         }
     }
 

@@ -33,7 +33,7 @@ internal class EventFactory(
     /** [timestamp] when the caller set a usable one, else the time of the call. */
     fun occurTime(kind: String, timestamp: Long?, callTimeMillis: Long): Long {
         if (timestamp == null) return callTimeMillis
-        if (timestamp in 0..MAX_TIMESTAMP_MILLIS) return timestamp
+        if (timestamp in OCCUR_TIME_MILLIS) return timestamp
         logger.warn("Event \"$kind\" has a timestamp outside 1970 to 9999 ($timestamp); using the time of the call")
         return callTimeMillis
     }
