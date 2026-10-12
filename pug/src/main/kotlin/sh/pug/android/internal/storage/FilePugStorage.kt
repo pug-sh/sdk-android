@@ -106,7 +106,10 @@ internal class FilePugStorage(
         if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Could not create $directory")
         val temp = File(directory, file.name + TEMP_SUFFIX)
         FileOutputStream(temp).use { out ->
-            out.write(value.toByteArray(Charsets.UTF_8))
+            out.bufferedWriter(Charsets.UTF_8).run {
+                write(value)
+                flush()
+            }
             // The rename below must not publish a file whose content a power loss could still undo.
             out.fd.sync()
         }

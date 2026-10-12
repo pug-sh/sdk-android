@@ -56,4 +56,6 @@ internal class PugTransportException(
     message: String,
     cause: Throwable? = null,
     val isPermanent: Boolean = code.isPermanent,
-) : Exception(message, cause)
+) : Exception(message, cause) {
+    val detail: String get() = "${code.wireName}: $message"
+}

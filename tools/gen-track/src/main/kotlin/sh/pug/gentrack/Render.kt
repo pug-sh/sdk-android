@@ -7,23 +7,18 @@ private const val HEADER =
 // Events Pug tracks on its own, which a call to their method would track a second time.
 private val NOTES =
     mapOf(
-        "app_open" to
-            "Pug tracks `app_open` itself each time the app comes to the foreground, unless `autoTrack` is off: " +
-            "calling this as well tracks it twice.",
-        "app_close" to
-            "Pug tracks `app_close` itself each time the app leaves the foreground, unless `autoTrack` is off: " +
-            "calling this as well tracks it twice.",
-        "app_install" to
-            "Pug tracks `app_install` itself on the first launch of the app, unless `autoInstallEvents` is off: " +
-            "calling this as well tracks it twice.",
-        "app_update" to
-            "Pug tracks `app_update` itself on the first launch of each new version of the app, unless " +
-            "`autoInstallEvents` is off: calling this as well tracks it twice.",
+        autoTracked("app_open", "each time the app comes to the foreground", "autoTrack"),
+        autoTracked("app_close", "each time the app leaves the foreground", "autoTrack"),
+        autoTracked("app_install", "on the first launch of the app", "autoInstallEvents"),
+        autoTracked("app_update", "on the first launch of each new version of the app", "autoInstallEvents"),
         "screen_view" to
             "Only tracks the event: unlike [Pug.screen], it neither makes [screenName] the `\$url` of the events " +
             "that follow nor skips a screen that is already showing. Pug tracks a `screen_view` itself each time " +
             "an activity resumes on a different screen, unless `autoScreenViews` is off.",
     )
+
+private fun autoTracked(kind: String, whenTracked: String, option: String) =
+    kind to "Pug tracks `$kind` itself $whenTracked, unless `$option` is off: calling this as well tracks it twice."
 
 private val TRACK_NAMESPACE_DOC =
     listOf(
@@ -48,10 +43,7 @@ fun render(events: List<Event>): Map<String, String> = mapOf(
 )
 
 private fun trackNamespace(events: List<Event>): String = buildString {
-    appendLine(HEADER)
-    appendLine()
-    appendLine("package sh.pug.android")
-    appendLine()
+    preamble("sh.pug.android")
     appendLine("import sh.pug.android.internal.event.WellKnownEvents")
     appendLine("import sh.pug.android.internal.runtime.PugFacade")
     appendLine()
@@ -94,10 +86,7 @@ private fun parameterDoc(field: Field): String? {
 }
 
 private fun pugEvents(events: List<Event>): String = buildString {
-    appendLine(HEADER)
-    appendLine()
-    appendLine("package sh.pug.android")
-    appendLine()
+    preamble("sh.pug.android")
     kdoc("", wrap(PUG_EVENTS_DOC, ""))
     appendLine("public object PugEvents {")
     events.forEach { appendLine("    public const val ${it.constant}: String = \"${it.kind}\"") }
@@ -105,10 +94,7 @@ private fun pugEvents(events: List<Event>): String = buildString {
 }
 
 private fun wellKnownEvents(events: List<Event>): String = buildString {
-    appendLine(HEADER)
-    appendLine()
-    appendLine("package sh.pug.android.internal.event")
-    appendLine()
+    preamble("sh.pug.android.internal.event")
     appendLine("import sh.pug.android.PugEvents")
     events.flatMap { event -> event.fields.map { it.type.schema } }.toSortedSet().forEach {
         appendLine("import sh.pug.android.internal.event.FieldType.$it")
@@ -131,6 +117,13 @@ private fun wellKnownEvents(events: List<Event>): String = buildString {
     events.forEach { appendLine("            ${it.constant},") }
     appendLine("        ).associateBy { it.kind }")
     appendLine("}")
+}
+
+private fun StringBuilder.preamble(pkg: String) {
+    appendLine(HEADER)
+    appendLine()
+    appendLine("package $pkg")
+    appendLine()
 }
 
 private fun StringBuilder.kdoc(indent: String, lines: List<String>) {
@@ -160,8 +153,9 @@ private fun wrap(text: String, indent: String, continuation: String = ""): List<
     val width = MAX_LINE - "$indent * ".length
     val lines = mutableListOf<String>()
     var current = ""
+    fun prefix() = if (lines.isEmpty()) "" else continuation
     for (word in text.split(' ')) {
-        val prefix = if (lines.isEmpty()) "" else continuation
+        val prefix = prefix()
         val candidate = if (current.isEmpty()) word else "$current $word"
         if (current.isNotEmpty() && (prefix + candidate).length > width) {
             lines += prefix + current
@@ -170,6 +164,6 @@ private fun wrap(text: String, indent: String, continuation: String = ""): List<
             current = candidate
         }
     }
-    lines += (if (lines.isEmpty()) "" else continuation) + current
+    lines += prefix() + current
     return lines
 }

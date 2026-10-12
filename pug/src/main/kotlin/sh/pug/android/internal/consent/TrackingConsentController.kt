@@ -27,11 +27,9 @@ internal class TrackingConsentController(
     var consent: TrackingConsent = defaultConsent
         private set
 
-    // Whether consent was restored from storage. Only a recorded denial may purge identity at init:
-    // purging on a default would mint a new user on every launch.
-    private var restored = false
-
     // Whether consent is a user's choice, restored or made in this process, rather than the default.
+    // At init, before any set(), it means a stored choice: only a recorded denial may purge identity
+    // there, since purging on a default would mint a new user on every launch.
     private var decided = false
 
     init {
@@ -47,7 +45,7 @@ internal class TrackingConsentController(
     fun enforceAtInit() {
         if (isGranted) return
         purge.dropQueue()
-        if (restored) {
+        if (decided) {
             purge.forgetIdentity()
             logger.debug("Tracking consent is denied by a stored choice; events and identify() are dropped")
         } else {
@@ -80,7 +78,6 @@ internal class TrackingConsentController(
             return
         }
         consent = value
-        restored = true
         decided = true
     }
 

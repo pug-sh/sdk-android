@@ -20,17 +20,17 @@ internal fun epochMillisOf(value: Any, sdkInt: Int): Long? {
             is Calendar -> value.timeInMillis
             else -> if (sdkInt >= 26) Instants.epochMillis(value) else null
         } ?: return null
-    if (millis !in MIN_TIMESTAMP_MILLIS..MAX_TIMESTAMP_MILLIS) throw outOfRange()
+    if (millis !in TIMESTAMP_MILLIS) throw outOfRange()
     return millis
 }
 
-/** ISO 8601 in UTC with milliseconds, as JavaScript's `Date.toJSON` writes it. */
-internal fun iso8601(epochMillis: Long): String {
+/** ISO 8601 in UTC with milliseconds, as JavaScript's `Date.toJSON` writes it. Not thread-safe. */
+internal fun iso8601Format(): SimpleDateFormat {
     val calendar = GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.US)
     calendar.gregorianChange = Date(Long.MIN_VALUE)
     val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
     format.calendar = calendar
-    return format.format(Date(epochMillis))
+    return format
 }
 
 private fun outOfRange() = UnsupportedValueException("the time is outside the years 1 to 9999")

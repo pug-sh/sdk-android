@@ -47,8 +47,7 @@ internal class PugFacade(
                     true
                 }
             if (!started) {
-                SafeLogger(options.logger ?: LogcatLogger, options.debug)
-                    .warn("Pug.init() was called again; the first configuration stays")
+                options.newLogger().warn("Pug.init() was called again; the first configuration stays")
             }
         } catch (t: Throwable) {
             fallbackLogger.error("Pug.init() failed; calls are ignored", t)

@@ -184,9 +184,7 @@ internal class EventQueue(
                     "\"$RESERVED_ID_PREFIX\" prefix, which the server rejects",
             )
         }
-        if (excess >
-            0
-        ) {
+        if (excess > 0) {
             logger.warn("$excess of the oldest stored events were dropped to fit maxQueueSize $maxQueueSize")
         }
         if (unreadable + reserved + excess > 0) persist()

@@ -2,8 +2,8 @@ package sh.pug.android.internal.queue
 
 import org.json.JSONObject
 import sh.pug.android.internal.event.MAX_STRING_BYTES
-import sh.pug.android.internal.event.MAX_TIMESTAMP_MILLIS
-import sh.pug.android.internal.event.MIN_TIMESTAMP_MILLIS
+import sh.pug.android.internal.event.OCCUR_TIME_MILLIS
+import sh.pug.android.internal.event.TIMESTAMP_MILLIS
 import sh.pug.android.internal.event.isValidKind
 import sh.pug.android.internal.isUuid
 import sh.pug.android.internal.json.JsonWriter
@@ -46,7 +46,7 @@ internal object EventJson {
         val distinctId = json.opt("distinctId") as? String ?: return null
         val occurTime = (json.opt("occurTime") as? Number)?.toLong() ?: return null
         if (!eventId.isUuid() || !sessionId.isUuid() || distinctId.isEmpty() || !isValidKind(kind)) return null
-        if (occurTime !in 0..MAX_TIMESTAMP_MILLIS) return null
+        if (occurTime !in OCCUR_TIME_MILLIS) return null
         return Event(
             eventId = eventId,
             kind = kind,
@@ -106,7 +106,7 @@ internal object EventJson {
 
     private fun timestamp(value: Any?): PropertyValue? {
         val millis = (value as? Number)?.toLong() ?: return null
-        return if (millis in MIN_TIMESTAMP_MILLIS..MAX_TIMESTAMP_MILLIS) PropertyValue.TimestampValue(millis) else null
+        return if (millis in TIMESTAMP_MILLIS) PropertyValue.TimestampValue(millis) else null
     }
 
     private fun finiteDouble(value: Any?): PropertyValue? {
