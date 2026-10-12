@@ -25,3 +25,30 @@ spotless {
         ktlint(libs.versions.ktlint.get()).editorConfigOverride(ktlintStyle)
     }
 }
+
+val detektCli = configurations.create("detektCli")
+
+dependencies {
+    detektCli(libs.detekt.cli)
+}
+
+val detektSources = listOf("pug/src", "sample/src", "tools/abi-dump/src", "tools/gen-track/src")
+val detektConfig = layout.projectDirectory.file("config/detekt.yml")
+val detektReport = layout.buildDirectory.file("reports/detekt.txt")
+
+tasks.register<JavaExec>("detekt") {
+    description = "Fails on unused code that detekt can see within a file: imports, parameters, private declarations."
+    classpath = detektCli
+    mainClass = "io.gitlab.arturbosch.detekt.cli.Main"
+    inputs.files(detektSources.map { fileTree(it) { include("**/*.kt", "**/*.kts") } })
+    inputs.file(detektConfig)
+    outputs.file(detektReport)
+    args(
+        "--input",
+        detektSources.joinToString(","),
+        "--config",
+        detektConfig.asFile.path,
+        "--report",
+        "txt:${detektReport.get().asFile.path}",
+    )
+}

@@ -1,0 +1,15 @@
+style:
+  active: true
+  UnusedImports:
+    active: true
+  UnusedParameter:
+    active: true
+    allowedNames: 'ignored|expected'
+  UnusedPrivateClass:
+    active: true
+  UnusedPrivateMember:
+    active: true
+    allowedNames: ''
+  UnusedPrivateProperty:
+    active: true
+    allowedNames: 'ignored|expected|serialVersionUID'

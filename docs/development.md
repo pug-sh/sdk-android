@@ -20,7 +20,7 @@ The library compiles to Java 11 bytecode with Kotlin `apiVersion`/`languageVersi
 
 | Command | What it does |
 | ------- | ------------ |
-| `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease`, the API dump check and the minified sample build |
+| `make check` | `verify-version`, then one Gradle run of `spotlessCheck`, `:detekt`, `:pug:lintDebug`, `:pug:testDebugUnitTest`, `:pug:assembleRelease`, the API dump check, the dead code check and the minified sample build |
 | `make fmt` | `spotlessApply` (ktlint 1.8, `android_studio` style) |
 | `make lint` / `test` / `build` | the individual Gradle steps |
 | `make abi-dump` | rewrites `pug/api/pug.api` from the release AAR (below) |
@@ -86,6 +86,21 @@ arguments compile against.
 
 Most of the file is the typed track API. A proto bump that adds a property to an event changes its
 methods' signatures (PLAN.md, phase 5 notes): treat it as an API change in the CHANGELOG.
+
+## Dead code
+
+Two checks in `make check`, neither part of the SDK. `:detekt` runs detekt's unused rules alone
+(`config/detekt.yml`: imports, parameters, private declarations) over every module's sources;
+detekt sees one file at a time, so it cannot judge `internal` code.
+
+`tools/dead-code` (`:tools:dead-code:deadCodeCheck`) does that across the SDK: it shrinks the
+release AAR's `classes.jar` with R8, keeping only what `pug/api/pug.api` lists, and fails on
+whatever R8 removes. It leaves out private members (detekt's), constants (inlined by the compiler)
+and the members Kotlin generates; optimization stays off, since inlining would report live code.
+Code that only tests reach counts as unreachable. Delete it, or list it in
+`tools/dead-code/allowed.txt` in the form the check prints; a property read only inside its own
+class shows up as its getter, and is better made private. The check also fails on an allowed line
+that no longer matches.
 
 ## Sample app
 
@@ -208,6 +223,7 @@ network access, and logs any VM-policy violation, such as a socket without a Tra
 | `internal/transport/RpcCode.kt` | Connect codes, permanent set, HTTP-status fallback, `PugTransportException` |
 | `tools/gen-track/` | The typed-track generator: `Catalog.kt` reads the image, `Render.kt` writes the sources |
 | `tools/abi-dump/` | The public API dump of the release AAR, and its check |
+| `tools/dead-code/`, `config/detekt.yml` | The dead code checks ([Dead code](#dead-code)) |
 | `pug/api/pug.api` | The committed public API dump |
 | `sample/` | The sample app; its minified release build is part of `make check` |
 

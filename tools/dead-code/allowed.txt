@@ -1,0 +1,7 @@
+# Declarations the SDK keeps although nothing in the public API reaches them, one per line as
+# `make check` prints them. Each is read only by tests (or only inside its own class).
+sh.pug.android.PugOptions: public final boolean getDebug$pug()
+sh.pug.android.PugOptions: public final sh.pug.android.PugLogger getLogger$pug()
+sh.pug.android.internal.storage.PugStorageKeys: public final java.util.List getAll()
+sh.pug.android.internal.transport.PugTransportException: public final sh.pug.android.internal.transport.RpcCode getCode()
+sh.pug.android.internal.wire.ProtoWriter: public final int getSize()
