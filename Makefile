@@ -78,7 +78,7 @@ fmt:
 	$(GRADLE) spotlessApply
 
 lint:
-	$(GRADLE) spotlessCheck :pug:lintDebug
+	$(GRADLE) spotlessCheck :detekt :pug:lintDebug
 
 test:
 	$(GRADLE) :pug:testDebugUnitTest
@@ -116,7 +116,7 @@ publish-central:
 
 # One Gradle invocation, so configuration runs once.
 check: verify-version
-	$(GRADLE) spotlessCheck :pug:lintDebug :pug:testDebugUnitTest :pug:assembleRelease :tools:abi-dump:abiCheck \
-	  :sample:assembleRelease
+	$(GRADLE) spotlessCheck :detekt :pug:lintDebug :pug:testDebugUnitTest :pug:assembleRelease :tools:abi-dump:abiCheck \
+	  :tools:dead-code:deadCodeCheck :sample:assembleRelease
 
 ci: protos check-codegen check

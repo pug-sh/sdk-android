@@ -16,8 +16,8 @@ semantics). Out of scope by user instruction: FCM/push and device registration
 ## Commands
 
 ```bash
-make check       # verify-version + spotlessCheck + lint + unit tests + release AAR + API dump check
-                 # + minified sample build (one Gradle run)
+make check       # verify-version + spotlessCheck + detekt + lint + unit tests + release AAR + API dump check
+                 # + dead code check + minified sample build (one Gradle run)
 make fmt         # spotlessApply (ktlint, android_studio style)
 make abi-dump    # rewrite pug/api/pug.api after an intended public API change; review the diff
 make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
@@ -43,6 +43,9 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
 - **Public API is pinned** by `pug/api/pug.api`, which `make check` compares with the release AAR
   through `tools/abi-dump` (KGP's ABI validation and BCV do not run under AGP's built-in Kotlin).
   Any change to a public signature, the generated ones included, shows there.
+- **Dead code is checked**: detekt's unused rules (`config/detekt.yml`) within a file, and
+  `tools/dead-code` across the SDK (R8 keeping only `pug.api`; test-only members are listed in
+  `tools/dead-code/allowed.txt`). See `docs/development.md`, Dead code.
 - **`sample/`** (`:sample`) is a framework-only app on the SDK, from Kotlin and Java, with StrictMode
   `penaltyDeath` in debug builds; its release build is minified with no keep rules for the SDK.
 - **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt` and
