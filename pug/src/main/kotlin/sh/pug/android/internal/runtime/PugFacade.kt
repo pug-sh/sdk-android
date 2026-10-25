@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import sh.pug.android.PugOptions
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent
+import sh.pug.android.events.WellKnownEvent
 import sh.pug.android.internal.event.EventSchema
 import sh.pug.android.internal.isNull
 import sh.pug.android.internal.logging.LogcatLogger
@@ -64,9 +65,19 @@ internal class PugFacade(
         }
     }
 
+    fun track(event: WellKnownEvent, options: TrackOptions?) {
+        call("track") {
+            if (isNull(event)) {
+                it.logger.warn("A null event was dropped")
+            } else {
+                it.trackTyped(event.schema, event.values, event.extras, options, event.caller)
+            }
+        }
+    }
+
     /** The methods of `Pug.track`: [values] are the event's properties in schema order, null where unset. */
     fun trackTyped(event: EventSchema, extras: Map<String, Any?>?, options: TrackOptions?, vararg values: Any?) {
-        call(event.label) { it.trackTyped(event, values, extras, options) }
+        call(event.label) { it.trackTyped(event, values, extras, options, "Pug.${event.label}()") }
     }
 
     fun identify(externalId: String, traits: Map<String, Any?>?) {
@@ -114,6 +125,18 @@ internal class PugFacade(
     fun isTrackingEnabled(): Boolean = query("isTrackingEnabled", fallback = false) { it.isTrackingEnabled }
 
     fun isConsentPending(): Boolean = query("isConsentPending", fallback = true) { it.isConsentPending }
+
+    fun whenConsentReady(callback: Runnable) {
+        call("whenConsentReady") { owner ->
+            if (isNull(callback)) {
+                owner.logger.warn("Pug.whenConsentReady() was given a null callback; it was ignored")
+            } else {
+                // Destroyed before it ran, its client would release it while the getters already ask
+                // the next client, which may not have read consent yet: that one releases it instead.
+                owner.whenConsentReady { if (client === owner) callback.run() else whenConsentReady(callback) }
+            }
+        }
+    }
 
     fun destroy() {
         try {

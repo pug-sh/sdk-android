@@ -27,7 +27,7 @@ public class PugOptions private constructor(builder: Builder) {
     internal val endpoint: String = builder.endpoint
     internal val debug: Boolean = builder.debug
     internal val dryRun: Boolean = builder.dryRun
-    internal val autoTrack: Boolean = builder.autoTrack
+    internal val autoOpenCloseEvents: Boolean = builder.autoOpenCloseEvents
     internal val autoScreenViews: Boolean = builder.autoScreenViews
     internal val autoInstallEvents: Boolean = builder.autoInstallEvents
     internal val logger: PugLogger? = builder.logger
@@ -82,11 +82,12 @@ public class PugOptions private constructor(builder: Builder) {
         public var dryRun: Boolean = false
 
         /**
-         * Tracks `app_open` and `app_close` as the app moves between foreground and background.
-         * Queued events are sent when the app leaves the foreground either way.
+         * Tracks `app_open` and `app_close` as the app moves between foreground and background, and
+         * nothing else: screen views and install events have their own switches. Queued events are
+         * sent when the app leaves the foreground either way.
          */
         @set:JvmSynthetic
-        public var autoTrack: Boolean = true
+        public var autoOpenCloseEvents: Boolean = true
 
         /**
          * Tracks a `screen_view` named after the activity's class each time an activity resumes on a
@@ -136,11 +137,12 @@ public class PugOptions private constructor(builder: Builder) {
         public var defaultTrackingConsent: TrackingConsent = TrackingConsent.GRANTED
 
         /**
-         * Stores opt-in and opt-out so the next `Pug.init` restores them; without it they last until
-         * `Pug.destroy()` or the process ends.
+         * Stores opt-in and opt-out so the next `Pug.init` restores them. Turned off, they last only
+         * until `Pug.destroy()` or the process ends: for an app that keeps the user's choice itself
+         * and calls `Pug.optInTracking()` or `Pug.optOutTracking()` on every launch.
          */
         @set:JvmSynthetic
-        public var persistTrackingConsent: Boolean = false
+        public var persistTrackingConsent: Boolean = true
 
         public fun endpoint(endpoint: String): Builder = apply { this.endpoint = endpoint }
 
@@ -148,7 +150,8 @@ public class PugOptions private constructor(builder: Builder) {
 
         public fun dryRun(dryRun: Boolean): Builder = apply { this.dryRun = dryRun }
 
-        public fun autoTrack(autoTrack: Boolean): Builder = apply { this.autoTrack = autoTrack }
+        public fun autoOpenCloseEvents(autoOpenCloseEvents: Boolean): Builder =
+            apply { this.autoOpenCloseEvents = autoOpenCloseEvents }
 
         public fun autoScreenViews(autoScreenViews: Boolean): Builder = apply { this.autoScreenViews = autoScreenViews }
 

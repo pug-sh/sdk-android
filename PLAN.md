@@ -15,11 +15,14 @@ session can continue from here without re-reading the reference SDKs.
 | 5 | Typed track API (codegen from protos) | ✅ done (2026-10-11) |
 | 6 | Release readiness: sample app, docs, publishing, API dump, hardening audit | ✅ done (2026-10-11) |
 | 7 | First release: device run on emulators (API 36 and 21), fixes, release commit and tag | ✅ done (2026-10-12); publishing pending |
+| 8 | Ergonomics review: consent persisted by default, `autoOpenCloseEvents`, no typed methods for automatic events, consent getters that never wait, event objects for Java | ✅ done (2026-10-25); not released |
+| 9 | Automatic events (D30): `app_crashed` and `autoCrashEvents`, `app_install.installSource` | planned |
 
-**Resuming in a new session:** read this file, then `CLAUDE.md` and `docs/development.md`. Every
-phase is done and `v0.1.0` is committed and tagged locally. What remains is publishing it (phase 7,
-"For publishing": push, the Central upload and the GitHub release, after one-time setup outside
-this repo), the family-coordination items of §7, and §8. Work after this ends with `make check`
+**Resuming in a new session:** read this file, then `CLAUDE.md` and `docs/development.md`. Phases
+1–8 are done, phase 9 is planned, and `v0.1.0` is committed and tagged locally, though phase 8 changed the public API
+after the tag: release from a new tag or move it. What remains is publishing (phase 7, "For
+publishing": push, the Central upload and the GitHub release, after one-time setup outside this
+repo), phase 9, the open questions of phase 8, the family-coordination items of §7, and §8. Work after this ends with `make check`
 green and this file updated.
 
 ## 1. Scope
@@ -106,9 +109,8 @@ with the family (collected again in §7).
   only gates). At init, a `DENIED` restored from a persisted record purges the same way; a `DENIED`
   seeded from config drops only the queue. `getTrackingConsent()` returns `null` before init
   (sdk-web: `denied` would make a banner re-prompt someone who opted in). `isConsentPending()` is
-  included. The getters answer on the caller's thread: the latest opt-in/opt-out at once, else the
-  restored state, waiting for the worker to read it until 1 s after init at the latest (all calls
-  together, not each), then answering null, pending, not enabled until it has.
+  included. The getters answer on the caller's thread without waiting (D28); the choice is
+  persisted by default (D27).
 - **D13 `reset()`** rotates session and anonymous id and clears the external id (both refs). Queued
   events keep their original `distinctId`, so `reset()` triggers a flush rather than dropping them
   (sdk-web beacons then drops; Flutter leaves them).
@@ -177,11 +179,14 @@ with the family (collected again in §7).
   neither track `screen_view` nor move `$url`/`$referrer`, so a Compose app's single activity cannot
   overwrite the screen it named with `Pug.screen`. Flutter keeps route state with `autoPageViews`
   off, but its route observer is wiring the app adds; Android's activity callbacks are not.
-- **D23 Typed methods only track (Flutter parity).** Every `Pug.track.<event>(…)` sends its event
-  and changes no SDK state. `screenView` neither moves `$url`/`$referrer` nor skips the current
-  screen, so two products shown on one screen are two events; `Pug.screen` stays the screen-state
-  API. `appOpen`/`appClose`/`appInstall`/`appUpdate` duplicate the automatic events while
-  `autoTrack`/`autoInstallEvents` are on; their KDoc says so.
+- **D23 Typed methods only track, and the events Pug tracks itself have none (F).** Every
+  `Pug.track.<event>(…)` sends its event and changes no SDK state. `app_open`, `app_close`,
+  `app_install`, `app_update` and `screen_view` keep their `PugEvents` constants and registry entries
+  but get no method (`tools/gen-track`, `SDK_TRACKED`): those methods tracked the automatic events a
+  second time, and `screenView()` looked like `Pug.screen` while neither moving `$url`/`$referrer`
+  nor skipping the current screen. `Pug.screen` is the one screen API; with the automatic events
+  off, `Pug.track(PugEvents.APP_OPEN)` still works. Flutter generates every method. (Phase 8; the
+  methods were in the 0.1.0 tag, which was never published.)
 - **D24 Duration properties are `<name>Ms: Long?`, sent as options.proto's text (`"1.5s"`, F).**
   Milliseconds are what Android media and timing APIs return; `kotlin.time.Duration` is a value
   class Java cannot pass, and `java.time.Duration` is API 26. The text form is options.proto's
@@ -202,6 +207,67 @@ with the family (collected again in §7).
   to a defaulted function or constructor also replaces its synthetic `$default` method and breaks
   compiled Kotlin callers; a new setter on a builder is binary-compatible. Changed before 0.1.0
   was published, so no caller was broken.
+- **D27 Consent is persisted by default (F).** `persistTrackingConsent` defaults to `true`. With
+  `false`, an opt-out made in an app's settings screen lasted only until the process died, and a
+  banner app that forgot the flag asked again on every launch. `false` stays for apps that keep the
+  choice in their own consent tool and replay it on each launch. sdk-web defaults `persist` to
+  false.
+- **D28 No public call waits on the caller's thread.** The consent getters used to wait up to 1 s
+  after init for start-up to read a stored choice, which on a slow disk held up the host's first
+  frame. They now answer at once: the latest opt-in/opt-out, else the restored state, else unknown
+  (`null`, pending, not enabled), warning once when asked before start-up has read consent.
+  `Pug.whenConsentReady(Runnable)` is the way to wait: its callback runs once on the main thread
+  after start-up has read consent (or failed), posted even when that is already done so it never
+  runs inside the caller; a throwing callback is logged. One whose client is destroyed before it
+  runs goes to the next client, since the getters it calls already ask that one. The main thread, because the usual next
+  step is showing a consent banner; `Runnable`, so that Kotlin and Java lambdas both fit. Before
+  init it is ignored with a warning like every other call.
+- **D29 `autoTrack` is `autoOpenCloseEvents` (F).** Beside `autoScreenViews` and
+  `autoInstallEvents`, `autoTrack = false` read as "no automatic events" while it turned off only
+  `app_open` and `app_close`. Flutter and sdk-web keep `autoTrack`.
+- **D30 The automatic events (2026-10-25, from mixpanel-android and posthog-android).** Pug tracks
+  `app_install`/`app_update`, `app_open`/`app_close`, `screen_view` and, new in phase 9,
+  `app_crashed`. Nothing else in the catalog is tracked automatically.
+  - `app_open`/`app_close` stay on every foreground/background (Flutter; PostHog's `Application
+    Opened`/`Application Backgrounded` fire at the same points). `app_foregrounded` /
+    `app_backgrounded` are not sent: they would fire at the same instants, since Android has no
+    termination callback that could give `app_close` the separate meaning app_events.proto's
+    comments describe (F).
+  - `app_install.installSource` (phase 9) is the installer's package name
+    (`getInstallSourceInfo().installingPackageName` on API 30+, `getInstallerPackageName` below),
+    omitted when there is none (adb, sideload). Raw, not mapped to the server seed's `play_store`:
+    the proto names no vocabulary, and a mapping table loses the stores it does not list (F).
+  - `app_crashed{errorType = qualified class name, errorMessage = message cut to 1024 bytes}` on an
+    uncaught exception, behind `autoCrashEvents` (default on, like Mixpanel's `$ae_crashed`;
+    PostHog's exception capture is opt-in). One `Thread.UncaughtExceptionHandler` per process,
+    installed at the first init, dormant without a client (another handler may have chained to it,
+    so it is never unlinked). It always calls the previous handler, after waiting at most 1 s for
+    the worker to queue the event and sync storage, since the process dies next; it does not wait
+    when the crashing thread is the worker. Consent gates it like any event; it joins
+    `SDK_TRACKED` (D23).
+  - Not tracked: deep links (PostHog's `Deep Link Opened` is on by default, but the catalog has no
+    kind, and campaign capture is §8); taps, rage and dead clicks (opt-in in both SDKs, and the
+    catalog's click kinds are web-only); session start or length (Mixpanel's `$ae_session`: every
+    event carries `$sessionId`).
+- **D31 Java tracks well-known events as objects.** Each event with properties that has a method on
+  `Pug.track` also has a generated class in `sh.pug.android.events` (`AddToCartEvent`, the method
+  name plus `Event`, which keeps `PurchaseEvent` clear of Play Billing's `Purchase`), tracked by
+  `Pug.track(event, options)`: required properties are constructor arguments, every other one a
+  fluent setter, numbers and booleans as primitives (Java's `amount(10)` widens; a `Double?`
+  parameter takes only `10.0`), plus `extra(key, value)`. From Java the methods took a row of nulls
+  for each optional property before the one wanted (99 of 118 events have optional properties).
+  Chosen over a builder ending in `send()` (a forgotten `send()` drops the event silently, and
+  `purchase()` would clash with the Kotlin method whose parameters all default) and over property-key
+  constants for the untyped map (no types). Kotlin keeps its named-argument methods; those of events
+  with a class are `@JvmSynthetic`, so Java has one typed form, and those of events without
+  properties keep `@JvmOverloads` for Java (`Pug.track.signup()`). The ABI dump lists synthetic
+  methods, so `pug.api` still pins them. `WellKnownEvent` is abstract with an internal constructor; the values sit
+  in an array in schema order, which `PugClient.trackTyped` reads during the call, so an object can
+  be changed and tracked again. Warnings name the class (`Pug.track(AddToCartEvent)`), not its
+  minified name. The internal members are `@JvmSynthetic`, out of Java's reach; a Java subclass
+  still compiles (an internal constructor is public in bytecode), but gains nothing over untyped
+  `track`, and `sealed` would make each new event a source break for an exhaustive `when`. The classes add about 300 KB to `classes.jar`, which R8 strips from apps that do not
+  use them.
 
 ## 4. Architecture
 
@@ -350,9 +416,9 @@ dropped on load (Flutter).
   and an unseen activity stopping consumes it. Every callback is guarded: a throw would crash the
   host's activity.
 - Transitions become ops; the worker keeps `visible` and `opened` (Flutter's captured-or-not
-  contract). `autoTrack` (default on): `app_open` on foreground, `app_close` on background, sent
-  immediately. Backgrounding always drains the queue, backoff or not, and syncs storage at once and
-  again once the sends settle, even with `autoTrack` off.
+  contract). `autoOpenCloseEvents` (default on, D29): `app_open` on foreground, `app_close` on
+  background, sent immediately. Backgrounding always drains the queue, backoff or not, and syncs
+  storage at once and again once the sends settle, even with `autoOpenCloseEvents` off.
 - `autoScreenViews` (default on): `screen_view{screenName = activity simple name, screenClass =
   qualified name}` on `onActivityResumed`. `Pug.screen(name)` tracks `screen_view{screenName}` for
   Compose and fragments. Both share the dedup (a screen shown again while current is not tracked)
@@ -394,17 +460,19 @@ value that cannot be read is left out and warned once. The library manifest decl
 Pug.init(context, "project-id", PugOptions("pub_…") { debug = true })
 Pug.track("checkout_started", mapOf("cartId" to "c1"))     // untyped
 Pug.track.addToCart(productId = "p1", price = 9.99)        // typed; kinds in PugEvents
+Pug.track(AddToCartEvent("p1").price(9.99))                // typed, the form for Java (D31)
 Pug.screen("Settings")
 Pug.identify("user-42", mapOf("plan" to "pro"))
 Pug.reset(); Pug.rotateSession(); Pug.flush(); Pug.destroy()
 Pug.optInTracking(); Pug.optOutTracking()
 Pug.getTrackingConsent(); Pug.isTrackingEnabled(); Pug.isConsentPending()
+Pug.whenConsentReady { if (Pug.isConsentPending()) showBanner() }
 ```
 
 `PugOptions` has a builder for Java plus a Kotlin DSL factory: `apiKey`, `endpoint`, `debug`,
 `dryRun`, `batchMaxSize = 10 ≤ 1000`, `batchMaxWaitMs = 5000 ≥ 0`, `batchMaxQueueSize = 1000 ≥ 1`,
 `sessionIdleTimeoutMs = 30 min`, `sessionMaxDurationMs = 24 h`, `defaultTrackingConsent = GRANTED`,
-`persistTrackingConsent = false`, `autoTrack`, `autoScreenViews`, `autoInstallEvents`, `logger`,
+`persistTrackingConsent = true`, `autoOpenCloseEvents`, `autoScreenViews`, `autoInstallEvents`, `logger`,
 `storage`. Out-of-range numbers warn and fall back to the default (sdk-web). `TrackOptions` has the
 same shape (D26): a Java builder plus the Kotlin factory `TrackOptions { immediate = true }`, with
 `immediate = false` and `timestamp: Long? = null`.
@@ -795,6 +863,19 @@ For publishing (`docs/development.md`, Releasing):
 - Then `make publish-central`, Publish on the Portal's Deployments page, and the GitHub release
   from the CHANGELOG entry.
 
+### Phase 8 — ergonomics review ✅
+
+A read of the public API from an app developer's side (2026-10-25). Changed: consent is persisted by
+default (D27); `autoTrack` became `autoOpenCloseEvents` (D29); `Pug.track` lost the methods for the
+events Pug tracks itself (D23); the consent getters never wait, and `Pug.whenConsentReady` replaces
+the wait (D28, `Platform.postToMainThread`); the README's leftover pre-D26 option names are gone.
+The `v0.1.0` tag predates all of this; `CHANGELOG.md` lists it under Unreleased.
+
+Then, from the open list: Java tracks well-known events as objects (D31). Open, discussed but not
+decided: property values of unsupported types (a `UUID`) being dropped at run time, and
+checking the API key's `pub_` prefix at init so a swapped project id and key, or a `prv_` key,
+fail at once.
+
 ## 6. Toolchain
 
 - JDK 21 via `mise` (`mise.toml`), Android SDK at `~/Android/Sdk` (platform 36, build-tools 37.0.0;
@@ -831,6 +912,19 @@ Raise these with the other SDKs rather than resolving them silently:
 15. options.proto's wire-format comment still describes `custom_properties` as
     `map<string, string>` with string encodings for every type; events now carry typed
     `PropertyValue`s, and only Duration still needs a text form. Worth fixing upstream.
+16. D27: Android persists consent by default; sdk-web's `persist` defaults to false.
+17. D29: Android's `autoTrack` is `autoOpenCloseEvents`; Flutter and sdk-web keep `autoTrack`, which
+    reads as covering every automatic event.
+18. D23: Android generates no typed methods for the events it tracks itself (`app_open`,
+    `app_close`, `app_install`, `app_update`, `screen_view`); Flutter generates them all.
+19. D30: app_events.proto's comments set `app_backgrounded`/`app_foregrounded` apart from
+    `app_close`/`app_open`, and the server seed emits both pairs; no mobile SDK sends the first
+    pair. Fix the comments, or define `app_close` so a mobile SDK can know when to send it.
+20. D30: `app_install.install_source` is the installer package name on Android; the seed uses
+    `play_store`/`app_store`. The field needs a vocabulary.
+21. D30: Android tracks `app_crashed` automatically; Flutter does not.
+22. D30: a `deep_link_opened{url, referrer}` kind would let mobile SDKs track deep links the way
+    PostHog does by default.
 
 ## 8. Later / not planned
 

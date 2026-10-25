@@ -2,11 +2,7 @@
 
 package sh.pug.android.internal.runtime
 
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -16,14 +12,12 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.json.JSONArray
 import sh.pug.android.MemoryPugStorage
 import sh.pug.android.PugLogger
 import sh.pug.android.PugOptions
-import sh.pug.android.PugStorage
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent.DENIED
 import sh.pug.android.TrackingConsent.GRANTED
@@ -49,6 +43,7 @@ class PugClientTest {
     private val storage = MemoryPugStorage()
     private val keys = PugStorageKeys(PROJECT)
     private val ids = SequentialIds()
+    private val platform = FakePlatform()
 
     @Test
     fun `an event carries the session, the anonymous id and the time of the call`() {
@@ -98,7 +93,7 @@ class PugClientTest {
         client.track("checkout", null, null)
 
         assertEquals(
-            listOf("Event \"add_to_cart\" is missing \"productId\", which Pug.track.addToCart() requires"),
+            listOf("Event \"add_to_cart\" is missing its required \"productId\""),
             logger.debugs.filter { "missing" in it },
         )
     }
@@ -334,7 +329,8 @@ class PugClientTest {
         scheduler.advanceUntilIdle()
 
         assertEquals(emptyList(), transport.batches)
-        assertTrue(keys.all.all { storage.getString(it) == null })
+        assertTrue((keys.all - keys.consent).all { storage.getString(it) == null })
+        assertEquals("denied", storage.getString(keys.consent))
         assertTrue("Dropped 1 event unsent: tracking consent is denied" in logger.debugs)
     }
 
@@ -359,7 +355,7 @@ class PugClientTest {
         storage.putString(keys.consent, "denied")
         storage.putString(keys.profile, """{"anonymousId":"anon-1"}""")
         storage.putString(keys.queue, "[${EventJson.encode(event("a"))}]")
-        val client = client { persistTrackingConsent = true }
+        val client = client()
 
         scheduler.runCurrent()
 
@@ -386,10 +382,7 @@ class PugClientTest {
     @Test
     fun `consent getters report the restored choice once started`() {
         storage.putString(keys.consent, "granted")
-        val client = client {
-            defaultTrackingConsent = DENIED
-            persistTrackingConsent = true
-        }
+        val client = client { defaultTrackingConsent = DENIED }
 
         scheduler.runCurrent()
 
@@ -409,7 +402,7 @@ class PugClientTest {
     }
 
     @Test
-    fun `consent getters answer unknown before start-up has read consent`() {
+    fun `consent getters answer unknown at once before start-up has read consent`() {
         val client = client(previousTeardown = Job())
 
         scheduler.runCurrent()
@@ -418,72 +411,61 @@ class PugClientTest {
         assertTrue(client.isConsentPending)
         assertFalse(client.isTrackingEnabled)
         assertEquals(
-            "Tracking consent was asked for before Pug finished starting; it is reported as unknown",
-            logger.warnings.first(),
-        )
-    }
-
-    @Test
-    fun `consent getters called right after start wait for the stored choice`() {
-        storage.putString(keys.consent, "granted")
-        val read = CountDownLatch(1)
-        val slowStorage =
-            object : PugStorage by storage {
-                override fun getString(key: String): String? {
-                    if (key == keys.consent) read.await()
-                    return storage.getString(key)
-                }
-            }
-        val worker = Executors.newSingleThreadExecutor()
-        try {
-            val options =
-                PugOptions("pub_key") {
-                    logger = this@PugClientTest.logger
-                    storage = slowStorage
-                    defaultTrackingConsent = DENIED
-                    persistTrackingConsent = true
-                }
-            val client =
-                PugClient(
-                    PROJECT,
-                    options,
-                    transport,
-                    worker.asCoroutineDispatcher(),
-                    FakePlatform(),
-                    clock = { START },
-                    ids = ids,
-                    random = FixedRandom(),
-                    sdkInt = 26,
-                    consentWaitMs = 5_000,
-                )
-            client.start(null)
-            thread {
-                Thread.sleep(100)
-                read.countDown()
-            }
-
-            assertEquals(GRANTED, client.trackingConsent)
-            assertFalse(client.isConsentPending)
-            assertEquals(emptyList(), logger.warnings)
-            client.destroy()
-        } finally {
-            worker.shutdownNow()
-        }
-    }
-
-    @Test
-    fun `consent getters stop waiting for start-up once the deadline after start has passed`() {
-        val client = client(previousTeardown = Job(), consentWaitMs = 100)
-
-        val start = System.nanoTime()
-        repeat(10) { assertNull(client.trackingConsent) }
-        val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)
-
-        assertTrue(elapsedMs < 500, "the getters waited $elapsedMs ms in all")
-        assertEquals(
-            listOf("Tracking consent was asked for before Pug finished starting; it is reported as unknown"),
+            listOf(
+                "Tracking consent was asked for before Pug read it from storage; it is reported as unknown. " +
+                    "Ask from Pug.whenConsentReady() instead",
+            ),
             logger.warnings,
         )
+    }
+
+    @Test
+    fun `whenConsentReady runs on the main thread once start-up has read the stored choice`() {
+        storage.putString(keys.consent, "granted")
+        val previousTeardown = Job()
+        val client = client(previousTeardown) { defaultTrackingConsent = DENIED }
+        val seen = mutableListOf<Pair<Any?, Boolean>>()
+
+        client.whenConsentReady { seen += client.trackingConsent to client.isConsentPending }
+        scheduler.runCurrent()
+        platform.runMainThread()
+        assertEquals(emptyList(), seen)
+
+        previousTeardown.complete()
+        scheduler.runCurrent()
+        assertEquals(emptyList(), seen)
+        platform.runMainThread()
+
+        assertEquals(listOf<Pair<Any?, Boolean>>(GRANTED to false), seen)
+        assertEquals(emptyList(), logger.warnings)
+    }
+
+    @Test
+    fun `whenConsentReady after start-up runs on the main thread's next turn, once`() {
+        val client = client()
+        scheduler.runCurrent()
+        var runs = 0
+
+        client.whenConsentReady { runs++ }
+        assertEquals(0, runs)
+        platform.runMainThread()
+        platform.runMainThread()
+
+        assertEquals(1, runs)
+    }
+
+    @Test
+    fun `a throwing whenConsentReady callback is contained`() {
+        val client = client()
+        scheduler.runCurrent()
+        var ran = false
+
+        client.whenConsentReady { throw IllegalStateException("boom") }
+        client.whenConsentReady { ran = true }
+        platform.runMainThread()
+
+        assertTrue(ran)
+        assertEquals(listOf("The callback given to Pug.whenConsentReady() failed"), logger.errors)
     }
 
     @Test
@@ -691,11 +673,7 @@ class PugClientTest {
         assertEquals(listOf(listOf("a")), transport.kinds)
     }
 
-    private fun client(
-        previousTeardown: Job? = null,
-        consentWaitMs: Long = 20,
-        configure: PugOptions.Builder.() -> Unit = {},
-    ): PugClient {
+    private fun client(previousTeardown: Job? = null, configure: PugOptions.Builder.() -> Unit = {}): PugClient {
         val options =
             PugOptions("pub_key") {
                 logger = this@PugClientTest.logger
@@ -708,12 +686,11 @@ class PugClientTest {
             options,
             transport,
             worker,
-            FakePlatform(),
+            platform,
             clock = { START + scheduler.currentTime },
             ids = ids,
             random = FixedRandom(),
             sdkInt = 26,
-            consentWaitMs = consentWaitMs,
         ).also { it.start(previousTeardown) }
     }
 

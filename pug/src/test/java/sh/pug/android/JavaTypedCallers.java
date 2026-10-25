@@ -1,10 +1,12 @@
 package sh.pug.android;
 
-/** Calls typed methods with the nulls Java code can pass where Kotlin code cannot. */
+import sh.pug.android.events.AddToCartEvent;
+
+/** Builds event objects with the nulls Java code can pass where Kotlin code cannot. */
 final class JavaTypedCallers {
     private JavaTypedCallers() {}
 
-    static void addToCartWithNullProductId(TrackNamespace track) {
-        track.addToCart(null);
+    static AddToCartEvent addToCartEventWithNullProductId() {
+        return new AddToCartEvent(null);
     }
 }

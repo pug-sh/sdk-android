@@ -1,6 +1,7 @@
 package sh.pug.android
 
 import android.content.Context
+import sh.pug.android.events.WellKnownEvent
 import sh.pug.android.internal.runtime.PugFacade
 
 /**
@@ -11,8 +12,9 @@ public object Pug {
     private val facade = PugFacade.create()
 
     /**
-     * The well-known events, each with a method that takes its properties as typed arguments:
-     * `Pug.track.addToCart(productId = "p1", price = 9.99)`.
+     * The well-known events but those Pug tracks itself, each with a method that takes its properties
+     * as named arguments: `Pug.track.addToCart(productId = "p1", price = 9.99)`. From Java, an event
+     * with properties is an object instead: `Pug.track(new AddToCartEvent("p1").price(9.99))`.
      */
     @JvmField
     public val track: TrackNamespace = TrackNamespace(facade)
@@ -33,13 +35,24 @@ public object Pug {
     /**
      * Tracks an event. [kind] may contain only letters, digits, '_', '.' and '-'. [properties] are
      * read during the call, so the map can be reused once it returns; keys starting with '$' are
-     * reserved and dropped. The well-known events, listed in [PugEvents], also have typed methods,
+     * reserved and dropped. Most well-known events, listed in [PugEvents], also have a typed form,
      * such as `Pug.track.addToCart(…)`.
      */
     @JvmStatic
     @JvmOverloads
     public fun track(kind: String, properties: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.track(kind, properties, options)
+    }
+
+    /**
+     * Tracks a well-known event built as an object, the typed form for Java:
+     * `Pug.track(new AddToCartEvent("p1").price(9.99))`. From Kotlin, the methods of [TrackNamespace]
+     * take the same properties as named arguments.
+     */
+    @JvmStatic
+    @JvmOverloads
+    public fun track(event: WellKnownEvent, options: TrackOptions? = null) {
+        facade.track(event, options)
     }
 
     /**
@@ -90,7 +103,7 @@ public object Pug {
         facade.destroy()
     }
 
-    /** Grants tracking consent. It is stored for the next launch when consent is persisted. */
+    /** Grants tracking consent. It is stored for the next launch unless `persistTrackingConsent` is off. */
     @JvmStatic
     public fun optInTracking() {
         facade.optInTracking()
@@ -98,8 +111,8 @@ public object Pug {
 
     /**
      * Denies tracking consent: queued events are dropped unsent, the stored identity is removed, and
-     * events and [identify] are dropped until [optInTracking]. It is stored for the next launch when
-     * consent is persisted.
+     * events and [identify] are dropped until [optInTracking]. It is stored for the next launch unless
+     * `persistTrackingConsent` is off.
      */
     @JvmStatic
     public fun optOutTracking() {
@@ -107,21 +120,34 @@ public object Pug {
     }
 
     /**
-     * The consent in effect, or null before [init]. Right after [init] this may wait up to a second
-     * for a stored choice to be read, and is null if it has not been read by then.
+     * The consent in effect, or null when it is not known yet: before [init], and right after it until
+     * Pug has read what an earlier launch stored, unless the user has chosen since. Never waits; see
+     * [whenConsentReady].
      */
     @JvmStatic
     public fun getTrackingConsent(): TrackingConsent? = facade.getTrackingConsent()
 
-    /** Whether consent is granted, regardless of `dryRun`. False before [init]. */
+    /** Whether consent is granted, regardless of `dryRun`. False while consent is not known yet. */
     @JvmStatic
     public fun isTrackingEnabled(): Boolean = facade.isTrackingEnabled()
 
     /**
      * Whether the user has yet to choose, so consent is still the configured default: the cue to show
-     * a consent prompt. True before [init]. Right after [init] this may wait up to a second for a
-     * stored choice to be read.
+     * a consent prompt. True while consent is not known yet, so ask from [whenConsentReady].
      */
     @JvmStatic
     public fun isConsentPending(): Boolean = facade.isConsentPending()
+
+    /**
+     * Runs [callback] once, on the main thread, as soon as the consent getters answer for this user:
+     * once Pug has read the choice stored by an earlier launch, which happens on its own thread just
+     * after [init], or after the last [destroy]'s final flush. On the main thread's next turn when that
+     * is done already. Ignored before [init]; if Pug fails to start, it runs with consent still unknown.
+     * The place to decide whether to show a consent prompt:
+     * `Pug.whenConsentReady { if (Pug.isConsentPending()) showConsentPrompt() }`.
+     */
+    @JvmStatic
+    public fun whenConsentReady(callback: Runnable) {
+        facade.whenConsentReady(callback)
+    }
 }

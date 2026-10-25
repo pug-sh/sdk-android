@@ -19,7 +19,7 @@ PROTO_PATHS := --path sdk/events/v1 --path sdk/profiles/v1 --path common/events/
 DESCRIPTORS := pug/src/test/resources/pug.binpb
 # A JSON image keeps the source comments and names the custom options, which tools/gen-track reads.
 EVENTS_IMAGE := build/typed-track/events.json
-TYPED_TRACK := $(addprefix pug/src/main/kotlin/sh/pug/android/,TrackNamespace.kt PugEvents.kt internal/event/WellKnownEvents.kt)
+TYPED_TRACK := $(addprefix pug/src/main/kotlin/sh/pug/android/,TrackNamespace.kt PugEvents.kt events/Events.kt internal/event/WellKnownEvents.kt)
 GENERATED := $(DESCRIPTORS) $(TYPED_TRACK)
 
 GRADLE := ./gradlew --console=plain
@@ -51,7 +51,7 @@ descriptors:
 	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
 	buf build --exclude-source-info --as-file-descriptor-set -o $(DESCRIPTORS)
 
-# The typed track API (`Pug.track.<event>(…)`, PugEvents, the event registry) from the event protos.
+# The typed track API (`Pug.track.<event>(…)`, PugEvents, the event classes, the event registry) from the event protos.
 typed-track:
 	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
 	@mkdir -p $(dir $(EVENTS_IMAGE))

@@ -38,7 +38,7 @@ internal object WellKnownEvents {
         FieldSchema("reason", STRING),
     )
     val APP_BACKGROUNDED = EventSchema(PugEvents.APP_BACKGROUNDED, "appBackgrounded")
-    val APP_CLOSE = EventSchema(PugEvents.APP_CLOSE, "appClose")
+    private val APP_CLOSE = EventSchema(PugEvents.APP_CLOSE, "appClose")
     val APP_CRASHED = EventSchema(
         PugEvents.APP_CRASHED,
         "appCrashed",
@@ -46,14 +46,14 @@ internal object WellKnownEvents {
         FieldSchema("errorType", STRING),
     )
     val APP_FOREGROUNDED = EventSchema(PugEvents.APP_FOREGROUNDED, "appForegrounded")
-    val APP_INSTALL = EventSchema(
+    private val APP_INSTALL = EventSchema(
         PugEvents.APP_INSTALL,
         "appInstall",
         FieldSchema("appVersion", STRING),
         FieldSchema("installSource", STRING),
     )
-    val APP_OPEN = EventSchema(PugEvents.APP_OPEN, "appOpen")
-    val APP_UPDATE = EventSchema(
+    private val APP_OPEN = EventSchema(PugEvents.APP_OPEN, "appOpen")
+    private val APP_UPDATE = EventSchema(
         PugEvents.APP_UPDATE,
         "appUpdate",
         FieldSchema("appVersion", STRING, required = true),
@@ -622,7 +622,7 @@ internal object WellKnownEvents {
         FieldSchema("brand", STRING),
         FieldSchema("sku", STRING),
     )
-    val SCREEN_VIEW = EventSchema(
+    private val SCREEN_VIEW = EventSchema(
         PugEvents.SCREEN_VIEW,
         "screenView",
         FieldSchema("screenName", STRING, required = true),
