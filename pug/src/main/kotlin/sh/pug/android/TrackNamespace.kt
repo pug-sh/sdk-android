@@ -6,17 +6,23 @@ import sh.pug.android.internal.event.WellKnownEvents
 import sh.pug.android.internal.runtime.PugFacade
 
 /**
- * The well-known events, one method each. `Pug.track.addToCart(productId = "p1", price = 9.99)` tracks `add_to_cart`
- * with the properties `productId` and `price`: parameters without a default are the properties the event requires, and
- * an argument left null is not sent.
+ * The well-known events, one method each but for those below. `Pug.track.addToCart(productId = "p1", price = 9.99)`
+ * tracks `add_to_cart` with the properties `productId` and `price`: parameters without a default are the properties the
+ * event requires, and an argument left null is not sent.
+ *
+ * The events Pug tracks on its own have no method here: `app_open`, `app_close`, `app_install`, `app_update`, and
+ * `screen_view`, which [Pug.screen] tracks for screens that are not activities.
  *
  * Every method also takes `extras`, more properties for the event (an entry named like an argument that is set is
  * dropped with a warning), and `options`, as `Pug.track(kind, properties, options)` does. Like every call to [Pug],
  * these return at once and never throw.
+ *
+ * Java sees only the methods of the events without properties, such as `Pug.track.signup()`: for the others it tracks
+ * an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent("p1"))`.
  */
 public class TrackNamespace internal constructor(private val facade: PugFacade) {
     /** Tracks `add_to_cart`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun addToCart(
         productId: String,
         price: Double? = null,
@@ -45,7 +51,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `api_key_created`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun apiKeyCreated(
         apiKeyId: String? = null,
         name: String? = null,
@@ -57,7 +63,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `api_key_revoked`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun apiKeyRevoked(
         apiKeyId: String? = null,
         name: String? = null,
@@ -78,19 +84,8 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
         facade.trackTyped(WellKnownEvents.APP_BACKGROUNDED, extras, options)
     }
 
-    /**
-     * Tracks `app_close`.
-     *
-     * Pug tracks `app_close` itself each time the app leaves the foreground, unless `autoTrack` is off: calling this as
-     * well tracks it twice.
-     */
-    @JvmOverloads
-    public fun appClose(extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
-        facade.trackTyped(WellKnownEvents.APP_CLOSE, extras, options)
-    }
-
     /** Tracks `app_crashed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun appCrashed(
         errorMessage: String? = null,
         errorType: String? = null,
@@ -110,55 +105,8 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
         facade.trackTyped(WellKnownEvents.APP_FOREGROUNDED, extras, options)
     }
 
-    /**
-     * Tracks `app_install`.
-     *
-     * First-launch / fresh-install signal. Typically fires once per install.
-     *
-     * Pug tracks `app_install` itself on the first launch of the app, unless `autoInstallEvents` is off: calling this
-     * as well tracks it twice.
-     */
-    @JvmOverloads
-    public fun appInstall(
-        appVersion: String? = null,
-        installSource: String? = null,
-        extras: Map<String, Any?>? = null,
-        options: TrackOptions? = null,
-    ) {
-        facade.trackTyped(WellKnownEvents.APP_INSTALL, extras, options, appVersion, installSource)
-    }
-
-    /**
-     * Tracks `app_open`.
-     *
-     * Pug tracks `app_open` itself each time the app comes to the foreground, unless `autoTrack` is off: calling this
-     * as well tracks it twice.
-     */
-    @JvmOverloads
-    public fun appOpen(extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
-        facade.trackTyped(WellKnownEvents.APP_OPEN, extras, options)
-    }
-
-    /**
-     * Tracks `app_update`.
-     *
-     * Fires the first time the app launches after an update.
-     *
-     * Pug tracks `app_update` itself on the first launch of each new version of the app, unless `autoInstallEvents` is
-     * off: calling this as well tracks it twice.
-     */
-    @JvmOverloads
-    public fun appUpdate(
-        appVersion: String,
-        previousVersion: String? = null,
-        extras: Map<String, Any?>? = null,
-        options: TrackOptions? = null,
-    ) {
-        facade.trackTyped(WellKnownEvents.APP_UPDATE, extras, options, appVersion, previousVersion)
-    }
-
     /** Tracks `audio_completed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun audioCompleted(audioId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.AUDIO_COMPLETED, extras, options, audioId)
     }
@@ -168,7 +116,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun audioPause(
         audioId: String,
         positionMs: Long? = null,
@@ -183,7 +131,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun audioPlay(
         audioId: String,
         positionMs: Long? = null,
@@ -199,7 +147,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`.
      * @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun audioSeeked(
         audioId: String,
         fromPositionMs: Long? = null,
@@ -211,13 +159,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `audio_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun audioStarted(audioId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.AUDIO_STARTED, extras, options, audioId)
     }
 
     /** Tracks `cart_viewed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun cartViewed(
         cartId: String? = null,
         itemCount: Int? = null,
@@ -230,7 +178,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_archived`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatArchived(
         conversationId: String,
         conversationType: String? = null,
@@ -241,7 +189,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_attachment_downloaded`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatAttachmentDownloaded(
         conversationId: String,
         attachmentId: String,
@@ -266,7 +214,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_attachment_uploaded`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatAttachmentUploaded(
         conversationId: String,
         attachmentId: String,
@@ -291,7 +239,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_call_joined`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCallJoined(
         conversationId: String,
         callId: String,
@@ -307,7 +255,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param durationMs in milliseconds, sent as `duration` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCallLeft(
         conversationId: String,
         callId: String,
@@ -320,7 +268,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_call_recording_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCallRecordingStarted(
         conversationId: String,
         callId: String,
@@ -331,7 +279,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_call_screen_shared`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCallScreenShared(
         conversationId: String,
         callId: String,
@@ -342,7 +290,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_call_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCallStarted(
         conversationId: String,
         callId: String,
@@ -354,7 +302,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_created`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatCreated(
         conversationId: String,
         conversationType: String? = null,
@@ -373,7 +321,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_deleted`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatDeleted(
         conversationId: String,
         conversationType: String? = null,
@@ -385,7 +333,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_joined`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatJoined(
         conversationId: String,
         conversationType: String? = null,
@@ -396,7 +344,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_left`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatLeft(
         conversationId: String,
         conversationType: String? = null,
@@ -408,7 +356,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_member_added`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMemberAdded(
         conversationId: String,
         memberId: String,
@@ -427,7 +375,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param muteDurationMs in milliseconds, sent as `muteDuration` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMemberMuted(
         conversationId: String,
         memberId: String,
@@ -439,7 +387,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_member_removed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMemberRemoved(
         conversationId: String,
         memberId: String,
@@ -451,7 +399,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_member_role_changed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMemberRoleChanged(
         conversationId: String,
         memberId: String,
@@ -472,7 +420,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_deleted`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageDeleted(
         conversationId: String,
         messageId: String? = null,
@@ -495,7 +443,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_edited`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageEdited(
         conversationId: String,
         messageId: String? = null,
@@ -516,7 +464,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_failed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageFailed(
         conversationId: String,
         reason: String,
@@ -539,7 +487,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_pinned`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessagePinned(
         conversationId: String,
         messageId: String? = null,
@@ -560,7 +508,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_read`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageRead(
         conversationId: String,
         messageId: String? = null,
@@ -581,7 +529,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_received`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageReceived(
         conversationId: String,
         messageId: String? = null,
@@ -610,7 +558,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_sent`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageSent(
         conversationId: String,
         messageId: String? = null,
@@ -639,7 +587,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_message_unpinned`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatMessageUnpinned(
         conversationId: String,
         messageId: String? = null,
@@ -666,7 +614,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * not a category. Compare reaction_type if a future schema needs to
      * distinguish emoji from sticker from gif reactions.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatReactionAdded(
         conversationId: String,
         reaction: String,
@@ -692,7 +640,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * `reaction` is the literal reaction value (emoji, shortcode, sticker id),
      * not a category.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatReactionRemoved(
         conversationId: String,
         reaction: String,
@@ -713,7 +661,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_typing_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatTypingStarted(
         conversationId: String,
         conversationType: String? = null,
@@ -724,7 +672,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_typing_stopped`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatTypingStopped(
         conversationId: String,
         conversationType: String? = null,
@@ -735,7 +683,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `chat_unarchived`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatUnarchived(
         conversationId: String,
         conversationType: String? = null,
@@ -750,13 +698,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * User-level block (not conversation-scoped), so no conversation_id.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun chatUserBlocked(userId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.CHAT_USER_BLOCKED, extras, options, userId)
     }
 
     /** Tracks `checkout_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun checkoutStarted(
         productId: String? = null,
         amount: Double? = null,
@@ -781,7 +729,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `checkout_step_completed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun checkoutStepCompleted(
         checkoutId: String,
         step: String,
@@ -793,7 +741,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `coupon_applied`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun couponApplied(
         couponId: String,
         couponCode: String? = null,
@@ -816,7 +764,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `coupon_removed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun couponRemoved(
         couponId: String,
         couponCode: String? = null,
@@ -844,7 +792,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * @param message personal data, as the event schema marks it.
      * @param stack personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun errorOccurred(
         errorCode: String,
         message: String? = null,
@@ -867,7 +815,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `export_completed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun exportCompleted(
         exportId: String,
         exportType: String? = null,
@@ -879,7 +827,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `export_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun exportStarted(
         exportId: String,
         exportType: String? = null,
@@ -890,7 +838,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `feature_used`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun featureUsed(
         featureId: String,
         featureName: String? = null,
@@ -905,7 +853,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param comment personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun feedbackSubmitted(
         feedbackId: String? = null,
         category: String? = null,
@@ -921,7 +869,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param fileName personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun fileDownloaded(
         fileId: String,
         fileName: String? = null,
@@ -938,7 +886,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param fileName personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun fileUploaded(
         fileId: String,
         fileName: String? = null,
@@ -951,7 +899,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `filter_applied`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun filterApplied(
         key: String,
         value: String? = null,
@@ -962,7 +910,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `form_start`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun formStart(
         formId: String,
         formName: String? = null,
@@ -973,7 +921,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `form_submit`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun formSubmit(
         formId: String,
         formName: String? = null,
@@ -985,7 +933,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `help_article_viewed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun helpArticleViewed(
         articleId: String,
         articleTitle: String? = null,
@@ -997,7 +945,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `integration_connected`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun integrationConnected(
         integrationType: String,
         integrationId: String? = null,
@@ -1008,7 +956,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `integration_disconnected`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun integrationDisconnected(
         integrationType: String,
         integrationId: String? = null,
@@ -1031,7 +979,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param inviteeEmail personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun inviteAccepted(
         inviteId: String? = null,
         workspaceId: String? = null,
@@ -1060,7 +1008,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param inviteeEmail personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun inviteSent(
         inviteId: String? = null,
         workspaceId: String? = null,
@@ -1085,7 +1033,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `invoice_failed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun invoiceFailed(
         invoiceId: String,
         subscriptionId: String? = null,
@@ -1108,7 +1056,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `invoice_paid`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun invoicePaid(
         invoiceId: String,
         subscriptionId: String? = null,
@@ -1125,7 +1073,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * Common method values: "totp", "sms", "email", "webauthn", "backup_codes".
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun mfaDisabled(method: String? = null, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.MFA_DISABLED, extras, options, method)
     }
@@ -1135,13 +1083,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * Common method values: "totp", "sms", "email", "webauthn", "backup_codes".
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun mfaEnabled(method: String? = null, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.MFA_ENABLED, extras, options, method)
     }
 
     /** Tracks `notification_clicked`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun notificationClicked(
         campaignId: String,
         notificationType: String? = null,
@@ -1152,7 +1100,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `notification_dismissed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun notificationDismissed(
         campaignId: String,
         notificationType: String? = null,
@@ -1163,7 +1111,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `notification_received`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun notificationReceived(
         campaignId: String,
         notificationType: String? = null,
@@ -1178,7 +1126,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param comment personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun npsSubmitted(
         score: Int? = null,
         comment: String? = null,
@@ -1189,7 +1137,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `order_refunded`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun orderRefunded(
         orderId: String,
         amount: Double? = null,
@@ -1214,7 +1162,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `payment_failed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun paymentFailed(
         paymentId: String? = null,
         invoiceId: String? = null,
@@ -1239,7 +1187,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `payment_method_added`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun paymentMethodAdded(
         paymentMethodId: String? = null,
         paymentMethodType: String? = null,
@@ -1250,7 +1198,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `payment_method_removed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun paymentMethodRemoved(
         paymentMethodId: String? = null,
         paymentMethodType: String? = null,
@@ -1261,7 +1209,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `payment_succeeded`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun paymentSucceeded(
         paymentId: String? = null,
         invoiceId: String? = null,
@@ -1289,7 +1237,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * A list/category/search-results impression — fired when the user views a
      * collection of products rather than a single product detail page.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun productListViewed(
         listId: String,
         listName: String? = null,
@@ -1302,7 +1250,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `product_viewed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun productViewed(
         productId: String,
         productName: String? = null,
@@ -1334,7 +1282,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * Equivalent to Segment's "Order Completed" event. Fires once per successful
      * order, after payment is confirmed.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun purchase(
         productId: String? = null,
         amount: Double? = null,
@@ -1363,7 +1311,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `recommendation_clicked`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun recommendationClicked(
         recommendationId: String,
         itemId: String,
@@ -1384,7 +1332,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `recommendation_viewed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun recommendationViewed(
         recommendationId: String,
         itemId: String? = null,
@@ -1405,7 +1353,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `refund_failed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun refundFailed(
         orderId: String,
         refundId: String? = null,
@@ -1419,7 +1367,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `remove_from_cart`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun removeFromCart(
         productId: String,
         price: Double? = null,
@@ -1447,30 +1395,8 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
         )
     }
 
-    /**
-     * Tracks `screen_view`.
-     *
-     * Native mobile screen navigation. Use page_view for web pages.
-     *
-     * Device, OS, app version, and locale are provided by SDK-injected
-     * auto-properties on every event. Only screen-specific fields belong here.
-     *
-     * Only tracks the event: unlike [Pug.screen], it neither makes [screenName] the `$url` of the events that follow
-     * nor skips a screen that is already showing. Pug tracks a `screen_view` itself each time an activity resumes on a
-     * different screen, unless `autoScreenViews` is off.
-     */
-    @JvmOverloads
-    public fun screenView(
-        screenName: String,
-        screenClass: String? = null,
-        extras: Map<String, Any?>? = null,
-        options: TrackOptions? = null,
-    ) {
-        facade.trackTyped(WellKnownEvents.SCREEN_VIEW, extras, options, screenName, screenClass)
-    }
-
     /** Tracks `scroll`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun scroll(
         percent: Int? = null,
         scrollY: Int? = null,
@@ -1481,13 +1407,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `search`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun search(query: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.SEARCH, extras, options, query)
     }
 
     /** Tracks `search_result_clicked`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun searchResultClicked(
         query: String,
         resultId: String,
@@ -1523,7 +1449,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `sort_changed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun sortChanged(
         key: String,
         direction: String? = null,
@@ -1534,7 +1460,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_canceled`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionCanceled(
         subscriptionId: String,
         planId: String? = null,
@@ -1546,7 +1472,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_changed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionChanged(
         subscriptionId: String,
         previousPlanId: String? = null,
@@ -1565,7 +1491,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_paused`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionPaused(
         subscriptionId: String,
         planId: String? = null,
@@ -1577,7 +1503,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_renewed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionRenewed(
         subscriptionId: String,
         planId: String? = null,
@@ -1598,7 +1524,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_resumed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionResumed(
         subscriptionId: String,
         planId: String? = null,
@@ -1610,7 +1536,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `subscription_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionStarted(
         subscriptionId: String,
         planId: String? = null,
@@ -1636,7 +1562,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * Fired in advance of a trial converting (e.g. 3 days before). Useful for
      * upsell / conversion campaigns.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun subscriptionTrialWillEnd(
         subscriptionId: String,
         planId: String? = null,
@@ -1652,7 +1578,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param topic personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun supportChatStarted(
         conversationId: String,
         topic: String? = null,
@@ -1663,7 +1589,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `support_ticket_created`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun supportTicketCreated(
         ticketId: String,
         category: String? = null,
@@ -1679,7 +1605,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param resolution personal data, as the event schema marks it.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun supportTicketResolved(
         ticketId: String,
         resolution: String? = null,
@@ -1690,7 +1616,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `survey_completed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun surveyCompleted(
         surveyId: String,
         questionCount: Int? = null,
@@ -1701,13 +1627,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `survey_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun surveyStarted(surveyId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.SURVEY_STARTED, extras, options, surveyId)
     }
 
     /** Tracks `trial_converted`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun trialConverted(
         trialId: String? = null,
         subscriptionId: String? = null,
@@ -1719,7 +1645,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `trial_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun trialStarted(
         trialId: String? = null,
         planId: String? = null,
@@ -1730,7 +1656,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `video_completed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun videoCompleted(videoId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.VIDEO_COMPLETED, extras, options, videoId)
     }
@@ -1740,7 +1666,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun videoPause(
         videoId: String,
         positionMs: Long? = null,
@@ -1755,7 +1681,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      *
      * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun videoPlay(
         videoId: String,
         positionMs: Long? = null,
@@ -1771,7 +1697,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
      * @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`.
      * @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`.
      */
-    @JvmOverloads
+    @JvmSynthetic
     public fun videoSeeked(
         videoId: String,
         fromPositionMs: Long? = null,
@@ -1783,13 +1709,13 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `video_started`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun videoStarted(videoId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
         facade.trackTyped(WellKnownEvents.VIDEO_STARTED, extras, options, videoId)
     }
 
     /** Tracks `wishlist_added`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun wishlistAdded(
         productId: String,
         wishlistId: String? = null,
@@ -1802,7 +1728,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `wishlist_removed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun wishlistRemoved(
         productId: String,
         wishlistId: String? = null,
@@ -1813,7 +1739,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `workspace_created`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun workspaceCreated(
         workspaceId: String,
         workspaceName: String? = null,
@@ -1824,7 +1750,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `workspace_deleted`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun workspaceDeleted(
         workspaceId: String,
         reason: String? = null,
@@ -1835,7 +1761,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `workspace_joined`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun workspaceJoined(
         workspaceId: String,
         role: String? = null,
@@ -1846,7 +1772,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `workspace_role_changed`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun workspaceRoleChanged(
         workspaceId: String,
         memberId: String,
@@ -1867,7 +1793,7 @@ public class TrackNamespace internal constructor(private val facade: PugFacade) 
     }
 
     /** Tracks `workspace_settings_updated`. */
-    @JvmOverloads
+    @JvmSynthetic
     public fun workspaceSettingsUpdated(
         workspaceId: String,
         setting: String,

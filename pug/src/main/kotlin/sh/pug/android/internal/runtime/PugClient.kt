@@ -1,8 +1,6 @@
 package sh.pug.android.internal.runtime
 
 import android.os.Build
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -54,10 +52,6 @@ import sh.pug.android.internal.wire.PropertyValue
 // Bounds destroy()'s final flush, which the next init() waits for.
 internal const val TEARDOWN_TIMEOUT_MS: Long = 10_000L
 
-// For how long after start the consent getters wait for start-up to read a stored choice; after
-// that they answer "unknown" at once.
-internal const val CONSENT_WAIT_MS: Long = 1_000L
-
 /**
  * One configured SDK instance. Calls, and the app's lifecycle callbacks, arrive on any thread: they
  * read the clock and map their arguments there, then queue an op that the SDK worker runs in call
@@ -74,7 +68,6 @@ internal class PugClient(
     private val ids: IdGenerator = UuidV7Generator(clock),
     private val random: Random = Random.Default,
     sdkInt: Int = Build.VERSION.SDK_INT,
-    private val consentWaitMs: Long = CONSENT_WAIT_MS,
 ) {
     val logger: SafeLogger = options.newLogger()
 
@@ -95,15 +88,16 @@ internal class PugClient(
     private val traitsMapper = TraitsMapper(logger, sdkInt)
     private val factory = EventFactory(projectId, logger, propertyMapper, ids)
 
-    // The consent getters answer on the caller's thread: the latest opt-in or opt-out wins, else
-    // what start-up restored, which they wait for until the deadline start() sets and no longer.
+    // The consent getters answer on the caller's thread without waiting: the latest opt-in or
+    // opt-out wins, else what start-up restored, else "unknown". whenConsentReady() callbacks wait
+    // for start-up instead, in consentWaiters until it has read consent.
     @Volatile private var chosenConsent: TrackingConsent? = null
     private val consentLock = Any()
 
     @Volatile private var restoredConsent: RestoredConsent? = null
-    private val consentRestored = CountDownLatch(1)
 
-    @Volatile private var consentDeadlineNanos = 0L
+    @Volatile private var consentRead = false
+    private val consentWaiters = ArrayList<Runnable>()
 
     @Volatile private var consentUnknownReported = false
 
@@ -138,7 +132,6 @@ internal class PugClient(
      */
     fun start(previousTeardown: Job?) {
         val startTime = clock.nowMillis()
-        consentDeadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(consentWaitMs)
         lifetime = scope.launch { run(previousTeardown, startTime) }
         // The client is running now, so a failure here must not reach the facade, which would
         // leave it running unreachable.
@@ -172,15 +165,19 @@ internal class PugClient(
         // Mapped now, because the host may change the map or its values once track() returns.
         val custom = if (properties == null) emptyMap() else propertyMapper.mapCustom(kind, properties)
         WellKnownEvents.byKind[kind]?.let { reportMissing(it, custom) }
-        submitCapture("track", kind, custom, callTime, trackOptions)
+        submitCapture("Pug.track()", kind, custom, callTime, trackOptions)
     }
 
-    /** [values] are [event]'s properties in schema order, null where the caller left them out. */
+    /**
+     * [values] are [event]'s properties in schema order, null where the caller left them out; [caller]
+     * names the call in warnings.
+     */
     fun trackTyped(
         event: EventSchema,
         values: Array<out Any?>,
         extras: Map<String, Any?>?,
         trackOptions: TrackOptions?,
+        caller: String,
     ) {
         val callTime = clock.nowMillis()
         val typed = LinkedHashMap<String, Any?>()
@@ -193,7 +190,7 @@ internal class PugClient(
 
                 // Only Java code can pass null for a required argument (PLAN.md D20).
                 field.required -> {
-                    logger.warn("Pug.${event.label}() was dropped: ${field.name} is null")
+                    logger.warn("$caller was dropped: ${field.name} is null")
                     return
                 }
             }
@@ -202,14 +199,14 @@ internal class PugClient(
         if (extras != null) custom.putAll(propertyMapper.mapCustom(event.kind, extras))
         for ((name, value) in propertyMapper.mapCustom(event.kind, typed)) {
             if (custom.put(name, value) != null) {
-                logger.warn("Extra \"$name\" of Pug.${event.label}() was dropped: an argument sets it")
+                logger.warn("Extra \"$name\" of $caller was dropped: the event's own $name is set")
             }
         }
-        submitCapture(event.label, event.kind, custom, callTime, trackOptions)
+        submitCapture(caller, event.kind, custom, callTime, trackOptions)
     }
 
     private fun submitCapture(
-        name: String,
+        caller: String,
         kind: String,
         custom: Map<String, PropertyValue>,
         callTime: Long,
@@ -217,7 +214,7 @@ internal class PugClient(
     ) {
         val occurTime = factory.occurTime(kind, trackOptions?.timestamp, callTime)
         val immediate = trackOptions?.immediate == true
-        submit(name) { capture(kind, custom, callTime, occurTime, immediate) }
+        enqueue(caller) { capture(kind, custom, callTime, occurTime, immediate) }
     }
 
     fun identify(externalId: String, traits: Map<String, Any?>?) {
@@ -292,6 +289,16 @@ internal class PugClient(
             return restored()?.isPending ?: true
         }
 
+    fun whenConsentReady(callback: Runnable) {
+        synchronized(consentLock) {
+            if (!consentRead) {
+                consentWaiters += callback
+                return
+            }
+        }
+        runOnMainThread(callback)
+    }
+
     private fun setConsent(name: String, value: TrackingConsent) {
         val now = clock.nowMillis()
         // Choices made at once on two threads: the one the getters report must be the one queued
@@ -324,28 +331,54 @@ internal class PugClient(
         val missing = event.fields.filter { it.required && it.name !in properties }
         if (missing.isEmpty()) return
         val names = missing.joinToString { "\"${it.name}\"" }
-        logger.debug("Event \"${event.kind}\" is missing $names, which Pug.${event.label}() requires")
+        logger.debug("Event \"${event.kind}\" is missing its required $names")
     }
 
     private fun restored(): RestoredConsent? {
         restoredConsent?.let { return it }
-        val started =
-            try {
-                consentRestored.await(maxOf(consentDeadlineNanos - System.nanoTime(), 0L), TimeUnit.NANOSECONDS)
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                false
+        val message =
+            when {
+                !consentRead ->
+                    "Tracking consent was asked for before Pug read it from storage; it is reported as unknown. " +
+                        "Ask from Pug.whenConsentReady() instead"
+
+                restoredConsent == null -> "Tracking consent is reported as unknown: Pug failed to start"
+
+                else -> return restoredConsent
             }
-        if (!started) {
-            val message = "Tracking consent was asked for before Pug finished starting; it is reported as unknown"
-            if (consentUnknownReported) {
-                logger.debug(message)
-            } else {
-                consentUnknownReported = true
-                logger.warn(message)
-            }
+        if (consentUnknownReported) {
+            logger.debug(message)
+        } else {
+            consentUnknownReported = true
+            logger.warn(message)
         }
         return restoredConsent
+    }
+
+    /** Releases the whenConsentReady() callbacks, once start-up has read consent or failed. */
+    private fun consentReady() {
+        val waiting =
+            synchronized(consentLock) {
+                if (consentRead) return
+                consentRead = true
+                consentWaiters.toList().also { consentWaiters.clear() }
+            }
+        waiting.forEach(::runOnMainThread)
+    }
+
+    private fun runOnMainThread(callback: Runnable) {
+        try {
+            platform.postToMainThread {
+                // The host's own code, run from the main looper: a throw here would crash the app.
+                try {
+                    callback.run()
+                } catch (t: Throwable) {
+                    logger.error("The callback given to Pug.whenConsentReady() failed", t)
+                }
+            }
+        } catch (t: Throwable) {
+            logger.error("Pug.whenConsentReady() could not reach the main thread", t)
+        }
     }
 
     private fun submit(name: String, block: () -> Unit) {
@@ -357,8 +390,8 @@ internal class PugClient(
     }
 
     private suspend fun run(previousTeardown: Job?, startTime: Long) {
-        previousTeardown?.join()
         try {
+            previousTeardown?.join()
             restore(startTime)
         } catch (e: CancellationException) {
             throw e
@@ -370,7 +403,7 @@ internal class PugClient(
             root.cancel()
             return
         } finally {
-            consentRestored.countDown()
+            consentReady()
         }
         for (op in ops) execute(op)
         tearDown()
@@ -389,7 +422,7 @@ internal class PugClient(
                 ConsentPurge(),
             )
         restoredConsent = RestoredConsent(consent.consent, consent.isPending)
-        consentRestored.countDown()
+        consentReady()
         deviceProperties = readAutoProperties()
         // Before anything this launch writes, so the probe for earlier launches sees only theirs.
         installs = InstallTracker(storage, keys, logger)
@@ -509,13 +542,13 @@ internal class PugClient(
     }
 
     private fun open(now: Long) {
-        if (!options.autoTrack || opened) return
+        if (!options.autoOpenCloseEvents || opened) return
         opened = capture(PugEvents.APP_OPEN, emptyMap(), now)
     }
 
     private fun enterBackground(now: Long) {
         visible = false
-        if (options.autoTrack && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, immediate = true)) {
+        if (options.autoOpenCloseEvents && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, immediate = true)) {
             opened = false
         }
         // The process may be frozen or killed from here on: whatever is queued gets its send now.

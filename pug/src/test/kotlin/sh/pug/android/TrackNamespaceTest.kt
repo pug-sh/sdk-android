@@ -8,10 +8,14 @@ import java.lang.reflect.Modifier
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
+import sh.pug.android.events.AddToCartEvent
+import sh.pug.android.events.WellKnownEvent
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
@@ -26,6 +30,9 @@ import sh.pug.android.internal.wire.PropertyValue.BoolValue
 import sh.pug.android.internal.wire.PropertyValue.DoubleValue
 import sh.pug.android.internal.wire.PropertyValue.IntValue
 import sh.pug.android.internal.wire.PropertyValue.StringValue
+
+// The events whose methods the generator leaves out, since Pug tracks them itself (PLAN.md D23).
+private val SDK_TRACKED = setOf("app_open", "app_close", "app_install", "app_update", "screen_view")
 
 class TrackNamespaceTest {
     private val scheduler = TestCoroutineScheduler()
@@ -52,16 +59,22 @@ class TrackNamespaceTest {
         start()
         val methods =
             TrackNamespace::class.java.declaredMethods
-                .filter { Modifier.isPublic(it.modifiers) && !it.isSynthetic }
+                .filter { Modifier.isPublic(it.modifiers) && '$' !in it.name }
                 .groupBy { it.name }
-        assertEquals(EventProtos.android.map { it.method }.toSet(), methods.keys)
+        val typed = EventProtos.android.filterNot { it.kind in SDK_TRACKED }
+        assertEquals(typed.map { it.method }.toSet(), methods.keys)
 
         val expected =
-            EventProtos.android.map { event ->
+            typed.map { event ->
                 val overloads = methods.getValue(event.method)
-                // @JvmOverloads: one overload per parameter with a default (the optional properties, extras
-                // and options), and the full one.
-                assertEquals(event.parameters.count { !it.required } + 3, overloads.size, event.method)
+                if (event.properties.isEmpty()) {
+                    // @JvmOverloads: none, extras, and extras with options.
+                    assertEquals(3, overloads.size, event.method)
+                    assertTrue(overloads.none { it.isSynthetic }, event.method)
+                } else {
+                    // Hidden from Java, which has the event's class instead (PLAN.md D31).
+                    assertTrue(overloads.single().isSynthetic, event.method)
+                }
                 val arguments = event.parameters.mapIndexed { index, property -> Argument(property, index) }
                 val method = overloads.maxBy { it.parameterCount }
                 assertEquals(
@@ -131,7 +144,7 @@ class TrackNamespaceTest {
             sent().single().customProperties,
         )
         assertEquals(
-            listOf("Extra \"price\" of Pug.track.addToCart() was dropped: an argument sets it"),
+            listOf("Extra \"price\" of Pug.track.addToCart() was dropped: the event's own price is set"),
             logger.warnings,
         )
     }
@@ -149,8 +162,8 @@ class TrackNamespaceTest {
     fun `options apply as they do to untyped events`() {
         start()
 
-        track.appOpen()
-        track.appClose(
+        track.scroll()
+        track.share(
             options = TrackOptions {
                 immediate = true
                 timestamp = 42L
@@ -159,31 +172,92 @@ class TrackNamespaceTest {
         scheduler.runCurrent()
 
         val event = transport.batches.single().single()
-        assertEquals("app_close", event.kind)
+        assertEquals("share", event.kind)
         assertEquals(42L, event.occurTimeMillis)
     }
 
     @Test
-    fun `screenView only tracks the event`() {
-        start()
+    fun `the events Pug tracks itself have no method, only a kind`() {
+        val methods = TrackNamespace::class.java.declaredMethods.map { it.name }.toSet()
+        val kinds = PugEvents::class.java.fields.map { it.get(null) }.toSet()
 
-        track.screenView(screenName = "Settings")
-        track.screenView(screenName = "Settings")
-        track.appOpen()
-
-        val events = sent()
-        assertEquals(listOf("screen_view", "screen_view", "app_open"), events.map { it.kind })
-        assertNull(events.last().autoProperties["\$url"])
+        for (kind in SDK_TRACKED) {
+            val event = EventProtos.android.single { it.kind == kind }
+            assertFalse(event.method in methods, event.method)
+            assertTrue(kind in kinds, kind)
+        }
     }
 
     @Test
-    fun `a null from Java for a required argument drops the event`() {
+    fun `every event with properties has a class that tracks it with each property set`() {
+        start()
+        val expected =
+            EventProtos.android.filter { it.kind !in SDK_TRACKED && it.properties.isNotEmpty() }.map { event ->
+                val type = Class.forName(event.className)
+                val arguments = event.parameters.mapIndexed { index, property -> Argument(property, index) }
+                val (required, optional) = arguments.partition { it.property.required }
+                val constructor = type.getConstructor(*required.map { it.javaType }.toTypedArray())
+                val instance = constructor.newInstance(*required.map { it.value }.toTypedArray()) as WellKnownEvent
+                optional.forEach { type.getMethod(it.setter, it.setterType).invoke(instance, it.value) }
+                assertEquals(
+                    optional.map { it.setter }.toSet() + "extra",
+                    type.declaredMethods.filter { Modifier.isPublic(it.modifiers) && !it.isSynthetic }
+                        .map { it.name }.toSet(),
+                    type.simpleName,
+                )
+                facade.track(instance, null)
+                event.kind to arguments.associate { it.property.name to it.sent }
+            }
+
+        assertEquals(expected, sent().map { it.kind to it.customProperties })
+        assertEquals(emptyList(), logger.warnings)
+    }
+
+    @Test
+    fun `events without properties, and those Pug tracks itself, have no class`() {
+        for (event in EventProtos.android.filter { it.properties.isEmpty() || it.kind in SDK_TRACKED }) {
+            assertFailsWith<ClassNotFoundException>(event.kind) { Class.forName(event.className) }
+        }
+    }
+
+    @Test
+    fun `an event object sends its extras, but a property it sets wins over an extra of its name`() {
         start()
 
-        JavaTypedCallers.addToCartWithNullProductId(track)
+        facade.track(AddToCartEvent("p1").price(9.99).extra("price", 1.5).extra("coupon", "SPRING"), null)
+
+        assertEquals(
+            mapOf("productId" to StringValue("p1"), "price" to DoubleValue(9.99), "coupon" to StringValue("SPRING")),
+            sent().single().customProperties,
+        )
+        assertEquals(
+            listOf("Extra \"price\" of Pug.track(AddToCartEvent) was dropped: the event's own price is set"),
+            logger.warnings,
+        )
+    }
+
+    @Test
+    fun `an event object is read during the call, so it can be changed and tracked again`() {
+        start()
+        val event = AddToCartEvent("p1").quantity(1)
+
+        facade.track(event, null)
+        event.quantity(2)
+        facade.track(event, TrackOptions { timestamp = 42L })
+
+        val sent = sent()
+        assertEquals(listOf(IntValue(1), IntValue(2)), sent.map { it.customProperties["quantity"] })
+        assertEquals(42L, sent.last().occurTimeMillis)
+    }
+
+    @Test
+    fun `a null from Java for a required constructor argument drops the event`() {
+        start()
+
+        facade.track(JavaTypedCallers.addToCartEventWithNullProductId(), null)
 
         assertEquals(emptyList(), sent())
-        assertEquals(listOf("Pug.track.addToCart() was dropped: productId is null"), logger.warnings)
+        assertEquals(listOf("Pug.track(AddToCartEvent) was dropped: productId is null"), logger.warnings)
     }
 
     @Test
@@ -201,6 +275,7 @@ class TrackNamespaceTest {
         // Compiling is the check: before Pug.init() both calls only log.
         Pug.track("checkout_started", mapOf("cartId" to "c1"))
         Pug.track.addToCart(productId = "p1", price = 9.99)
+        Pug.track(AddToCartEvent("p1").price(9.99))
     }
 
     private fun start() {
@@ -220,11 +295,18 @@ class TrackNamespaceTest {
         return transport.batches.flatten()
     }
 
+    private val EventProtos.Event.className: String
+        get() = "sh.pug.android.events." + method.replaceFirstChar(Char::uppercaseChar) + "Event"
+
     /** A distinct argument for the [index]th parameter, and the property it should be sent as. */
     private class Argument(val property: EventProtos.Property, index: Int) {
         val javaType: Class<*>
         val value: Any
         val sent: PropertyValue
+        val setter: String = if (property.isDuration) "${property.name}Ms" else property.name
+
+        // The setters of the event classes take numbers and booleans as primitives.
+        val setterType: Class<*> get() = javaType.kotlin.javaPrimitiveType ?: javaType
 
         init {
             val n = index + 1

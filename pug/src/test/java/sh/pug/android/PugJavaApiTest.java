@@ -10,6 +10,10 @@ import static org.junit.Assert.assertTrue;
 import android.content.ContextWrapper;
 import java.util.Collections;
 import org.junit.Test;
+import sh.pug.android.events.AddToCartEvent;
+import sh.pug.android.events.PurchaseEvent;
+import sh.pug.android.events.VideoPlayEvent;
+import sh.pug.android.events.WellKnownEvent;
 
 /** The public API as Java code sees it; Pug is not initialized here, so calls only log. */
 public class PugJavaApiTest {
@@ -19,7 +23,7 @@ public class PugJavaApiTest {
                 .endpoint("https://api.example.com")
                 .debug(true)
                 .dryRun(true)
-                .autoTrack(false)
+                .autoOpenCloseEvents(false)
                 .autoScreenViews(false)
                 .autoInstallEvents(false)
                 .logger(null)
@@ -30,7 +34,7 @@ public class PugJavaApiTest {
                 .sessionIdleTimeoutMs(60_000L)
                 .sessionMaxDurationMs(3_600_000L)
                 .defaultTrackingConsent(TrackingConsent.DENIED)
-                .persistTrackingConsent(true)
+                .persistTrackingConsent(false)
                 .build();
 
         assertNotNull(options);
@@ -58,7 +62,8 @@ public class PugJavaApiTest {
 
     @Test
     public void callsAcceptNullsWithoutThrowing() {
-        Pug.track(null);
+        Pug.track((String) null);
+        Pug.track((WellKnownEvent) null);
         Pug.track("kind", null);
         Pug.track("kind", Collections.singletonMap("key", null), null);
         Pug.identify(null);
@@ -70,6 +75,8 @@ public class PugJavaApiTest {
         Pug.flush();
         Pug.optInTracking();
         Pug.optOutTracking();
+        Pug.whenConsentReady(null);
+        Pug.whenConsentReady(() -> { });
         Pug.destroy();
 
         assertNull(Pug.getTrackingConsent());
@@ -91,16 +98,19 @@ public class PugJavaApiTest {
     }
 
     @Test
-    public void typedEventsAreFieldsAndOverloads() {
-        Pug.track.addToCart("p1");
-        Pug.track.addToCart("p1", 9.99, "USD");
-        Pug.track.addToCart(
-                "p1", null, null, null, 2, null, null, null, Collections.singletonMap("coupon", "SPRING"),
-                new TrackOptions.Builder().immediate(true).build());
-        Pug.track.addToCart(null);
-        Pug.track.videoPlay("v1", 1_500L);
-        Pug.track.appOpen();
+    public void eventsWithoutPropertiesAreMethods() {
+        Pug.track.share();
+        Pug.track.signup(Collections.singletonMap("method", "google"));
+        Pug.track.signout(null, new TrackOptions.Builder().immediate(true).build());
         Pug.track(PugEvents.ADD_TO_CART, Collections.singletonMap("productId", "p1"));
+    }
+
+    @Test
+    public void typedEventsAreObjectsToo() {
+        Pug.track(new PurchaseEvent().orderId("o-42").amount(10).currency("USD").quantity(2).extra("coupon", "FALL"));
+        Pug.track(new AddToCartEvent("p1").price(9.99), new TrackOptions.Builder().immediate(true).build());
+        Pug.track(new AddToCartEvent(null).currency(null).extra(null, null));
+        Pug.track(new VideoPlayEvent("v1").positionMs(1_500));
     }
 
     @Test

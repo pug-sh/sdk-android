@@ -1,6 +1,7 @@
 package sh.pug.android.internal.platform
 
 import java.io.File
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.assertNotNull
 import sh.pug.android.internal.logging.SafeLogger
 
@@ -12,6 +13,7 @@ internal class FakePlatform(
     private val observable: Boolean = true,
 ) : Platform {
     private var observer: LifecycleObserver? = null
+    private val mainThreadQueue = ConcurrentLinkedQueue<() -> Unit>()
 
     var observing: Boolean = false
         private set
@@ -29,6 +31,18 @@ internal class FakePlatform(
         this.observer = observer
         observing = true
         return { observing = false }
+    }
+
+    override fun postToMainThread(block: () -> Unit) {
+        mainThreadQueue.add(block)
+    }
+
+    /** Runs what was posted to the main thread so far, as its looper would. */
+    fun runMainThread() {
+        while (true) {
+            val block = mainThreadQueue.poll() ?: return
+            block()
+        }
     }
 
     fun foreground() {

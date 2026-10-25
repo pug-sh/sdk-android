@@ -53,12 +53,13 @@ update `internal/wire` for any change to the encoded messages and run `make chec
 ### Typed track
 
 The typed API is generated from the well-known event protos (`proto/common/events/v1`, PLAN.md D19,
-D23–D25) and committed:
+D23–D25, D31) and committed:
 
 | File | Holds |
 | ---- | ----- |
-| `pug/src/main/kotlin/sh/pug/android/TrackNamespace.kt` | `Pug.track.<event>(…)`: one method per event for Android, with KDoc |
+| `pug/src/main/kotlin/sh/pug/android/TrackNamespace.kt` | `Pug.track.<event>(…)`: one method per event but those Pug tracks itself, with KDoc |
 | `pug/src/main/kotlin/sh/pug/android/PugEvents.kt` | the kinds as `const val`s |
+| `pug/src/main/kotlin/sh/pug/android/events/Events.kt` | a class per event with properties, Java's typed form |
 | `pug/src/main/kotlin/sh/pug/android/internal/event/WellKnownEvents.kt` | each event's `EventSchema`: kind, method, properties with type and required |
 
 `make typed-track` writes them: `buf build --path proto/common/events/v1` makes a JSON image (it
@@ -171,8 +172,8 @@ network access, and logs any VM-policy violation, such as a socket without a Tra
 - The typed track API is tested against the protos, not against the generator: `EventProtos` reads
   the Android events from `pug.binpb` with protobuf-java (the custom options arrive as unknown
   fields), `WellKnownEventsTest` compares the registry and `PugEvents` with them, and
-  `TrackNamespaceTest` calls every method by reflection with distinct arguments and checks the
-  properties sent.
+  `TrackNamespaceTest` calls every method and builds every event class by reflection with distinct
+  arguments and checks the properties sent.
 - `MainThreadIoTest` (Robolectric) holds the SDK to its StrictMode promise, which StrictMode itself
   cannot check on the JVM: its `Application` records the SDK's calls for the no-backup directory,
   the package manager, resources, system services and permissions by thread, and a full session
@@ -195,7 +196,8 @@ network access, and logs any VM-policy violation, such as a socket without a Tra
 | ---- | -------------- |
 | `pug/src/main/kotlin/sh/pug/android/Version.kt` | `SDK_VERSION`, sent as `$sdkVersion` and in the User-Agent |
 | `Pug.kt` | The public entry point: thin `@JvmStatic` wrappers over `PugFacade`, and the `track` field |
-| `TrackNamespace.kt`, `PugEvents.kt` | Generated: the typed methods and the event kinds |
+| `TrackNamespace.kt`, `PugEvents.kt`, `events/Events.kt` | Generated: the typed methods, the event kinds and the event classes |
+| `events/WellKnownEvent.kt` | The base of the event classes: the values in schema order, and the extras |
 | `PugOptions.kt`, `TrackOptions.kt`, `TrackingConsent.kt` | Public configuration; `PugOptions` validates numbers at `build()` |
 | `PugLogger.kt`, `PugStorage.kt` | Public logger and storage interfaces, `MemoryPugStorage` |
 | `internal/logging/SafeLogger.kt` | The logger internals call: debug gating, contains a throwing logger; `LogcatLogger` |
@@ -206,7 +208,7 @@ network access, and logs any VM-policy violation, such as a socket without a Tra
 | `internal/runtime/PugClient.kt` | One configured instance: caller-thread mapping, the op channel, start-up, consent getters, lifecycle and screens, teardown |
 | `internal/runtime/EventDispatcher.kt` | Delivery: batching triggers, one batch in flight, retry backoff, drain |
 | `internal/json/JsonWriter.kt` | JSON text for persisted state and collection-valued properties |
-| `internal/platform/Platform.kt` | What the runtime takes from the device: storage directory, auto-properties, lifecycle observation |
+| `internal/platform/Platform.kt` | What the runtime takes from the device: storage directory, auto-properties, lifecycle observation, posting to the main thread |
 | `internal/platform/AndroidPlatform.kt` | The real `Platform`, from the application context |
 | `internal/platform/AndroidAutoProperties.kt` | Device, app, screen, locale and network auto-properties (PLAN.md §4.10) |
 | `internal/platform/ActivityLifecycleTracker.kt` | Activity callbacks to foreground/background and screens, on the main thread |

@@ -6,7 +6,7 @@ internal enum class FieldType { STRING, INT, DOUBLE, BOOLEAN, DURATION }
 
 internal class FieldSchema(val name: String, val type: FieldType, val required: Boolean = false)
 
-/** A well-known event: its [kind], the method of `Pug.track` that tracks it, and its properties in schema order. */
+/** A well-known event: its [kind], its method on `Pug.track` (if it has one), and its properties in schema order. */
 internal class EventSchema(val kind: String, method: String, vararg fields: FieldSchema) {
     val fields: List<FieldSchema> = fields.asList()
 

@@ -3,6 +3,7 @@ package sh.pug.android.internal.platform
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Looper
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import sh.pug.android.internal.RecordingLogger
 
 @RunWith(RobolectricTestRunner::class)
@@ -55,5 +57,16 @@ class AndroidPlatformTest {
             }
 
         assertNull(AndroidPlatform(detached).observeLifecycle(observer, logger.safe()))
+    }
+
+    @Test
+    fun `work posted from the main thread runs on its next turn`() {
+        val ran = mutableListOf<Thread>()
+
+        AndroidPlatform(application).postToMainThread { ran += Thread.currentThread() }
+        assertEquals(emptyList(), ran)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(listOf(Looper.getMainLooper().thread), ran)
     }
 }

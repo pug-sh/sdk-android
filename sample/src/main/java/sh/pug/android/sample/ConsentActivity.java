@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import sh.pug.android.Pug;
 import sh.pug.android.PugEvents;
+import sh.pug.android.events.SearchEvent;
+import sh.pug.android.events.SearchResultClickedEvent;
 
-/** The SDK from Java: the same calls, with overloads in place of named and default arguments. */
+/** The SDK from Java: overloads in place of default arguments, event objects in place of named ones. */
 public final class ConsentActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +28,8 @@ public final class ConsentActivity extends Activity {
             Map<String, Object> properties = new HashMap<>();
             properties.put("source", "java");
             Pug.track("consent_screen_action", properties);
-            Pug.track.search("from java");
+            Pug.track(new SearchEvent("from java"));
+            Pug.track(new SearchResultClickedEvent("from java", "r1").index(0).extra("source", "java"));
             Pug.track(PugEvents.SHARE);
         });
     }
@@ -34,7 +37,7 @@ public final class ConsentActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        showConsent();
+        Pug.whenConsentReady(this::showConsent);
     }
 
     private void showConsent() {
