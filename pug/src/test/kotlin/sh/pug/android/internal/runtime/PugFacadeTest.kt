@@ -31,6 +31,7 @@ class PugFacadeTest {
     private val storage = MemoryPugStorage()
     private val ids = SequentialIds()
     private val context = ContextWrapper(null)
+    private val platform = FakePlatform()
     private val facade =
         PugFacade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
             PugClient(
@@ -38,7 +39,7 @@ class PugFacadeTest {
                 options,
                 transport,
                 worker,
-                FakePlatform(),
+                platform,
                 ids = ids,
                 random = FixedRandom(),
                 sdkInt = 26,
@@ -94,12 +95,19 @@ class PugFacadeTest {
         facade.init(context, PROJECT, options())
 
         JavaCallers.trackWithNullKind(facade)
+        JavaCallers.trackNullEvent(facade)
         JavaCallers.identifyWithNullId(facade)
         JavaCallers.screenWithNullName(facade)
+        JavaCallers.whenConsentReadyWithNullCallback(facade)
         scheduler.runCurrent()
 
         assertEquals(
-            listOf("An event with a null kind was dropped", "A screen with a null name was dropped"),
+            listOf(
+                "An event with a null kind was dropped",
+                "A null event was dropped",
+                "A screen with a null name was dropped",
+                "Pug.whenConsentReady() was given a null callback; it was ignored",
+            ),
             logger.warnings,
         )
         assertEquals(listOf("identify() was dropped: externalId is null"), logger.errors)
@@ -115,6 +123,7 @@ class PugFacadeTest {
         facade.flush()
         facade.optInTracking()
         facade.optOutTracking()
+        facade.whenConsentReady {}
         facade.destroy()
 
         assertNull(facade.getTrackingConsent())
@@ -130,6 +139,7 @@ class PugFacadeTest {
                 "flush",
                 "optInTracking",
                 "optOutTracking",
+                "whenConsentReady",
                 "destroy",
             )
                 .map { "Pug.$it() was called before Pug.init(); it was ignored" } +
@@ -193,6 +203,33 @@ class PugFacadeTest {
 
         // Started early, the new client would have read a, b and c from storage and sent them again.
         assertEquals(listOf(listOf("a", "b"), listOf("c"), listOf("d")), transport.kinds)
+    }
+
+    @Test
+    fun `whenConsentReady waits for the client that is running when its callback is due`() {
+        val options = options { defaultTrackingConsent = TrackingConsent.DENIED }
+        facade.init(context, PROJECT, options)
+        facade.optInTracking()
+        facade.destroy()
+        scheduler.advanceUntilIdle()
+
+        facade.init(context, PROJECT, options)
+        val seen = mutableListOf<Pair<TrackingConsent?, Boolean>>()
+        facade.whenConsentReady { seen += facade.getTrackingConsent() to facade.isConsentPending() }
+        transport.hold()
+        facade.track("a", null, null)
+        facade.destroy()
+        facade.init(context, PROJECT, options)
+        // The first client has read consent and is in its final flush, which the second one waits for.
+        scheduler.runCurrent()
+        platform.runMainThread()
+        assertEquals(emptyList(), seen)
+
+        transport.releaseAll()
+        scheduler.runCurrent()
+        platform.runMainThread()
+        assertEquals(listOf<Pair<TrackingConsent?, Boolean>>(TrackingConsent.GRANTED to false), seen)
+        assertEquals(emptyList(), logger.warnings)
     }
 
     @Test

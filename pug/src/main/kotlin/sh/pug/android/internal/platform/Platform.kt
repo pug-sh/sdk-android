@@ -19,6 +19,9 @@ internal interface Platform {
      * null when the lifecycle cannot be observed.
      */
     fun observeLifecycle(observer: LifecycleObserver, logger: SafeLogger): (() -> Unit)?
+
+    /** Runs [block] on the main thread later, even when called there; throws when it cannot. */
+    fun postToMainThread(block: () -> Unit)
 }
 
 internal interface AutoProperties {

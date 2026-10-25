@@ -28,6 +28,10 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        Pug.whenConsentReady { showStatus() }
+    }
+
+    private fun showStatus() {
         val mode =
             if (BuildConfig.PUG_API_KEY.isEmpty()) {
                 getString(R.string.mode_dry_run)

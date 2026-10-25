@@ -57,6 +57,7 @@ class Event(val kind: String, val comment: List<String>, val fields: List<Field>
         kind.split('_').mapIndexed { i, part -> if (i == 0) part else part.replaceFirstChar(Char::uppercaseChar) }
             .joinToString("")
     val constant: String = kind.uppercase()
+    val className: String = method.replaceFirstChar(Char::uppercaseChar) + "Event"
 
     /** Required properties first, each group in schema order. */
     val parameters: List<Field> = fields.filter { it.required } + fields.filterNot { it.required }
@@ -131,10 +132,13 @@ private fun checkNames(events: Collection<Event>) {
         if (event.method in UNUSABLE_METHODS || !methods.add(event.method)) {
             fail("kind \"${event.kind}\" makes the method name ${event.method}, which is not usable")
         }
-        val parameters = hashSetOf("extras", "options")
+        // Names the generated code uses beside the parameters: a parameter would shadow them.
+        val parameters = hashSetOf("extras", "options", "extra", "facade", "values")
         for (field in event.fields) {
             val name = field.parameter
-            if (!IDENTIFIER.matches(name) || name in KOTLIN_KEYWORDS || !parameters.add(name)) {
+            // An optional property is also a setter of the event's class, which Java calls.
+            val unusable = if (field.required) KOTLIN_KEYWORDS else UNUSABLE_METHODS
+            if (!IDENTIFIER.matches(name) || name in unusable || !parameters.add(name)) {
                 fail("${event.kind}.${field.key} makes the parameter name $name, which is not usable")
             }
         }

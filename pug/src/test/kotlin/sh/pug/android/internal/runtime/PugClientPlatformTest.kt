@@ -98,11 +98,11 @@ class PugClientPlatformTest {
     }
 
     @Test
-    fun `leaving the foreground sends the queue without autoTrack, and despite a pending retry`() {
+    fun `leaving the foreground sends the queue without autoOpenCloseEvents, and despite a pending retry`() {
         transport.failNextBatch(RpcCode.UNAVAILABLE)
         val platform = FakePlatform()
         val client = client(platform) {
-            autoTrack = false
+            autoOpenCloseEvents = false
             batchMaxSize = 1
             batchMaxWaitMs = 60_000
         }
@@ -348,7 +348,6 @@ class PugClientPlatformTest {
         val client = client(FakePlatform(directory)) {
             storage = null
             batchMaxWaitMs = 60_000
-            persistTrackingConsent = true
         }
         client.track("a", null, null)
         scheduler.advanceTimeBy(STORAGE_SYNC_DELAY_MS)
@@ -395,7 +394,7 @@ class PugClientPlatformTest {
         val platform = FakePlatform(directory)
         val client = client(platform) {
             storage = null
-            autoTrack = false
+            autoOpenCloseEvents = false
         }
         transport.hold()
 

@@ -51,10 +51,10 @@ internal class TrackingConsentController(
         } else {
             logger.debug("Tracking consent is denied by default; events and identify() are dropped until opt-in")
             if (purge.isIdentified) {
+                val fix = if (persist) "Call optOutTracking()" else "Persist consent, or call optOutTracking()"
                 logger.warn(
                     "Tracking consent is denied by default, but an external id from an earlier identify() " +
-                        "is kept: a default is not the user's choice. Persist consent, or call optOutTracking() " +
-                        "once the user declines",
+                        "is kept: a default is not the user's choice. $fix once the user declines",
                 )
             }
         }

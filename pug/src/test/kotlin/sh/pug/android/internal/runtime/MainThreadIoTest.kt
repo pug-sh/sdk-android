@@ -83,6 +83,7 @@ class MainThreadIoTest {
         facade.screen("Settings")
         facade.identify("user-42", mapOf("plan" to "pro"))
         facade.getTrackingConsent()
+        facade.whenConsentReady {}
         val home = Robolectric.buildActivity(HomeActivity::class.java).setup()
         home.pause().stop()
         facade.optOutTracking()
