@@ -49,8 +49,8 @@ which throws `IllegalArgumentException` for a blank project id or API key, or an
 not an http(s) URL. Calls made before `Pug.init` are ignored with a warning, and so is a second
 `Pug.init` until `Pug.destroy`. `Pug.init` does no disk or network work on the calling thread, so it
 is safe on the main thread under StrictMode, and the SDK's connections carry a TrafficStats tag, so
-`detectUntaggedSockets` does not report them. (Right after `Pug.init`, the consent getters may wait
-briefly; see [Tracking consent](#tracking-consent).)
+`detectUntaggedSockets` does not report them. The consent getters never wait either; see
+[Tracking consent](#tracking-consent).
 
 ## Options
 
@@ -63,7 +63,6 @@ Pug.init(
         batchMaxSize = 20
         batchMaxWaitMs = 10_000
         defaultTrackingConsent = TrackingConsent.DENIED
-        persistTrackingConsent = true
     },
 )
 ```
@@ -79,16 +78,15 @@ Pug.init(
 | `sessionIdleTimeoutMs` | 30 min | A session ends after this long without events. |
 | `sessionMaxDurationMs` | 24 h | A session ends this long after it began. |
 | `defaultTrackingConsent` | `GRANTED` | See [Tracking consent](#tracking-consent). |
-| `persistTrackingConsent` | `false` | See [Tracking consent](#tracking-consent). |
-| `autoTrack` | `true` | Tracks `app_open` and `app_close`. |
+| `persistTrackingConsent` | `true` | See [Tracking consent](#tracking-consent). |
+| `autoOpenCloseEvents` | `true` | Tracks `app_open` and `app_close`, nothing else. |
 | `autoScreenViews` | `true` | Tracks a `screen_view` each time an activity resumes on a different screen. |
 | `autoInstallEvents` | `true` | Tracks `app_install` and `app_update`. |
 | `logger` | Logcat | A `PugLogger` to receive the SDK's messages instead. |
 | `storage` | files | A `PugStorage` to keep the SDK's state in instead; `MemoryPugStorage` keeps nothing on the device. |
 
-`batch`, `session` and `trackingConsent` set their whole group: a member left out takes its default.
-Nothing here throws: a number out of range is logged and replaced by its default, and a `maxSize`
-above 1000 is capped.
+Each option is set on its own; the ones left out keep their defaults. Nothing here throws: a number
+out of range is logged and replaced by its default, and a `batchMaxSize` above 1000 is capped.
 
 ## Tracking events
 
@@ -122,7 +120,7 @@ the event happened, in epoch milliseconds, for an event recorded after the fact.
 
 ### Well-known events
 
-The events Pug knows have a typed method on `Pug.track`, generated from the event schemas, with
+The events Pug knows, but those it tracks itself, have a typed method on `Pug.track`, generated from the event schemas, with
 the event's properties as arguments: required ones first and non-null, optional ones nullable with
 a default.
 
@@ -143,9 +141,9 @@ Pug.track.addToCart(
   `positionMs = 1_500` sends `position: "1.5s"`.
 - Values are sent as given: the schemas name and type the properties, but ranges and patterns are
   not enforced on the device.
-- The methods only track. `Pug.track.screenView(…)` does not change the current screen (that is
-  `Pug.screen`), and `appOpen`, `appClose`, `appInstall` and `appUpdate` would duplicate the events
-  the SDK tracks itself unless you turn those off.
+- The events the SDK tracks itself have no method: `app_open`, `app_close`, `app_install`,
+  `app_update` and `screen_view`. For a screen that is not an activity, call `Pug.screen`. With the
+  automatic events turned off, `Pug.track(PugEvents.APP_OPEN)` and the like still work.
 
 The kinds are constants in `PugEvents` (`PugEvents.ADD_TO_CART` is `"add_to_cart"`). Tracking a
 well-known kind with `Pug.track(kind, properties)` works too, and a whole number given for a decimal
@@ -156,14 +154,14 @@ column.
 
 | Event | When | Option |
 | ----- | ---- | ------ |
-| `app_open` | The app comes to the foreground (an activity starts while none was started). | `autoTrack` |
-| `app_close` | The app leaves the foreground (its last started activity stops, not for a rotation). | `autoTrack` |
+| `app_open` | The app comes to the foreground (an activity starts while none was started). | `autoOpenCloseEvents` |
+| `app_close` | The app leaves the foreground (its last started activity stops, not for a rotation). | `autoOpenCloseEvents` |
 | `screen_view` | An activity resumes: `screenName` is its class's simple name, `screenClass` the full one. | `autoScreenViews` |
 | `app_install` | The first launch with the SDK on this device, with `appVersion`. | `autoInstallEvents` |
 | `app_update` | The first launch of a new app version, with `appVersion` and `previousVersion`. | `autoInstallEvents` |
 
 When the app leaves the foreground the SDK sends what is queued and writes its state to disk,
-whatever `autoTrack` says, since the process may be stopped from then on.
+whatever `autoOpenCloseEvents` says, since the process may be stopped from then on.
 
 For screens that are not activities, such as composables or fragments, call `Pug.screen`:
 
@@ -204,21 +202,21 @@ waiting for the next batch. `destroy()` keeps identity, persisted consent and un
 
 ## Tracking consent
 
-Consent is granted by default. To wait for the user's choice, start denied and persist the answer:
+Consent is granted by default. To wait for the user's choice, start denied:
 
 ```kotlin
-PugOptions("your-api-key") {
-    defaultTrackingConsent = TrackingConsent.DENIED
-    persistTrackingConsent = true
-}
+PugOptions("your-api-key") { defaultTrackingConsent = TrackingConsent.DENIED }
 ```
 
 ```kotlin
-if (Pug.isConsentPending()) showConsentBanner()
+Pug.whenConsentReady { if (Pug.isConsentPending()) showConsentBanner() }
 
 Pug.optInTracking()   // the user accepted
 Pug.optOutTracking()  // the user declined
 ```
+
+The choice is saved, so the banner shows only until the user answers, and an opt-out made in your
+settings screen still holds after a restart.
 
 - While consent is denied, events and `identify` are dropped, not kept for later.
 - Opting out drops queued events unsent and removes the stored identity; opting in again starts a
@@ -226,11 +224,14 @@ Pug.optOutTracking()  // the user declined
 - When the user opts in, the SDK tracks what consent held back: an `app_install` or `app_update` it
   could not track at launch and, if the app is on screen, `app_open` and a `screen_view` of the
   current screen. A consent banner on the first launch therefore loses none of them.
-- With `persist = true` the choice is stored and restored by the next `Pug.init`; without it, it
-  lasts until `Pug.destroy()` or the process ends.
-- `getTrackingConsent()` is the consent in effect (null before `Pug.init`), `isTrackingEnabled()`
-  whether it is granted, and `isConsentPending()` whether the user has yet to choose. Right after
-  `Pug.init` the getters may wait up to a second for a stored choice to be read.
+- The choice is stored and restored by the next `Pug.init`. If your app keeps the choice itself and
+  calls `optInTracking()` or `optOutTracking()` on every launch, set `persistTrackingConsent = false`:
+  the choice then lasts until `Pug.destroy()` or the process ends.
+- `getTrackingConsent()` is the consent in effect, `isTrackingEnabled()` whether it is granted, and
+  `isConsentPending()` whether the user has yet to choose. They answer at once and never wait. Right
+  after `Pug.init`, while the SDK is still reading the saved choice on its own thread, they answer
+  "not known yet": `null`, `false` and `true`. `Pug.whenConsentReady { … }` runs its block on the
+  main thread as soon as they answer for this user, on the main thread's next turn if they already do.
 
 ## Auto-properties
 
@@ -258,7 +259,7 @@ the rest once per launch.
 
 - Events are queued and sent in batches, one request at a time. A request that fails
   for a reason that may pass (no network, a timeout, a server error, a captive portal) is retried
-  with exponential backoff from `maxWaitMs` (at least a second) up to five minutes. A request the
+  with exponential backoff from `batchMaxWaitMs` (at least a second) up to five minutes. A request the
   server rejects for good is dropped and logged as an error.
 - Undelivered events, identity and consent are kept in files under the app's `noBackupFilesDir`,
   so they survive restarts but are not restored onto another device by Auto Backup. Writes are
@@ -298,27 +299,36 @@ Pug.init(this, "your-project-id",
                 .batchMaxSize(20)
                 .batchMaxWaitMs(10_000L)
                 .defaultTrackingConsent(TrackingConsent.DENIED)
-                .persistTrackingConsent(true)
                 .build());
+
+Pug.whenConsentReady(() -> {
+    if (Pug.isConsentPending()) showConsentBanner();
+});
 
 Map<String, Object> properties = new HashMap<>();
 properties.put("cartId", "c1");
 Pug.track("checkout_started", properties);
 Pug.track("order_completed", properties, new TrackOptions.Builder().immediate(true).build());
 
-Pug.track.addToCart("sku-1");                  // the required arguments
-Pug.track.addToCart("sku-1", 9.99, "USD");     // then the optional ones, in schema order
-Pug.track.addToCart("sku-1", 9.99, "USD", null, 2, null, null, null, extras, new TrackOptions.Builder().immediate(true).build());
-Pug.track.videoPlay("v1", 1_500L);
+Pug.track(new PurchaseEvent().orderId("o-1").amount(89).currency("USD").extra("coupon", "FALL10"));
+Pug.track(new AddToCartEvent("sku-1").price(9.99).quantity(2),
+        new TrackOptions.Builder().immediate(true).build());
+Pug.track(new VideoPlayEvent("v1").positionMs(1_500));
+Pug.track.signup();                            // an event without properties has no class
 ```
 
-Typed methods have an overload for each prefix of their optional arguments, then `extras`, then
-`options`. `PugEvents` constants work in a `switch`. A `null` passed for a required argument from Java
-drops the call with a warning instead of throwing.
+Each well-known event with properties has a class in `sh.pug.android.events`: the properties the
+event requires are constructor arguments, every other property has a setter (numbers as primitives,
+so `amount(89)` compiles), and `extra(key, value)` adds a property the event does not define. A
+property never set is not sent. `Pug.track` reads the object during the call, so it can be changed
+and tracked again. A `null` passed for a required argument drops the event with a warning instead of
+throwing. `PugEvents` constants work in a `switch`.
 
-When Pug adds a property to an event schema, the new parameter goes before `extras` and `options`,
-so Java code that passes those two positionally needs a `null` for it after updating; Kotlin code
-with named arguments only needs a recompile. The changelog flags such updates.
+From Java, `Pug.track` has methods only for the events without properties, such as
+`Pug.track.signup()`, with overloads that add `extras` and then `options`. The others are hidden
+from Java, so each event has one typed form there. When Pug adds a property to an event schema, an
+event object gains a setter; a new required property changes its constructor, and an event without
+properties that gains one moves from `Pug.track.signup()` to an object. The changelog says so.
 
 ## R8 and ProGuard
 

@@ -3,6 +3,8 @@ package sh.pug.android.internal.platform
 import android.app.Application
 import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import java.io.File
 import sh.pug.android.internal.logging.SafeLogger
 
@@ -25,5 +27,9 @@ internal class AndroidPlatform(context: Context, private val sdkInt: Int = Build
         val tracker = ActivityLifecycleTracker(application, observer, logger)
         tracker.start()
         return tracker::stop
+    }
+
+    override fun postToMainThread(block: () -> Unit) {
+        check(Handler(Looper.getMainLooper()).post(block)) { "The main looper is not running" }
     }
 }

@@ -2,6 +2,7 @@ package sh.pug.android.internal.runtime;
 
 import android.content.Context;
 import sh.pug.android.PugOptions;
+import sh.pug.android.events.WellKnownEvent;
 
 /** Calls into the SDK with the nulls Java code can pass where Kotlin code cannot. */
 final class JavaCallers {
@@ -15,12 +16,20 @@ final class JavaCallers {
         facade.track(null, null, null);
     }
 
+    static void trackNullEvent(PugFacade facade) {
+        facade.track((WellKnownEvent) null, null);
+    }
+
     static void identifyWithNullId(PugFacade facade) {
         facade.identify(null, null);
     }
 
     static void screenWithNullName(PugFacade facade) {
         facade.screen(null);
+    }
+
+    static void whenConsentReadyWithNullCallback(PugFacade facade) {
+        facade.whenConsentReady(null);
     }
 
     static PugOptions optionsWithNullApiKey() {

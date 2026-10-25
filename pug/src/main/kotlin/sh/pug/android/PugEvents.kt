@@ -4,7 +4,8 @@ package sh.pug.android
 
 /**
  * The kinds of Pug's well-known events, for `Pug.track(kind, properties)` and for comparisons. [TrackNamespace] has a
- * method for each, which takes the event's properties as typed arguments.
+ * method for each but those Pug tracks itself, which takes the event's properties as typed arguments; from Java, an
+ * event with properties is an object of `sh.pug.android.events`.
  */
 public object PugEvents {
     public const val ADD_TO_CART: String = "add_to_cart"

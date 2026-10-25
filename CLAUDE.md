@@ -21,7 +21,7 @@ make check       # verify-version + spotlessCheck + detekt + lint + unit tests +
 make fmt         # spotlessApply (ktlint, android_studio style)
 make abi-dump    # rewrite pug/api/pug.api after an intended public API change; review the diff
 make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
-make typed-track # only the typed track API: TrackNamespace.kt, PugEvents.kt, WellKnownEvents.kt
+make typed-track # only the typed track API: TrackNamespace.kt, PugEvents.kt, events/Events.kt, WellKnownEvents.kt
 make ci          # protos + check-codegen + check: what CI runs
 ```
 
@@ -37,8 +37,10 @@ JDK 21 and buf 1.73.0 come from `mise.toml`; the Android SDK path is in the untr
 Module `:pug` → `sh.pug:pug-android`, package `sh.pug.android`, explicit API mode. Public: the `Pug`
 object (the entry point, `@JvmStatic`), `PugOptions` (opaque, built by `PugOptions.Builder` or the
 Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
-`MemoryPugStorage`, and the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
-`track(kind, …)` function) and `PugEvents`. Storage defaults to files under `noBackupFilesDir/pug/`.
+`MemoryPugStorage`, the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
+`track(kind, …)` and `track(event)` functions) and `PugEvents`, and in `sh.pug.android.events` the
+`WellKnownEvent` base of the generated event classes (D31, Java's typed form). Storage defaults to
+files under `noBackupFilesDir/pug/`.
 
 - **Public API is pinned** by `pug/api/pug.api`, which `make check` compares with the release AAR
   through `tools/abi-dump` (KGP's ABI validation and BCV do not run under AGP's built-in Kotlin).
@@ -48,11 +50,12 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   `tools/dead-code/allowed.txt`). See `docs/development.md`, Dead code.
 - **`sample/`** (`:sample`) is a framework-only app on the SDK, from Kotlin and Java, with StrictMode
   `penaltyDeath` in debug builds; its release build is minified with no keep rules for the SDK.
-- **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt` and
+- **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt`, `events/Events.kt` and
   `internal/event/WellKnownEvents.kt` come from `tools/gen-track` (the Gradle module
   `:tools:gen-track`, run by `make typed-track` on a `buf build` JSON image). Change the generator
-  and regenerate; `check-codegen` fails on drift. Typed methods pass their values in schema order to
-  `PugFacade.trackTyped`, and `PugClient.trackTyped` names them from the `EventSchema`
+  and regenerate; `check-codegen` fails on drift, so the generator emits what ktlint would format.
+  Typed methods pass their values in schema order to `PugFacade.trackTyped`, event objects hold
+  theirs in that order, and `PugClient.trackTyped` names them from the `EventSchema`
   (`internal/event/EventSchema.kt`), formats Durations (D24) and merges `extras` (D25).
 - `internal/runtime/` — `PugFacade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
@@ -64,7 +67,7 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
   storage. `EventDispatcher` delivers: size/timer/immediate triggers, one batch in flight, D16
   backoff, `drain()` for explicit flushes, backgrounding and teardown.
 - `internal/platform/` — `Platform` is what the runtime takes from the device (storage directory,
-  auto-properties, lifecycle observation), so `PugClient` runs on a plain JVM in tests.
+  auto-properties, lifecycle observation, posting to the main thread), so `PugClient` runs on a plain JVM in tests.
   `AndroidPlatform` is the real one: `AndroidAutoProperties` (`PLAN.md` §4.10: fixed values read
   once, screen/locale/time zone/network per event) and `ActivityLifecycleTracker` (main thread:
   foreground while an activity is started, resumed activities as screens, seeded from
@@ -107,7 +110,8 @@ Kotlin `PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLog
 - **No I/O on the caller's thread.** `Pug.init` usually runs on the main thread under StrictMode:
   file paths from the `Context`, package info and storage are touched on the worker (`restore()`).
   The main thread only registers activity callbacks, and those catch `Throwable` whole, since they
-  run inside the host's own activity callbacks.
+  run inside the host's own activity callbacks. No public call waits either (`PLAN.md` D28): a
+  caller that needs start-up done gets a callback (`Pug.whenConsentReady`).
 - **Runtime dependencies are kotlin-stdlib and kotlinx-coroutines-core only**, at the floors in
   `gradle/libs.versions.toml`. protobuf-java, MockWebServer and the org.json artifact are test-only (runtime uses the
   platform's org.json). Do not add

@@ -23,8 +23,8 @@ class PugOptionsTest {
         assertEquals(30 * 60_000L, options.sessionIdleTimeoutMs)
         assertEquals(24 * 60 * 60_000L, options.sessionMaxDurationMs)
         assertEquals(TrackingConsent.GRANTED, options.defaultTrackingConsent)
-        assertFalse(options.persistTrackingConsent)
-        assertTrue(options.autoTrack)
+        assertTrue(options.persistTrackingConsent)
+        assertTrue(options.autoOpenCloseEvents)
         assertTrue(options.autoScreenViews)
         assertTrue(options.autoInstallEvents)
         assertNull(options.logger)
@@ -41,7 +41,7 @@ class PugOptionsTest {
                 endpoint = "https://eu.pugs.dev"
                 debug = true
                 dryRun = true
-                autoTrack = false
+                autoOpenCloseEvents = false
                 autoScreenViews = false
                 autoInstallEvents = false
                 this.logger = logger
@@ -52,7 +52,7 @@ class PugOptionsTest {
                 sessionIdleTimeoutMs = 60_000
                 sessionMaxDurationMs = 120_000
                 defaultTrackingConsent = TrackingConsent.DENIED
-                persistTrackingConsent = true
+                persistTrackingConsent = false
             }
         val builder =
             PugOptions
@@ -60,7 +60,7 @@ class PugOptionsTest {
                 .endpoint("https://eu.pugs.dev")
                 .debug(true)
                 .dryRun(true)
-                .autoTrack(false)
+                .autoOpenCloseEvents(false)
                 .autoScreenViews(false)
                 .autoInstallEvents(false)
                 .logger(logger)
@@ -71,14 +71,14 @@ class PugOptionsTest {
                 .sessionIdleTimeoutMs(60_000)
                 .sessionMaxDurationMs(120_000)
                 .defaultTrackingConsent(TrackingConsent.DENIED)
-                .persistTrackingConsent(true)
+                .persistTrackingConsent(false)
                 .build()
 
         for (options in listOf(dsl, builder)) {
             assertEquals("https://eu.pugs.dev", options.endpoint)
             assertTrue(options.debug)
             assertTrue(options.dryRun)
-            assertFalse(options.autoTrack)
+            assertFalse(options.autoOpenCloseEvents)
             assertFalse(options.autoScreenViews)
             assertFalse(options.autoInstallEvents)
             assertSame(logger, options.logger)
@@ -89,7 +89,7 @@ class PugOptionsTest {
             assertEquals(60_000L, options.sessionIdleTimeoutMs)
             assertEquals(120_000L, options.sessionMaxDurationMs)
             assertEquals(TrackingConsent.DENIED, options.defaultTrackingConsent)
-            assertTrue(options.persistTrackingConsent)
+            assertFalse(options.persistTrackingConsent)
         }
         assertTrue(logger.entries.isEmpty())
     }
@@ -100,15 +100,12 @@ class PugOptionsTest {
             PugOptions("pub_test") {
                 batchMaxWaitMs = 0
                 sessionMaxDurationMs = 60_000
-                persistTrackingConsent = true
+                persistTrackingConsent = false
             }
-        val consent =
-            PugOptions("pub_test") {
-                defaultTrackingConsent = TrackingConsent.DENIED
-                persistTrackingConsent = true
-            }
+        val consent = PugOptions("pub_test") { defaultTrackingConsent = TrackingConsent.DENIED }
 
         assertEquals(TrackingConsent.DENIED, consent.defaultTrackingConsent)
+        assertTrue(consent.persistTrackingConsent)
 
         assertEquals(10, options.batchMaxSize)
         assertEquals(0L, options.batchMaxWaitMs)
@@ -116,7 +113,7 @@ class PugOptionsTest {
         assertEquals(30 * 60_000L, options.sessionIdleTimeoutMs)
         assertEquals(60_000L, options.sessionMaxDurationMs)
         assertEquals(TrackingConsent.GRANTED, options.defaultTrackingConsent)
-        assertTrue(options.persistTrackingConsent)
+        assertFalse(options.persistTrackingConsent)
     }
 
     @Test

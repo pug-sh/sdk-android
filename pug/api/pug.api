@@ -25,7 +25,11 @@ public final class sh/pug/android/Pug {
 	public static final fun track (Ljava/lang/String;)V
 	public static final fun track (Ljava/lang/String;Ljava/util/Map;)V
 	public static final fun track (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public static final fun track (Lsh/pug/android/events/WellKnownEvent;)V
+	public static final fun track (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun track$default (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
+	public static synthetic fun track$default (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
+	public static final fun whenConsentReady (Ljava/lang/Runnable;)V
 }
 
 public final class sh/pug/android/PugEvents {
@@ -168,8 +172,8 @@ public final class sh/pug/android/PugOptions {
 public final class sh/pug/android/PugOptions$Builder {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun autoInstallEvents (Z)Lsh/pug/android/PugOptions$Builder;
+	public final fun autoOpenCloseEvents (Z)Lsh/pug/android/PugOptions$Builder;
 	public final fun autoScreenViews (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun autoTrack (Z)Lsh/pug/android/PugOptions$Builder;
 	public final fun batchMaxQueueSize (I)Lsh/pug/android/PugOptions$Builder;
 	public final fun batchMaxSize (I)Lsh/pug/android/PugOptions$Builder;
 	public final fun batchMaxWaitMs (J)Lsh/pug/android/PugOptions$Builder;
@@ -180,8 +184,8 @@ public final class sh/pug/android/PugOptions$Builder {
 	public final fun endpoint (Ljava/lang/String;)Lsh/pug/android/PugOptions$Builder;
 	public final fun getApiKey ()Ljava/lang/String;
 	public final fun getAutoInstallEvents ()Z
+	public final fun getAutoOpenCloseEvents ()Z
 	public final fun getAutoScreenViews ()Z
-	public final fun getAutoTrack ()Z
 	public final fun getBatchMaxQueueSize ()I
 	public final fun getBatchMaxSize ()I
 	public final fun getBatchMaxWaitMs ()J
@@ -199,8 +203,8 @@ public final class sh/pug/android/PugOptions$Builder {
 	public final fun sessionIdleTimeoutMs (J)Lsh/pug/android/PugOptions$Builder;
 	public final fun sessionMaxDurationMs (J)Lsh/pug/android/PugOptions$Builder;
 	public final synthetic fun setAutoInstallEvents (Z)V
+	public final synthetic fun setAutoOpenCloseEvents (Z)V
 	public final synthetic fun setAutoScreenViews (Z)V
-	public final synthetic fun setAutoTrack (Z)V
 	public final synthetic fun setBatchMaxQueueSize (I)V
 	public final synthetic fun setBatchMaxSize (I)V
 	public final synthetic fun setBatchMaxWaitMs (J)V
@@ -228,464 +232,153 @@ public abstract interface class sh/pug/android/PugStorage {
 }
 
 public final class sh/pug/android/TrackNamespace {
-	public final fun addToCart (Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun addToCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun addToCart$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun apiKeyCreated ()V
-	public final fun apiKeyCreated (Ljava/lang/String;)V
-	public final fun apiKeyCreated (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun apiKeyCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun apiKeyCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun apiKeyCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun apiKeyCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun apiKeyCreated$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun apiKeyRevoked ()V
-	public final fun apiKeyRevoked (Ljava/lang/String;)V
-	public final fun apiKeyRevoked (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun apiKeyRevoked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun apiKeyRevoked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun apiKeyRevoked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun apiKeyRevoked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun apiKeyRevoked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 	public final fun appBackgrounded ()V
 	public final fun appBackgrounded (Ljava/util/Map;)V
 	public final fun appBackgrounded (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun appBackgrounded$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun appClose ()V
-	public final fun appClose (Ljava/util/Map;)V
-	public final fun appClose (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun appClose$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun appCrashed ()V
-	public final fun appCrashed (Ljava/lang/String;)V
-	public final fun appCrashed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun appCrashed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun appCrashed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun appCrashed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun appCrashed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 	public final fun appForegrounded ()V
 	public final fun appForegrounded (Ljava/util/Map;)V
 	public final fun appForegrounded (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun appForegrounded$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun appInstall ()V
-	public final fun appInstall (Ljava/lang/String;)V
-	public final fun appInstall (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun appInstall (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun appInstall (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun appInstall$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun appOpen ()V
-	public final fun appOpen (Ljava/util/Map;)V
-	public final fun appOpen (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun appOpen$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun appUpdate (Ljava/lang/String;)V
-	public final fun appUpdate (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun appUpdate (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun appUpdate (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun appUpdate$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun audioCompleted (Ljava/lang/String;)V
-	public final fun audioCompleted (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun audioCompleted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun audioCompleted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun audioCompleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun audioPause (Ljava/lang/String;)V
-	public final fun audioPause (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun audioPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun audioPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun audioPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun audioPause$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun audioPlay (Ljava/lang/String;)V
-	public final fun audioPlay (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun audioPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun audioPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun audioPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun audioPlay$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun audioSeeked (Ljava/lang/String;)V
-	public final fun audioSeeked (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun audioSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;)V
-	public final fun audioSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun audioSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun audioSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun audioSeeked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun audioStarted (Ljava/lang/String;)V
-	public final fun audioStarted (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun audioStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun audioStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun audioStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun cartViewed ()V
-	public final fun cartViewed (Ljava/lang/String;)V
-	public final fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;)V
-	public final fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun cartViewed (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun cartViewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatArchived (Ljava/lang/String;)V
-	public final fun chatArchived (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatArchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatArchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatArchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatArchived$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatAttachmentDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatAttachmentDownloaded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatAttachmentUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatAttachmentUploaded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCallJoined (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallJoined (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallJoined (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatCallJoined (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCallJoined (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCallJoined$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCallLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCallLeft$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCallRecordingStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallRecordingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatCallRecordingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCallRecordingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCallRecordingStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCallScreenShared (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallScreenShared (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatCallScreenShared (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCallScreenShared (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCallScreenShared$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCallStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCallStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatCallStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCallStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCallStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatCreated (Ljava/lang/String;)V
-	public final fun chatCreated (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun chatCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun chatCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatCreated$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatDeleted (Ljava/lang/String;)V
-	public final fun chatDeleted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatDeleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatJoined (Ljava/lang/String;)V
-	public final fun chatJoined (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatJoined$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatLeft (Ljava/lang/String;)V
-	public final fun chatLeft (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatLeft (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatLeft$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMemberAdded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMemberAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMemberAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMemberAdded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMemberMuted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberMuted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun chatMemberMuted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun chatMemberMuted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMemberMuted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMemberMuted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMemberRemoved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMemberRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMemberRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMemberRemoved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMemberRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMemberRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMemberRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMemberRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMemberRoleChanged$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageDeleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageEdited (Ljava/lang/String;)V
-	public final fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageEdited (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageEdited$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageFailed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessagePinned (Ljava/lang/String;)V
-	public final fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessagePinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessagePinned$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageRead (Ljava/lang/String;)V
-	public final fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageRead (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageRead$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageReceived (Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageReceived (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageReceived$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageSent (Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageSent$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatMessageUnpinned (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatMessageUnpinned$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatReactionAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatReactionAdded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatReactionRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatReactionRemoved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatTypingStarted (Ljava/lang/String;)V
-	public final fun chatTypingStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatTypingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatTypingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatTypingStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatTypingStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatTypingStopped (Ljava/lang/String;)V
-	public final fun chatTypingStopped (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatTypingStopped (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatTypingStopped (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatTypingStopped (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatTypingStopped$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatUnarchived (Ljava/lang/String;)V
-	public final fun chatUnarchived (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun chatUnarchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatUnarchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatUnarchived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatUnarchived$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun chatUserBlocked (Ljava/lang/String;)V
-	public final fun chatUserBlocked (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun chatUserBlocked (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun chatUserBlocked (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun chatUserBlocked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun checkoutStarted ()V
-	public final fun checkoutStarted (Ljava/lang/String;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun checkoutStarted (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun checkoutStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun checkoutStepCompleted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun checkoutStepCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun checkoutStepCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun checkoutStepCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun checkoutStepCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun checkoutStepCompleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun couponApplied (Ljava/lang/String;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun couponApplied (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun couponApplied$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun couponRemoved (Ljava/lang/String;)V
-	public final fun couponRemoved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun couponRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun couponRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun couponRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun couponRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun couponRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun couponRemoved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 	public final fun emailVerified ()V
 	public final fun emailVerified (Ljava/util/Map;)V
 	public final fun emailVerified (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun emailVerified$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun errorOccurred (Ljava/lang/String;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun errorOccurred (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun errorOccurred$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun exportCompleted (Ljava/lang/String;)V
-	public final fun exportCompleted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun exportCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun exportCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun exportCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun exportCompleted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun exportCompleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun exportStarted (Ljava/lang/String;)V
-	public final fun exportStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun exportStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun exportStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun exportStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun exportStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun featureUsed (Ljava/lang/String;)V
-	public final fun featureUsed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun featureUsed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun featureUsed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun featureUsed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun featureUsed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun feedbackSubmitted ()V
-	public final fun feedbackSubmitted (Ljava/lang/String;)V
-	public final fun feedbackSubmitted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun feedbackSubmitted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun feedbackSubmitted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun feedbackSubmitted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun feedbackSubmitted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun feedbackSubmitted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun fileDownloaded (Ljava/lang/String;)V
-	public final fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun fileDownloaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun fileDownloaded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun fileUploaded (Ljava/lang/String;)V
-	public final fun fileUploaded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun fileUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun fileUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun fileUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun fileUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun fileUploaded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun fileUploaded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun filterApplied (Ljava/lang/String;)V
-	public final fun filterApplied (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun filterApplied (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun filterApplied (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun filterApplied (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun filterApplied$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun formStart (Ljava/lang/String;)V
-	public final fun formStart (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun formStart (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun formStart (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun formStart (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun formStart$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun formSubmit (Ljava/lang/String;)V
-	public final fun formSubmit (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun formSubmit (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun formSubmit (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun formSubmit (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun formSubmit (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun formSubmit$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun helpArticleViewed (Ljava/lang/String;)V
-	public final fun helpArticleViewed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun helpArticleViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun helpArticleViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun helpArticleViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun helpArticleViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun helpArticleViewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun integrationConnected (Ljava/lang/String;)V
-	public final fun integrationConnected (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun integrationConnected (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun integrationConnected (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun integrationConnected (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun integrationConnected$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun integrationDisconnected (Ljava/lang/String;)V
-	public final fun integrationDisconnected (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun integrationDisconnected (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun integrationDisconnected (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun integrationDisconnected (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun integrationDisconnected (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun integrationDisconnected$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun inviteAccepted ()V
-	public final fun inviteAccepted (Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun inviteAccepted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun inviteAccepted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun inviteSent ()V
-	public final fun inviteSent (Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun inviteSent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun inviteSent$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun invoiceFailed (Ljava/lang/String;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun invoiceFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun invoiceFailed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun invoicePaid (Ljava/lang/String;)V
-	public final fun invoicePaid (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun invoicePaid (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun invoicePaid (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun invoicePaid (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun invoicePaid (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun invoicePaid (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun invoicePaid$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun mfaDisabled ()V
-	public final fun mfaDisabled (Ljava/lang/String;)V
-	public final fun mfaDisabled (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun mfaDisabled (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun mfaDisabled (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun mfaDisabled$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun mfaEnabled ()V
-	public final fun mfaEnabled (Ljava/lang/String;)V
-	public final fun mfaEnabled (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun mfaEnabled (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun mfaEnabled (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun mfaEnabled$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun notificationClicked (Ljava/lang/String;)V
-	public final fun notificationClicked (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun notificationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun notificationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun notificationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun notificationClicked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun notificationDismissed (Ljava/lang/String;)V
-	public final fun notificationDismissed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun notificationDismissed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun notificationDismissed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun notificationDismissed (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun notificationDismissed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun notificationReceived (Ljava/lang/String;)V
-	public final fun notificationReceived (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun notificationReceived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun notificationReceived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun notificationReceived (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun notificationReceived$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun npsSubmitted ()V
-	public final fun npsSubmitted (Ljava/lang/Integer;)V
-	public final fun npsSubmitted (Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun npsSubmitted (Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun npsSubmitted (Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun npsSubmitted (Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun npsSubmitted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun orderRefunded (Ljava/lang/String;)V
-	public final fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun orderRefunded (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun orderRefunded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 	public final fun passwordResetCompleted ()V
 	public final fun passwordResetCompleted (Ljava/util/Map;)V
@@ -695,117 +388,33 @@ public final class sh/pug/android/TrackNamespace {
 	public final fun passwordResetRequested (Ljava/util/Map;)V
 	public final fun passwordResetRequested (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun passwordResetRequested$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun paymentFailed ()V
-	public final fun paymentFailed (Ljava/lang/String;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun paymentFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun paymentFailed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun paymentMethodAdded ()V
-	public final fun paymentMethodAdded (Ljava/lang/String;)V
-	public final fun paymentMethodAdded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentMethodAdded (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun paymentMethodAdded (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun paymentMethodAdded (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun paymentMethodAdded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun paymentMethodRemoved ()V
-	public final fun paymentMethodRemoved (Ljava/lang/String;)V
-	public final fun paymentMethodRemoved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentMethodRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun paymentMethodRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun paymentMethodRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun paymentMethodRemoved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun paymentSucceeded ()V
-	public final fun paymentSucceeded (Ljava/lang/String;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun paymentSucceeded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun paymentSucceeded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun productListViewed (Ljava/lang/String;)V
-	public final fun productListViewed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productListViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productListViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun productListViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun productListViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun productListViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun productListViewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun productViewed (Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun productViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun productViewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun purchase ()V
-	public final fun purchase (Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun purchase (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun purchase$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun recommendationClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun recommendationClicked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun recommendationViewed (Ljava/lang/String;)V
-	public final fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun recommendationViewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun recommendationViewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun refundFailed (Ljava/lang/String;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun refundFailed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun refundFailed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun removeFromCart (Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun removeFromCart (Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun removeFromCart$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun screenView (Ljava/lang/String;)V
-	public final fun screenView (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun screenView (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun screenView (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun screenView$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun scroll ()V
-	public final fun scroll (Ljava/lang/Integer;)V
-	public final fun scroll (Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public final fun scroll (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun scroll (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun scroll (Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun scroll$default (Lsh/pug/android/TrackNamespace;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun search (Ljava/lang/String;)V
-	public final fun search (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun search (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun search (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun search$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun searchResultClicked (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun searchResultClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun searchResultClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun searchResultClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun searchResultClicked (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun searchResultClicked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 	public final fun share ()V
 	public final fun share (Ljava/util/Map;)V
@@ -823,152 +432,59 @@ public final class sh/pug/android/TrackNamespace {
 	public final fun signup (Ljava/util/Map;)V
 	public final fun signup (Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun signup$default (Lsh/pug/android/TrackNamespace;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun sortChanged (Ljava/lang/String;)V
-	public final fun sortChanged (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun sortChanged (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun sortChanged (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun sortChanged (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun sortChanged$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionCanceled (Ljava/lang/String;)V
-	public final fun subscriptionCanceled (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionCanceled (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionCanceled (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionCanceled (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionCanceled (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionCanceled$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionChanged (Ljava/lang/String;)V
-	public final fun subscriptionChanged (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionChanged$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionPaused (Ljava/lang/String;)V
-	public final fun subscriptionPaused (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionPaused (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionPaused (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionPaused (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionPaused (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionPaused$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionRenewed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionRenewed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionResumed (Ljava/lang/String;)V
-	public final fun subscriptionResumed (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionResumed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionResumed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionResumed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionResumed (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionResumed$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionStarted (Ljava/lang/String;)V
-	public final fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionStarted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun subscriptionTrialWillEnd (Ljava/lang/String;)V
-	public final fun subscriptionTrialWillEnd (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionTrialWillEnd (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun subscriptionTrialWillEnd (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun subscriptionTrialWillEnd (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun subscriptionTrialWillEnd (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun subscriptionTrialWillEnd$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun supportChatStarted (Ljava/lang/String;)V
-	public final fun supportChatStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun supportChatStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun supportChatStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun supportChatStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun supportChatStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun supportTicketCreated (Ljava/lang/String;)V
-	public final fun supportTicketCreated (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun supportTicketCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun supportTicketCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun supportTicketCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun supportTicketCreated (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun supportTicketCreated$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun supportTicketResolved (Ljava/lang/String;)V
-	public final fun supportTicketResolved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun supportTicketResolved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun supportTicketResolved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun supportTicketResolved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun supportTicketResolved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun surveyCompleted (Ljava/lang/String;)V
-	public final fun surveyCompleted (Ljava/lang/String;Ljava/lang/Integer;)V
-	public final fun surveyCompleted (Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;)V
-	public final fun surveyCompleted (Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun surveyCompleted (Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun surveyCompleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun surveyStarted (Ljava/lang/String;)V
-	public final fun surveyStarted (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun surveyStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun surveyStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun surveyStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun trialConverted ()V
-	public final fun trialConverted (Ljava/lang/String;)V
-	public final fun trialConverted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun trialConverted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun trialConverted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun trialConverted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun trialConverted (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun trialConverted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun trialStarted ()V
-	public final fun trialStarted (Ljava/lang/String;)V
-	public final fun trialStarted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun trialStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun trialStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun trialStarted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun trialStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun videoCompleted (Ljava/lang/String;)V
-	public final fun videoCompleted (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun videoCompleted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun videoCompleted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun videoCompleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun videoPause (Ljava/lang/String;)V
-	public final fun videoPause (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun videoPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun videoPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun videoPause (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun videoPause$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun videoPlay (Ljava/lang/String;)V
-	public final fun videoPlay (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun videoPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun videoPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun videoPlay (Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun videoPlay$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun videoSeeked (Ljava/lang/String;)V
-	public final fun videoSeeked (Ljava/lang/String;Ljava/lang/Long;)V
-	public final fun videoSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;)V
-	public final fun videoSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;)V
-	public final fun videoSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun videoSeeked (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun videoSeeked$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun videoStarted (Ljava/lang/String;)V
-	public final fun videoStarted (Ljava/lang/String;Ljava/util/Map;)V
-	public final fun videoStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun videoStarted (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun videoStarted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun wishlistAdded (Ljava/lang/String;)V
-	public final fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;)V
-	public final fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;)V
-	public final fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun wishlistAdded (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun wishlistAdded$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun wishlistRemoved (Ljava/lang/String;)V
-	public final fun wishlistRemoved (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun wishlistRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun wishlistRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun wishlistRemoved (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun wishlistRemoved$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun workspaceCreated (Ljava/lang/String;)V
-	public final fun workspaceCreated (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceCreated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun workspaceCreated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun workspaceCreated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun workspaceCreated$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun workspaceDeleted (Ljava/lang/String;)V
-	public final fun workspaceDeleted (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun workspaceDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun workspaceDeleted (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun workspaceDeleted$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun workspaceJoined (Ljava/lang/String;)V
-	public final fun workspaceJoined (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun workspaceJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun workspaceJoined (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun workspaceJoined$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun workspaceRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun workspaceRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun workspaceRoleChanged (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun workspaceRoleChanged$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public final fun workspaceSettingsUpdated (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun workspaceSettingsUpdated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public final fun workspaceSettingsUpdated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public final synthetic fun workspaceSettingsUpdated (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
 	public static synthetic fun workspaceSettingsUpdated$default (Lsh/pug/android/TrackNamespace;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
 }
 
@@ -999,5 +515,799 @@ public final class sh/pug/android/TrackingConsent : java/lang/Enum {
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lsh/pug/android/TrackingConsent;
 	public static fun values ()[Lsh/pug/android/TrackingConsent;
+}
+
+public final class sh/pug/android/events/AddToCartEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun brand (Ljava/lang/String;)Lsh/pug/android/events/AddToCartEvent;
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/AddToCartEvent;
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/AddToCartEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/AddToCartEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AddToCartEvent;
+	public final fun price (D)Lsh/pug/android/events/AddToCartEvent;
+	public final fun quantity (I)Lsh/pug/android/events/AddToCartEvent;
+	public final fun sku (Ljava/lang/String;)Lsh/pug/android/events/AddToCartEvent;
+}
+
+public final class sh/pug/android/events/ApiKeyCreatedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun apiKeyId (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyCreatedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ApiKeyCreatedEvent;
+	public final fun name (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyCreatedEvent;
+	public final fun scope (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyCreatedEvent;
+}
+
+public final class sh/pug/android/events/ApiKeyRevokedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun apiKeyId (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyRevokedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ApiKeyRevokedEvent;
+	public final fun name (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyRevokedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/ApiKeyRevokedEvent;
+}
+
+public final class sh/pug/android/events/AppCrashedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun errorMessage (Ljava/lang/String;)Lsh/pug/android/events/AppCrashedEvent;
+	public final fun errorType (Ljava/lang/String;)Lsh/pug/android/events/AppCrashedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AppCrashedEvent;
+}
+
+public final class sh/pug/android/events/AudioCompletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AudioCompletedEvent;
+}
+
+public final class sh/pug/android/events/AudioPauseEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AudioPauseEvent;
+	public final fun positionMs (J)Lsh/pug/android/events/AudioPauseEvent;
+}
+
+public final class sh/pug/android/events/AudioPlayEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AudioPlayEvent;
+	public final fun positionMs (J)Lsh/pug/android/events/AudioPlayEvent;
+}
+
+public final class sh/pug/android/events/AudioSeekedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AudioSeekedEvent;
+	public final fun fromPositionMs (J)Lsh/pug/android/events/AudioSeekedEvent;
+	public final fun toPositionMs (J)Lsh/pug/android/events/AudioSeekedEvent;
+}
+
+public final class sh/pug/android/events/AudioStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/AudioStartedEvent;
+}
+
+public final class sh/pug/android/events/CartViewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun amount (D)Lsh/pug/android/events/CartViewedEvent;
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/CartViewedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/CartViewedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/CartViewedEvent;
+	public final fun itemCount (I)Lsh/pug/android/events/CartViewedEvent;
+}
+
+public final class sh/pug/android/events/ChatArchivedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatArchivedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatArchivedEvent;
+}
+
+public final class sh/pug/android/events/ChatAttachmentDownloadedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun attachmentType (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentDownloadedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatAttachmentDownloadedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentDownloadedEvent;
+	public final fun sizeBytes (J)Lsh/pug/android/events/ChatAttachmentDownloadedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentDownloadedEvent;
+}
+
+public final class sh/pug/android/events/ChatAttachmentUploadedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun attachmentType (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentUploadedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatAttachmentUploadedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentUploadedEvent;
+	public final fun sizeBytes (J)Lsh/pug/android/events/ChatAttachmentUploadedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatAttachmentUploadedEvent;
+}
+
+public final class sh/pug/android/events/ChatCallJoinedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun callType (Ljava/lang/String;)Lsh/pug/android/events/ChatCallJoinedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCallJoinedEvent;
+}
+
+public final class sh/pug/android/events/ChatCallLeftEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun callType (Ljava/lang/String;)Lsh/pug/android/events/ChatCallLeftEvent;
+	public final fun durationMs (J)Lsh/pug/android/events/ChatCallLeftEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCallLeftEvent;
+}
+
+public final class sh/pug/android/events/ChatCallRecordingStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCallRecordingStartedEvent;
+}
+
+public final class sh/pug/android/events/ChatCallScreenSharedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCallScreenSharedEvent;
+}
+
+public final class sh/pug/android/events/ChatCallStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun callType (Ljava/lang/String;)Lsh/pug/android/events/ChatCallStartedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCallStartedEvent;
+}
+
+public final class sh/pug/android/events/ChatCreatedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatCreatedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatCreatedEvent;
+	public final fun participantCount (I)Lsh/pug/android/events/ChatCreatedEvent;
+}
+
+public final class sh/pug/android/events/ChatDeletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatDeletedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatDeletedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/ChatDeletedEvent;
+}
+
+public final class sh/pug/android/events/ChatJoinedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatJoinedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatJoinedEvent;
+}
+
+public final class sh/pug/android/events/ChatLeftEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatLeftEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatLeftEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/ChatLeftEvent;
+}
+
+public final class sh/pug/android/events/ChatMemberAddedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMemberAddedEvent;
+	public final fun role (Ljava/lang/String;)Lsh/pug/android/events/ChatMemberAddedEvent;
+}
+
+public final class sh/pug/android/events/ChatMemberMutedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMemberMutedEvent;
+	public final fun muteDurationMs (J)Lsh/pug/android/events/ChatMemberMutedEvent;
+}
+
+public final class sh/pug/android/events/ChatMemberRemovedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMemberRemovedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/ChatMemberRemovedEvent;
+}
+
+public final class sh/pug/android/events/ChatMemberRoleChangedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMemberRoleChangedEvent;
+	public final fun previousRole (Ljava/lang/String;)Lsh/pug/android/events/ChatMemberRoleChangedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageDeletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageDeletedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageDeletedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageDeletedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageDeletedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageDeletedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageEditedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageEditedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageEditedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageEditedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageEditedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageFailedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageFailedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageFailedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageFailedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageFailedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessagePinnedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessagePinnedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessagePinnedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessagePinnedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessagePinnedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageReadEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReadEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageReadEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReadEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReadEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageReceivedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun attachmentCount (I)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun characterCount (I)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun messageType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun parentMessageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageReceivedEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageSentEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun attachmentCount (I)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun characterCount (I)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun messageType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun parentMessageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageSentEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageSentEvent;
+}
+
+public final class sh/pug/android/events/ChatMessageUnpinnedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageUnpinnedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatMessageUnpinnedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageUnpinnedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatMessageUnpinnedEvent;
+}
+
+public final class sh/pug/android/events/ChatReactionAddedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatReactionAddedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatReactionAddedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatReactionAddedEvent;
+}
+
+public final class sh/pug/android/events/ChatReactionRemovedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatReactionRemovedEvent;
+	public final fun messageId (Ljava/lang/String;)Lsh/pug/android/events/ChatReactionRemovedEvent;
+	public final fun threadId (Ljava/lang/String;)Lsh/pug/android/events/ChatReactionRemovedEvent;
+}
+
+public final class sh/pug/android/events/ChatTypingStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatTypingStartedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatTypingStartedEvent;
+}
+
+public final class sh/pug/android/events/ChatTypingStoppedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatTypingStoppedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatTypingStoppedEvent;
+}
+
+public final class sh/pug/android/events/ChatUnarchivedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun conversationType (Ljava/lang/String;)Lsh/pug/android/events/ChatUnarchivedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatUnarchivedEvent;
+}
+
+public final class sh/pug/android/events/ChatUserBlockedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ChatUserBlockedEvent;
+}
+
+public final class sh/pug/android/events/CheckoutStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun amount (D)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun checkoutId (Ljava/lang/String;)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun itemCount (I)Lsh/pug/android/events/CheckoutStartedEvent;
+	public final fun productId (Ljava/lang/String;)Lsh/pug/android/events/CheckoutStartedEvent;
+}
+
+public final class sh/pug/android/events/CheckoutStepCompletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/CheckoutStepCompletedEvent;
+	public final fun stepIndex (I)Lsh/pug/android/events/CheckoutStepCompletedEvent;
+}
+
+public final class sh/pug/android/events/CouponAppliedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/CouponAppliedEvent;
+	public final fun couponCode (Ljava/lang/String;)Lsh/pug/android/events/CouponAppliedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/CouponAppliedEvent;
+	public final fun discountAmount (D)Lsh/pug/android/events/CouponAppliedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/CouponAppliedEvent;
+}
+
+public final class sh/pug/android/events/CouponRemovedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/CouponRemovedEvent;
+	public final fun couponCode (Ljava/lang/String;)Lsh/pug/android/events/CouponRemovedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/CouponRemovedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/CouponRemovedEvent;
+}
+
+public final class sh/pug/android/events/ErrorOccurredEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ErrorOccurredEvent;
+	public final fun message (Ljava/lang/String;)Lsh/pug/android/events/ErrorOccurredEvent;
+	public final fun severity (Ljava/lang/String;)Lsh/pug/android/events/ErrorOccurredEvent;
+	public final fun stack (Ljava/lang/String;)Lsh/pug/android/events/ErrorOccurredEvent;
+	public final fun unhandled (Z)Lsh/pug/android/events/ErrorOccurredEvent;
+}
+
+public final class sh/pug/android/events/ExportCompletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun exportType (Ljava/lang/String;)Lsh/pug/android/events/ExportCompletedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ExportCompletedEvent;
+	public final fun sizeBytes (J)Lsh/pug/android/events/ExportCompletedEvent;
+}
+
+public final class sh/pug/android/events/ExportStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun exportType (Ljava/lang/String;)Lsh/pug/android/events/ExportStartedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ExportStartedEvent;
+}
+
+public final class sh/pug/android/events/FeatureUsedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FeatureUsedEvent;
+	public final fun featureName (Ljava/lang/String;)Lsh/pug/android/events/FeatureUsedEvent;
+}
+
+public final class sh/pug/android/events/FeedbackSubmittedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/FeedbackSubmittedEvent;
+	public final fun comment (Ljava/lang/String;)Lsh/pug/android/events/FeedbackSubmittedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FeedbackSubmittedEvent;
+	public final fun feedbackId (Ljava/lang/String;)Lsh/pug/android/events/FeedbackSubmittedEvent;
+}
+
+public final class sh/pug/android/events/FileDownloadedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FileDownloadedEvent;
+	public final fun fileName (Ljava/lang/String;)Lsh/pug/android/events/FileDownloadedEvent;
+	public final fun fileType (Ljava/lang/String;)Lsh/pug/android/events/FileDownloadedEvent;
+	public final fun sizeBytes (J)Lsh/pug/android/events/FileDownloadedEvent;
+}
+
+public final class sh/pug/android/events/FileUploadedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FileUploadedEvent;
+	public final fun fileName (Ljava/lang/String;)Lsh/pug/android/events/FileUploadedEvent;
+	public final fun fileType (Ljava/lang/String;)Lsh/pug/android/events/FileUploadedEvent;
+	public final fun sizeBytes (J)Lsh/pug/android/events/FileUploadedEvent;
+}
+
+public final class sh/pug/android/events/FilterAppliedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FilterAppliedEvent;
+	public final fun value (Ljava/lang/String;)Lsh/pug/android/events/FilterAppliedEvent;
+}
+
+public final class sh/pug/android/events/FormStartEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FormStartEvent;
+	public final fun formName (Ljava/lang/String;)Lsh/pug/android/events/FormStartEvent;
+}
+
+public final class sh/pug/android/events/FormSubmitEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun action (Ljava/lang/String;)Lsh/pug/android/events/FormSubmitEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/FormSubmitEvent;
+	public final fun formName (Ljava/lang/String;)Lsh/pug/android/events/FormSubmitEvent;
+}
+
+public final class sh/pug/android/events/HelpArticleViewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun articleTitle (Ljava/lang/String;)Lsh/pug/android/events/HelpArticleViewedEvent;
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/HelpArticleViewedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/HelpArticleViewedEvent;
+}
+
+public final class sh/pug/android/events/IntegrationConnectedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/IntegrationConnectedEvent;
+	public final fun integrationId (Ljava/lang/String;)Lsh/pug/android/events/IntegrationConnectedEvent;
+}
+
+public final class sh/pug/android/events/IntegrationDisconnectedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/IntegrationDisconnectedEvent;
+	public final fun integrationId (Ljava/lang/String;)Lsh/pug/android/events/IntegrationDisconnectedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/IntegrationDisconnectedEvent;
+}
+
+public final class sh/pug/android/events/InviteAcceptedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun inviteId (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun inviteeEmail (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun inviteeId (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun inviterId (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun role (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+	public final fun workspaceId (Ljava/lang/String;)Lsh/pug/android/events/InviteAcceptedEvent;
+}
+
+public final class sh/pug/android/events/InviteSentEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun inviteId (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun inviteeEmail (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun inviteeId (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun inviterId (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun role (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+	public final fun workspaceId (Ljava/lang/String;)Lsh/pug/android/events/InviteSentEvent;
+}
+
+public final class sh/pug/android/events/InvoiceFailedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/InvoiceFailedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/InvoiceFailedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/InvoiceFailedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/InvoiceFailedEvent;
+	public final fun subscriptionId (Ljava/lang/String;)Lsh/pug/android/events/InvoiceFailedEvent;
+}
+
+public final class sh/pug/android/events/InvoicePaidEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/InvoicePaidEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/InvoicePaidEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/InvoicePaidEvent;
+	public final fun subscriptionId (Ljava/lang/String;)Lsh/pug/android/events/InvoicePaidEvent;
+}
+
+public final class sh/pug/android/events/MfaDisabledEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/MfaDisabledEvent;
+	public final fun method (Ljava/lang/String;)Lsh/pug/android/events/MfaDisabledEvent;
+}
+
+public final class sh/pug/android/events/MfaEnabledEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/MfaEnabledEvent;
+	public final fun method (Ljava/lang/String;)Lsh/pug/android/events/MfaEnabledEvent;
+}
+
+public final class sh/pug/android/events/NotificationClickedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/NotificationClickedEvent;
+	public final fun notificationType (Ljava/lang/String;)Lsh/pug/android/events/NotificationClickedEvent;
+}
+
+public final class sh/pug/android/events/NotificationDismissedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/NotificationDismissedEvent;
+	public final fun notificationType (Ljava/lang/String;)Lsh/pug/android/events/NotificationDismissedEvent;
+}
+
+public final class sh/pug/android/events/NotificationReceivedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/NotificationReceivedEvent;
+	public final fun notificationType (Ljava/lang/String;)Lsh/pug/android/events/NotificationReceivedEvent;
+}
+
+public final class sh/pug/android/events/NpsSubmittedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun comment (Ljava/lang/String;)Lsh/pug/android/events/NpsSubmittedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/NpsSubmittedEvent;
+	public final fun score (I)Lsh/pug/android/events/NpsSubmittedEvent;
+}
+
+public final class sh/pug/android/events/OrderRefundedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/OrderRefundedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/OrderRefundedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/OrderRefundedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/OrderRefundedEvent;
+}
+
+public final class sh/pug/android/events/PaymentFailedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun amount (D)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun invoiceId (Ljava/lang/String;)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun paymentId (Ljava/lang/String;)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/PaymentFailedEvent;
+	public final fun subscriptionId (Ljava/lang/String;)Lsh/pug/android/events/PaymentFailedEvent;
+}
+
+public final class sh/pug/android/events/PaymentMethodAddedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/PaymentMethodAddedEvent;
+	public final fun paymentMethodId (Ljava/lang/String;)Lsh/pug/android/events/PaymentMethodAddedEvent;
+	public final fun paymentMethodType (Ljava/lang/String;)Lsh/pug/android/events/PaymentMethodAddedEvent;
+}
+
+public final class sh/pug/android/events/PaymentMethodRemovedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/PaymentMethodRemovedEvent;
+	public final fun paymentMethodId (Ljava/lang/String;)Lsh/pug/android/events/PaymentMethodRemovedEvent;
+	public final fun paymentMethodType (Ljava/lang/String;)Lsh/pug/android/events/PaymentMethodRemovedEvent;
+}
+
+public final class sh/pug/android/events/PaymentSucceededEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun amount (D)Lsh/pug/android/events/PaymentSucceededEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/PaymentSucceededEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/PaymentSucceededEvent;
+	public final fun invoiceId (Ljava/lang/String;)Lsh/pug/android/events/PaymentSucceededEvent;
+	public final fun paymentId (Ljava/lang/String;)Lsh/pug/android/events/PaymentSucceededEvent;
+	public final fun subscriptionId (Ljava/lang/String;)Lsh/pug/android/events/PaymentSucceededEvent;
+}
+
+public final class sh/pug/android/events/ProductListViewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/ProductListViewedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ProductListViewedEvent;
+	public final fun itemCount (I)Lsh/pug/android/events/ProductListViewedEvent;
+	public final fun listName (Ljava/lang/String;)Lsh/pug/android/events/ProductListViewedEvent;
+}
+
+public final class sh/pug/android/events/ProductViewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun brand (Ljava/lang/String;)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun price (D)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun productName (Ljava/lang/String;)Lsh/pug/android/events/ProductViewedEvent;
+	public final fun sku (Ljava/lang/String;)Lsh/pug/android/events/ProductViewedEvent;
+}
+
+public final class sh/pug/android/events/PurchaseEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun amount (D)Lsh/pug/android/events/PurchaseEvent;
+	public final fun brand (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun orderId (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun productId (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+	public final fun quantity (I)Lsh/pug/android/events/PurchaseEvent;
+	public final fun sku (Ljava/lang/String;)Lsh/pug/android/events/PurchaseEvent;
+}
+
+public final class sh/pug/android/events/RecommendationClickedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/RecommendationClickedEvent;
+	public final fun index (I)Lsh/pug/android/events/RecommendationClickedEvent;
+	public final fun source (Ljava/lang/String;)Lsh/pug/android/events/RecommendationClickedEvent;
+}
+
+public final class sh/pug/android/events/RecommendationViewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/RecommendationViewedEvent;
+	public final fun index (I)Lsh/pug/android/events/RecommendationViewedEvent;
+	public final fun itemId (Ljava/lang/String;)Lsh/pug/android/events/RecommendationViewedEvent;
+	public final fun source (Ljava/lang/String;)Lsh/pug/android/events/RecommendationViewedEvent;
+}
+
+public final class sh/pug/android/events/RefundFailedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/RefundFailedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/RefundFailedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/RefundFailedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/RefundFailedEvent;
+	public final fun refundId (Ljava/lang/String;)Lsh/pug/android/events/RefundFailedEvent;
+}
+
+public final class sh/pug/android/events/RemoveFromCartEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun brand (Ljava/lang/String;)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun cartId (Ljava/lang/String;)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun price (D)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun quantity (I)Lsh/pug/android/events/RemoveFromCartEvent;
+	public final fun sku (Ljava/lang/String;)Lsh/pug/android/events/RemoveFromCartEvent;
+}
+
+public final class sh/pug/android/events/ScrollEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/ScrollEvent;
+	public final fun percent (I)Lsh/pug/android/events/ScrollEvent;
+	public final fun scrollY (I)Lsh/pug/android/events/ScrollEvent;
+}
+
+public final class sh/pug/android/events/SearchEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SearchEvent;
+}
+
+public final class sh/pug/android/events/SearchResultClickedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SearchResultClickedEvent;
+	public final fun index (I)Lsh/pug/android/events/SearchResultClickedEvent;
+}
+
+public final class sh/pug/android/events/SortChangedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun direction (Ljava/lang/String;)Lsh/pug/android/events/SortChangedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SortChangedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionCanceledEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionCanceledEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionCanceledEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionCanceledEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionChangedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionChangedEvent;
+	public final fun newPlanId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionChangedEvent;
+	public final fun previousPlanId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionChangedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionPausedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionPausedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionPausedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionPausedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionRenewedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/SubscriptionRenewedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionRenewedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionRenewedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionRenewedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionResumedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionResumedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionResumedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionResumedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun amount (D)Lsh/pug/android/events/SubscriptionStartedEvent;
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionStartedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionStartedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionStartedEvent;
+}
+
+public final class sh/pug/android/events/SubscriptionTrialWillEndEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SubscriptionTrialWillEndEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionTrialWillEndEvent;
+	public final fun trialId (Ljava/lang/String;)Lsh/pug/android/events/SubscriptionTrialWillEndEvent;
+}
+
+public final class sh/pug/android/events/SupportChatStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SupportChatStartedEvent;
+	public final fun topic (Ljava/lang/String;)Lsh/pug/android/events/SupportChatStartedEvent;
+}
+
+public final class sh/pug/android/events/SupportTicketCreatedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun category (Ljava/lang/String;)Lsh/pug/android/events/SupportTicketCreatedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SupportTicketCreatedEvent;
+	public final fun priority (Ljava/lang/String;)Lsh/pug/android/events/SupportTicketCreatedEvent;
+}
+
+public final class sh/pug/android/events/SupportTicketResolvedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SupportTicketResolvedEvent;
+	public final fun resolution (Ljava/lang/String;)Lsh/pug/android/events/SupportTicketResolvedEvent;
+}
+
+public final class sh/pug/android/events/SurveyCompletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SurveyCompletedEvent;
+	public final fun questionCount (I)Lsh/pug/android/events/SurveyCompletedEvent;
+}
+
+public final class sh/pug/android/events/SurveyStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/SurveyStartedEvent;
+}
+
+public final class sh/pug/android/events/TrialConvertedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/TrialConvertedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/TrialConvertedEvent;
+	public final fun subscriptionId (Ljava/lang/String;)Lsh/pug/android/events/TrialConvertedEvent;
+	public final fun trialId (Ljava/lang/String;)Lsh/pug/android/events/TrialConvertedEvent;
+}
+
+public final class sh/pug/android/events/TrialStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> ()V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/TrialStartedEvent;
+	public final fun planId (Ljava/lang/String;)Lsh/pug/android/events/TrialStartedEvent;
+	public final fun trialId (Ljava/lang/String;)Lsh/pug/android/events/TrialStartedEvent;
+}
+
+public final class sh/pug/android/events/VideoCompletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/VideoCompletedEvent;
+}
+
+public final class sh/pug/android/events/VideoPauseEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/VideoPauseEvent;
+	public final fun positionMs (J)Lsh/pug/android/events/VideoPauseEvent;
+}
+
+public final class sh/pug/android/events/VideoPlayEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/VideoPlayEvent;
+	public final fun positionMs (J)Lsh/pug/android/events/VideoPlayEvent;
+}
+
+public final class sh/pug/android/events/VideoSeekedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/VideoSeekedEvent;
+	public final fun fromPositionMs (J)Lsh/pug/android/events/VideoSeekedEvent;
+	public final fun toPositionMs (J)Lsh/pug/android/events/VideoSeekedEvent;
+}
+
+public final class sh/pug/android/events/VideoStartedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/VideoStartedEvent;
+}
+
+public abstract class sh/pug/android/events/WellKnownEvent {
+}
+
+public final class sh/pug/android/events/WishlistAddedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun currency (Ljava/lang/String;)Lsh/pug/android/events/WishlistAddedEvent;
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WishlistAddedEvent;
+	public final fun price (D)Lsh/pug/android/events/WishlistAddedEvent;
+	public final fun wishlistId (Ljava/lang/String;)Lsh/pug/android/events/WishlistAddedEvent;
+}
+
+public final class sh/pug/android/events/WishlistRemovedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WishlistRemovedEvent;
+	public final fun wishlistId (Ljava/lang/String;)Lsh/pug/android/events/WishlistRemovedEvent;
+}
+
+public final class sh/pug/android/events/WorkspaceCreatedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WorkspaceCreatedEvent;
+	public final fun workspaceName (Ljava/lang/String;)Lsh/pug/android/events/WorkspaceCreatedEvent;
+}
+
+public final class sh/pug/android/events/WorkspaceDeletedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WorkspaceDeletedEvent;
+	public final fun reason (Ljava/lang/String;)Lsh/pug/android/events/WorkspaceDeletedEvent;
+}
+
+public final class sh/pug/android/events/WorkspaceJoinedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WorkspaceJoinedEvent;
+	public final fun role (Ljava/lang/String;)Lsh/pug/android/events/WorkspaceJoinedEvent;
+}
+
+public final class sh/pug/android/events/WorkspaceRoleChangedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WorkspaceRoleChangedEvent;
+	public final fun previousRole (Ljava/lang/String;)Lsh/pug/android/events/WorkspaceRoleChangedEvent;
+}
+
+public final class sh/pug/android/events/WorkspaceSettingsUpdatedEvent : sh/pug/android/events/WellKnownEvent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun extra (Ljava/lang/String;Ljava/lang/Object;)Lsh/pug/android/events/WorkspaceSettingsUpdatedEvent;
 }
 

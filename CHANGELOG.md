@@ -1,8 +1,26 @@
 # Changelog
 
 A release that regenerates the typed track API from newer event schemas says so: a property added
-to an event inserts a parameter before `extras` and `options`, which Java callers passing those
-positionally must follow.
+to an event inserts a parameter before `extras` and `options` in its Kotlin method, which callers
+passing those positionally must follow. From Java, a required property added changes the event
+class's constructor, and an event without properties that gains one trades its `Pug.track` method
+for a class.
+
+## Unreleased
+
+- Tracking consent is saved by default (`persistTrackingConsent` now defaults to `true`), so an
+  opt-out still holds after a restart and a consent banner shows only until the user answers.
+- `autoTrack` is now `autoOpenCloseEvents`: it only ever turned `app_open` and `app_close` on or off.
+- `Pug.track` has no methods for the events the SDK tracks itself any more (`appOpen`, `appClose`,
+  `appInstall`, `appUpdate`, `screenView`). Use `Pug.screen` for screens; the `PugEvents` constants
+  remain.
+- Java gets an object per well-known event with properties, in `sh.pug.android.events`, tracked
+  with `Pug.track(event)`: `Pug.track(new PurchaseEvent().orderId("o-1").amount(89))` instead of a row
+  of nulls. Java no longer sees the methods of `Pug.track` for those events; the ones for events
+  without properties, such as `Pug.track.signup()`, remain. Kotlin's named-argument methods are unchanged.
+- The consent getters never wait. Right after `Pug.init`, until the saved choice is read, they
+  answer "not known yet". The new `Pug.whenConsentReady { … }` runs on the main thread once they
+  answer for this user.
 
 ## 0.1.0 (2026-10-12)
 
