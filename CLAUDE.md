@@ -125,7 +125,8 @@ files under `noBackupFilesDir/pug/`.
 - **Transport contract** (`PLAN.md` §4.5): permanent = invalid_argument, not_found,
   already_exists, permission_denied, failed_precondition, unimplemented, unauthenticated. A 2xx
   that is not protobuf is transient (captive portals). A timeout or caller cancellation must
-  `disconnect()` the connection, because socket reads ignore interrupts.
+  `disconnect()` the connection, because socket reads ignore interrupts, and the body read stops
+  at the deadline on its own, because the JDK's `disconnect()` waits for a read in progress.
 
 ## Conventions
 

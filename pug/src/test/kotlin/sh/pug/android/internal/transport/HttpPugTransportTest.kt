@@ -298,10 +298,12 @@ class HttpPugTransportTest {
                 }
             }
             val endpoint = "http://127.0.0.1:${listener.localPort}"
+            val started = System.nanoTime()
 
             val error = sendFailure(transport(endpoint, timeoutMillis = 1_000, executor = signalling(finished)))
 
             assertEquals(RpcCode.DEADLINE_EXCEEDED, error.code)
+            assertTrue(System.nanoTime() - started < TimeUnit.SECONDS.toNanos(3), "timed out promptly")
             assertTrue(finished.await(2, TimeUnit.SECONDS), "the request thread was freed")
         }
     }

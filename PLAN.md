@@ -366,7 +366,9 @@ written.
   `user-agent: pug-android/<version>`.
 - Deadlines: 10 s per batch, 15 s for identify (sdk-web: 5 s / 15 s; identify is never retried).
   Enforced as connect + read timeouts plus a coroutine deadline that `disconnect()`s on expiry or
-  cancellation.
+  cancellation. The request thread also stops reading a body at the deadline: the JDK's
+  `disconnect()` waits for the lock a read in progress holds, then may leave the socket to its
+  keep-alive cleaner, so a body trickling in held both the caller and the thread past it.
 - Error mapping (sdk-web `rpc.ts` parity): a non-2xx Connect JSON body `{code, message}` gives the
   code; otherwise by HTTP status: 401 `unauthenticated`, 403 `permission_denied`, 404
   `unimplemented`, 408/429 `unavailable`, other 4xx `invalid_argument`, everything else

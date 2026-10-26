@@ -10,6 +10,7 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLConnection
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asExecutor
@@ -64,9 +65,10 @@ internal class HttpPugTransport(
 
     private suspend fun unary(path: String, body: ByteArray, timeoutMillis: Long): ByteArray {
         val connection = open(path, body.size, timeoutMillis)
+        val deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis)
         val response =
             try {
-                withTimeout(timeoutMillis) { exchange(connection, body) }
+                withTimeout(timeoutMillis) { exchange(connection, body, deadlineNanos) }
             } catch (e: TimeoutCancellationException) {
                 throw PugTransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out after $timeoutMillis ms", e)
             }
@@ -110,12 +112,12 @@ internal class HttpPugTransport(
     // by disconnecting; its late result then lands on a cancelled continuation and is dropped.
     // Disconnecting before the connection opens does nothing, so a task that starts after the
     // cancellation must not send at all.
-    private suspend fun exchange(connection: HttpURLConnection, body: ByteArray): RawResponse =
+    private suspend fun exchange(connection: HttpURLConnection, body: ByteArray, deadlineNanos: Long): RawResponse =
         suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation { connection.disconnect() }
             executor.execute {
                 if (continuation.isActive) {
-                    continuation.resumeWith(runCatching { tagged { execute(connection, body) } })
+                    continuation.resumeWith(runCatching { tagged { execute(connection, body, deadlineNanos) } })
                 }
             }
         }
@@ -133,12 +135,12 @@ internal class HttpPugTransport(
         }
     }
 
-    private fun execute(connection: HttpURLConnection, body: ByteArray): RawResponse = try {
+    private fun execute(connection: HttpURLConnection, body: ByteArray, deadlineNanos: Long): RawResponse = try {
         connection.outputStream.use { it.write(body) }
         val status = connection.responseCode
         val contentType = connection.contentType.orEmpty()
         val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-        val bytes = stream?.use { it.readUpTo(MAX_RESPONSE_BYTES) } ?: ByteArray(0)
+        val bytes = stream?.use { it.readUpTo(MAX_RESPONSE_BYTES, deadlineNanos) } ?: ByteArray(0)
         RawResponse(status, contentType, bytes)
     } catch (e: Exception) {
         connection.disconnect()
@@ -187,10 +189,14 @@ internal class HttpPugTransport(
     }
 }
 
-private fun InputStream.readUpTo(limit: Int): ByteArray {
+// A body that keeps trickling in is cut off here at the deadline: disconnect() cannot be relied on to
+// interrupt the read, since the JDK's waits for the lock the read holds and may then hand the socket
+// to its keep-alive cleaner instead of closing it.
+private fun InputStream.readUpTo(limit: Int, deadlineNanos: Long): ByteArray {
     val out = ByteArrayOutputStream()
     val buffer = ByteArray(8 * 1024)
     while (out.size() < limit) {
+        if (System.nanoTime() - deadlineNanos >= 0) throw SocketTimeoutException("the response outlasted the deadline")
         val read = read(buffer, 0, minOf(buffer.size, limit - out.size()))
         if (read < 0) break
         out.write(buffer, 0, read)
