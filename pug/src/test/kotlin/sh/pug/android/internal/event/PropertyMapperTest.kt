@@ -2,10 +2,12 @@ package sh.pug.android.internal.event
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.net.URI
 import java.time.Instant
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.Test
@@ -131,14 +133,11 @@ class PropertyMapperTest {
     }
 
     @Test
-    fun `an Instant is only understood from API 26`() {
+    fun `an Instant is a timestamp only from API 26`() {
         val mapped = PropertyMapper(logger.safe(), sdkInt = 25).mapCustom("kind", mapOf("instant" to Instant.EPOCH))
 
-        assertEquals(emptyMap(), mapped)
-        assertEquals(
-            listOf("Property \"instant\" on event \"kind\" was dropped: java.time.Instant is not a supported type"),
-            logger.warnings,
-        )
+        assertEquals(mapOf("instant" to StringValue("1970-01-01T00:00:00Z")), mapped)
+        assertEquals(emptyList(), logger.entries)
     }
 
     @Test
@@ -196,17 +195,34 @@ class PropertyMapperTest {
     }
 
     @Test
-    fun `unsupported types are dropped with a warning naming the type`() {
-        val mapped = mapper.mapCustom("kind", mapOf("pair" to (1 to 2), "unit" to Unit, "kept" to "yes"))
+    fun `values of other types are sent as their text`() {
+        val id = UUID.fromString("0190a5b4-7c2e-7a3b-8f00-0123456789ab")
 
-        assertEquals(mapOf("kept" to StringValue("yes")), mapped)
+        val mapped =
+            mapper.mapCustom(
+                "kind",
+                linkedMapOf(
+                    "id" to id,
+                    "uri" to URI("https://pug.sh/docs?q=1"),
+                    "pair" to (1 to 2),
+                    "nested" to listOf(id),
+                    "long" to object {
+                        override fun toString(): String = "x".repeat(2_000)
+                    },
+                ),
+            )
+
         assertEquals(
-            listOf(
-                "Property \"pair\" on event \"kind\" was dropped: kotlin.Pair is not a supported type",
-                "Property \"unit\" on event \"kind\" was dropped: kotlin.Unit is not a supported type",
+            mapOf(
+                "id" to StringValue("0190a5b4-7c2e-7a3b-8f00-0123456789ab"),
+                "uri" to StringValue("https://pug.sh/docs?q=1"),
+                "pair" to StringValue("(1, 2)"),
+                "nested" to StringValue("""["0190a5b4-7c2e-7a3b-8f00-0123456789ab"]"""),
+                "long" to StringValue("x".repeat(1024)),
             ),
-            logger.warnings,
+            mapped,
         )
+        assertEquals(listOf("Property \"long\" on event \"kind\" was truncated to 1024 bytes"), logger.warnings)
     }
 
     @Test
@@ -354,13 +370,22 @@ class PropertyMapperTest {
 
                 override fun toString(): String = throw IllegalStateException("host bug")
             }
+        val throwingObject =
+            object {
+                override fun toString(): String = throw IllegalStateException("host bug")
+            }
 
-        val mapped = mapper.mapCustom("kind", linkedMapOf("bad" to throwing, "good" to "ok"))
+        val mapped = mapper.mapCustom("kind", linkedMapOf("bad" to throwing, "worse" to throwingObject, "good" to "ok"))
 
         assertEquals(mapOf("good" to StringValue("ok")), mapped)
-        val warning = logger.entries.single()
-        assertEquals("Property \"bad\" on event \"kind\" was dropped: reading it threw", warning.message)
-        assertTrue(warning.throwable is IllegalStateException)
+        assertEquals(
+            listOf(
+                "Property \"bad\" on event \"kind\" was dropped: reading it threw",
+                "Property \"worse\" on event \"kind\" was dropped: reading it threw",
+            ),
+            logger.warnings,
+        )
+        assertTrue(logger.entries.all { it.throwable is IllegalStateException })
     }
 
     @Test

@@ -133,7 +133,7 @@ emulator -avd pug36 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect 
 
 To see what the SDK sends, serve the two Connect methods on the host's port 8080 (the Pug server,
 or a stub that saves each body and answers `BatchCreateResponse{accepted}`), build with
-`-Ppug.sample.apiKey=test-key -Ppug.sample.endpoint=http://10.0.2.2:8080` (10.0.2.2 is the host
+`-Ppug.sample.apiKey=pub_test -Ppug.sample.endpoint=http://10.0.2.2:8080` (10.0.2.2 is the host
 from the emulator), and decode a saved body with
 `buf convert pug/src/test/resources/pug.binpb --type sdk.events.v1.BatchCreateRequest --from body.binpb#format=binpb --to -#format=json`.
 Debug builds allow cleartext (`src/debug/AndroidManifest.xml`); release builds do not, so on API

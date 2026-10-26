@@ -27,7 +27,7 @@ Call `Pug.init` once, in `Application.onCreate`:
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        Pug.init(this, "your-project-id", PugOptions("your-api-key"))
+        Pug.init(this, "your-project-id", PugOptions("pub_your_public_key"))
     }
 }
 ```
@@ -45,8 +45,8 @@ each time an activity resumes on a different screen, and `app_install` or `app_u
 
 Every call returns at once, can be made from any thread, and never throws: calls run in order on one
 background thread, and failures are logged rather than raised. The one exception is `Pug.init`,
-which throws `IllegalArgumentException` for a blank project id or API key, or an endpoint that is
-not an http(s) URL. Calls made before `Pug.init` are ignored with a warning, and so is a second
+which throws `IllegalArgumentException` for a blank project id, an API key that is not the project's
+public key (`pub_…`), or an endpoint that is not an http(s) URL. Calls made before `Pug.init` are ignored with a warning, and so is a second
 `Pug.init` until `Pug.destroy`. `Pug.init` does no disk or network work on the calling thread, so it
 is safe on the main thread under StrictMode, and the SDK's connections carry a TrafficStats tag, so
 `detectUntaggedSockets` does not report them. The consent getters never wait either; see
@@ -58,7 +58,7 @@ is safe on the main thread under StrictMode, and the SDK's connections carry a T
 Pug.init(
     this,
     "your-project-id",
-    PugOptions("your-api-key") {
+    PugOptions("pub_your_public_key") {
         debug = BuildConfig.DEBUG
         batchMaxSize = 20
         batchMaxWaitMs = 10_000
@@ -109,10 +109,10 @@ warning. Property values map as follows:
 | `Date`, `Calendar`, `Instant` (API 26+) | timestamp |
 | `Map`, `Iterable`, arrays | JSON text |
 | `null` | left out |
+| anything else, such as `UUID` or `Uri` | its `toString()`, cut to 1024 UTF-8 bytes; a data class's lists every field |
 
-Anything else is dropped with a warning, as is a key starting with `$`, which is reserved for
-auto-properties. Properties are read during the call, so the map can be changed or reused as soon
-as `track` returns.
+A key starting with `$` is reserved for auto-properties and dropped with a warning. Properties are
+read during the call, so the map can be changed or reused as soon as `track` returns.
 
 `TrackOptions { immediate = true }` sends the event on its own right away instead of with the next
 batch; if that send fails it joins the queue for a retry. `TrackOptions { timestamp = … }` sets when
@@ -205,7 +205,7 @@ waiting for the next batch. `destroy()` keeps identity, persisted consent and un
 Consent is granted by default. To wait for the user's choice, start denied:
 
 ```kotlin
-PugOptions("your-api-key") { defaultTrackingConsent = TrackingConsent.DENIED }
+PugOptions("pub_your_public_key") { defaultTrackingConsent = TrackingConsent.DENIED }
 ```
 
 ```kotlin
@@ -279,7 +279,7 @@ Messages go to Logcat under the tag `Pug`: warnings and errors always, debug mes
 `debug = true`. A `PugLogger` receives them instead:
 
 ```kotlin
-PugOptions("your-api-key") {
+PugOptions("pub_your_public_key") {
     logger = object : PugLogger {
         override fun debug(message: String) = Timber.d(message)
         override fun warn(message: String, throwable: Throwable?) = Timber.w(throwable, message)
@@ -294,7 +294,7 @@ A logger that throws is contained.
 
 ```java
 Pug.init(this, "your-project-id",
-        new PugOptions.Builder("your-api-key")
+        new PugOptions.Builder("pub_your_public_key")
                 .debug(BuildConfig.DEBUG)
                 .batchMaxSize(20)
                 .batchMaxWaitMs(10_000L)
@@ -344,7 +344,7 @@ run, logging events without sending them, until you set a project in `~/.gradle/
 
 ```properties
 pug.sample.projectId=your-project-id
-pug.sample.apiKey=your-api-key
+pug.sample.apiKey=pub_your_public_key
 # Optional; a debug build may use http, e.g. http://10.0.2.2:8080 for a backend on the emulator's host.
 pug.sample.endpoint=https://api.pugs.dev
 ```

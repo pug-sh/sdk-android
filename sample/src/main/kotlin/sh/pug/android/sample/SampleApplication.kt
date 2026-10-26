@@ -25,7 +25,7 @@ class SampleApplication : Application() {
         Pug.init(
             this,
             BuildConfig.PUG_PROJECT_ID,
-            PugOptions(BuildConfig.PUG_API_KEY.ifEmpty { "dry-run" }) {
+            PugOptions(BuildConfig.PUG_API_KEY.ifEmpty { "pub_dry_run" }) {
                 endpoint = BuildConfig.PUG_ENDPOINT
                 dryRun = BuildConfig.PUG_API_KEY.isEmpty()
                 // Every event in Logcat (tag Pug), in the minified build too.

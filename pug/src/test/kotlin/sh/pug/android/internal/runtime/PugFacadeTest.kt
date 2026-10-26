@@ -60,6 +60,34 @@ class PugFacadeTest {
     }
 
     @Test
+    fun `init rejects a key that is not a public key`() {
+        for (apiKey in listOf("prv_0123456789abcdef0123", PROJECT, "PUB_0123456789abcdef0123")) {
+            val failure =
+                assertFailsWith<IllegalArgumentException> { facade.init(context, PROJECT, options(apiKey)) }
+            assertEquals(
+                "Pug.init() needs a public API key (pub_…), not a private key or the project id",
+                failure.message,
+            )
+        }
+        assertNull(facade.getTrackingConsent())
+    }
+
+    @Test
+    fun `init rejects a key with spaces, control characters or non-ASCII`() {
+        for (apiKey in listOf("pub_test\n", " pub_test", "pub_te st", "pub_tëst", "pub_\u0000")) {
+            val failure =
+                assertFailsWith<IllegalArgumentException> { facade.init(context, PROJECT, options(apiKey)) }
+            assertEquals(
+                "The Pug API key must be printable ASCII without spaces (check for a trailing newline)",
+                failure.message,
+            )
+        }
+        facade.init(context, PROJECT, options("pub_0123456789abcdef0123"))
+        scheduler.runCurrent()
+        assertEquals(TrackingConsent.GRANTED, facade.getTrackingConsent())
+    }
+
+    @Test
     fun `init rejects an endpoint that is not an http(s) URL`() {
         for (endpoint in listOf("api.pugs.dev", "ftp://api.pugs.dev", "https://", "")) {
             val failure =
@@ -269,11 +297,12 @@ class PugFacadeTest {
         assertEquals(listOf("Pug.track() was called before Pug.init(); it was ignored"), fallbackLogger.warnings)
     }
 
-    private fun options(configure: PugOptions.Builder.() -> Unit = {}) = PugOptions("pub_key") {
-        logger = this@PugFacadeTest.logger
-        storage = this@PugFacadeTest.storage
-        configure()
-    }
+    private fun options(apiKey: String = "pub_key", configure: PugOptions.Builder.() -> Unit = {}): PugOptions =
+        PugOptions(apiKey) {
+            logger = this@PugFacadeTest.logger
+            storage = this@PugFacadeTest.storage
+            configure()
+        }
 
     private companion object {
         const val PROJECT = "proj_1"

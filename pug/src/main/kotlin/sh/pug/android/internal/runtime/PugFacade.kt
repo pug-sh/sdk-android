@@ -37,6 +37,14 @@ internal class PugFacade(
         require(!isNull(projectId) && projectId.isNotBlank()) { "Pug.init() needs a projectId" }
         require(!isNull(options)) { "Pug.init() needs PugOptions" }
         require(!isNull(options.apiKey) && options.apiKey.isNotBlank()) { "Pug.init() needs an API key" }
+        // Android's HttpURLConnection throws on a header holding a control character, such as a
+        // trailing newline, so every batch would fail.
+        require(options.apiKey.all { it in '!'..'~' }) {
+            "The Pug API key must be printable ASCII without spaces (check for a trailing newline)"
+        }
+        require(options.apiKey.startsWith("pub_")) {
+            "Pug.init() needs a public API key (pub_…), not a private key or the project id"
+        }
         require(!isNull(options.endpoint) && isHttpUrl(options.endpoint)) {
             "The Pug endpoint must be an http(s) URL, not \"${options.endpoint}\""
         }

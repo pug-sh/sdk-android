@@ -15,14 +15,14 @@ session can continue from here without re-reading the reference SDKs.
 | 5 | Typed track API (codegen from protos) | ✅ done (2026-10-11) |
 | 6 | Release readiness: sample app, docs, publishing, API dump, hardening audit | ✅ done (2026-10-11) |
 | 7 | First release: device run on emulators (API 36 and 21), fixes, release commit and tag | ✅ done (2026-10-12); publishing pending |
-| 8 | Ergonomics review: consent persisted by default, `autoOpenCloseEvents`, no typed methods for automatic events, consent getters that never wait, event objects for Java | ✅ done (2026-10-25); not released |
+| 8 | Ergonomics review: consent persisted by default, `autoOpenCloseEvents`, no typed methods for automatic events, consent getters that never wait, event objects for Java, public keys only, other values as text | ✅ done (2026-10-26); not released |
 | 9 | Automatic events (D30): `app_crashed` and `autoCrashEvents`, `app_install.installSource` | planned |
 
 **Resuming in a new session:** read this file, then `CLAUDE.md` and `docs/development.md`. Phases
 1–8 are done, phase 9 is planned, and `v0.1.0` is committed and tagged locally, though phase 8 changed the public API
 after the tag: release from a new tag or move it. What remains is publishing (phase 7, "For
 publishing": push, the Central upload and the GitHub release, after one-time setup outside this
-repo), phase 9, the open questions of phase 8, the family-coordination items of §7, and §8. Work after this ends with `make check`
+repo), phase 9, the family-coordination items of §7, and §8. Work after this ends with `make check`
 green and this file updated.
 
 ## 1. Scope
@@ -82,9 +82,10 @@ with the family (collected again in §7).
   drops the batch. On mobile that response is nearly always a captive portal or proxy, which changes
   with the network, so Android retries it with backoff (bounded by `maxQueueSize`).
 - **D7 Never crash (cardinal rule, sdk-web parity).** The only host-facing throw is `Pug.init`
-  argument validation (blank `projectId`/`apiKey`, endpoint not an http(s) URL). Every other public
-  call is non-blocking, callable from any thread, and swallows + logs. Worker coroutines catch
-  `Throwable` at their boundary, rethrowing `CancellationException` first.
+  argument validation (blank `projectId`, an `apiKey` that is not a public key (D32), endpoint not an
+  http(s) URL). Every other public call is non-blocking, callable from any thread, and swallows +
+  logs. Worker coroutines catch `Throwable` at their boundary, rethrowing `CancellationException`
+  first.
 - **D8 Public API is non-suspend, fire-and-forget** (the Android analytics norm: Segment, Amplitude,
   PostHog, Mixpanel), Java-friendly via `@JvmStatic`/`@JvmOverloads`. Ordering is guaranteed by one
   serial worker, so callers never need to await.
@@ -268,6 +269,24 @@ with the family (collected again in §7).
   still compiles (an internal constructor is public in bytecode), but gains nothing over untyped
   `track`, and `sealed` would make each new event a source break for an exhaustive `when`. The classes add about 300 KB to `classes.jar`, which R8 strips from apps that do not
   use them.
+- **D32 `Pug.init` takes only a public key (2026-10-26, F).** The API key must start with `pub_`
+  and, as in sdk-rust, sdk-go and sdk-ruby, be printable ASCII without spaces; anything else throws
+  `IllegalArgumentException`. The server finds the project from the key alone, so a project id
+  passed as the key, or the two swapped, started fine and failed only at the first send; and a
+  private `prv_` key, which the ingest endpoints accept too, would ship in the APK for anyone to pull
+  out. A control character, a trailing newline from a secrets file say, makes Android's
+  `HttpURLConnection` throw on every request, which the dispatcher drops as an SDK bug. `dryRun` is
+  not exempt: the sample's placeholder is `pub_dry_run`. sdk-web and Flutter check no prefix; the
+  server SDKs check `prv_` the same way.
+- **D33 Values of other types are sent as their text (2026-10-26, F).** A property, extra or trait
+  value that §4.7 has no mapping for is sent as the string its `toString()` returns, at the top
+  level and nested in maps and lists; it used to be dropped with a warning.
+  `mapOf("userId" to user.id)` compiles whatever `id` is, and a `UUID`, `Uri` or `LocalDate`
+  vanished at run time with a Logcat line as the only sign. The cost: an object without its own
+  `toString()` sends `Foo@1a2b3c`, and a data class every field it prints; the host chose to pass
+  it. Not the fields by reflection (sdk-web's `JSON.stringify`, PostHog's Gson): R8 renames them in
+  a minified app. Flutter sends what `jsonEncode` can encode and drops the rest. A `toString()` that
+  throws still drops its value alone.
 
 ## 4. Architecture
 
@@ -396,7 +415,7 @@ string (truncated, D15); `Boolean` → bool; `Byte`/`Short`/`Int`/`Long`/`Atomic
 → int; `BigInteger` → int if it fits in 64 bits else string; `Float`/`Double`/other `Number` →
 double if finite else dropped (warn); `java.util.Date`/`Calendar` → timestamp; `java.time.Instant`
 → timestamp only behind an `SDK_INT >= 26` guard; `Map`/`Iterable`/arrays → JSON string; `null` →
-dropped silently; anything else → dropped (warn).
+dropped silently; anything else → its `toString()` (D33).
 
 ### 4.8 Identity and sessions
 
@@ -871,10 +890,9 @@ events Pug tracks itself (D23); the consent getters never wait, and `Pug.whenCon
 the wait (D28, `Platform.postToMainThread`); the README's leftover pre-D26 option names are gone.
 The `v0.1.0` tag predates all of this; `CHANGELOG.md` lists it under Unreleased.
 
-Then, from the open list: Java tracks well-known events as objects (D31). Open, discussed but not
-decided: property values of unsupported types (a `UUID`) being dropped at run time, and
-checking the API key's `pub_` prefix at init so a swapped project id and key, or a `prv_` key,
-fail at once.
+Then, from the open list: Java tracks well-known events as objects (D31). The two questions left
+open were decided on 2026-10-26: `Pug.init` takes only a public key (D32), and values of other
+types are sent as their `toString()` instead of being dropped (D33).
 
 ## 6. Toolchain
 
@@ -925,6 +943,11 @@ Raise these with the other SDKs rather than resolving them silently:
 21. D30: Android tracks `app_crashed` automatically; Flutter does not.
 22. D30: a `deep_link_opened{url, referrer}` kind would let mobile SDKs track deep links the way
     PostHog does by default.
+23. D32: Android's `Pug.init` rejects a key that is not `pub_…`, or holds spaces or control
+    characters; sdk-web and Flutter take any key, so a swapped project id fails only at the server,
+    and a `prv_` key ships.
+24. D33: a value of another type is its `toString()` on Android, its fields through
+    `JSON.stringify` on sdk-web, and dropped by Flutter unless `jsonEncode` can encode it.
 
 ## 8. Later / not planned
 

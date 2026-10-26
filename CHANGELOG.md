@@ -21,6 +21,12 @@ for a class.
 - The consent getters never wait. Right after `Pug.init`, until the saved choice is read, they
   answer "not known yet". The new `Pug.whenConsentReady { … }` runs on the main thread once they
   answer for this user.
+- `Pug.init` throws for an API key that is not the project's public key (`pub_…`): a private key,
+  which must not ship in an app, or the project id passed in the key's place. It also throws for a
+  key with spaces, control characters or non-ASCII, such as a trailing newline, with which every
+  send failed.
+- Property and trait values of other types, such as `UUID` or `Uri`, are sent as their `toString()`
+  instead of being dropped.
 
 ## 0.1.0 (2026-10-12)
 

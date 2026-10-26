@@ -74,7 +74,7 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
         if (HostJson.isCollection(value)) {
             return PropertyValue.StringValue(HostJson.toJsonText(HostJson.toJsonValue(value, sdkInt)))
         }
-        val millis = epochMillisOf(value, sdkInt) ?: throw unsupported(value)
+        val millis = epochMillisOf(value, sdkInt) ?: return PropertyValue.StringValue(value.toString())
         return PropertyValue.TimestampValue(millis)
     }
 

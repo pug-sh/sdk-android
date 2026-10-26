@@ -2,6 +2,7 @@ package sh.pug.android.internal.event
 
 import java.time.Instant
 import java.util.Date
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import sh.pug.android.internal.RecordingLogger
@@ -109,15 +110,42 @@ class TraitsMapperTest {
     }
 
     @Test
-    fun `unsupported values are dropped with a warning`() {
-        val mapped = mapper.map(linkedMapOf("pair" to (1 to 2), "nested" to listOf(Any()), "kept" to 1))
+    fun `values of other types are sent as their text`() {
+        val id = UUID.fromString("0190a5b4-7c2e-7a3b-8f00-0123456789ab")
+
+        val mapped = mapper.map(linkedMapOf("id" to id, "pair" to (1 to 2), "nested" to mapOf("ids" to listOf(id))))
+
+        assertEquals(
+            mapOf(
+                "id" to JsonValue.StringValue("0190a5b4-7c2e-7a3b-8f00-0123456789ab"),
+                "pair" to JsonValue.StringValue("(1, 2)"),
+                "nested" to
+                    JsonValue.ObjectValue(
+                        mapOf(
+                            "ids" to
+                                JsonValue.ArrayValue(
+                                    listOf(JsonValue.StringValue("0190a5b4-7c2e-7a3b-8f00-0123456789ab")),
+                                ),
+                        ),
+                    ),
+            ),
+            mapped,
+        )
+        assertEquals(emptyList(), logger.entries)
+    }
+
+    @Test
+    fun `a value whose text throws is dropped alone`() {
+        val throwing =
+            object {
+                override fun toString(): String = throw IllegalStateException("host bug")
+            }
+
+        val mapped = mapper.map(linkedMapOf("bad" to throwing, "nested" to listOf(throwing), "kept" to 1))
 
         assertEquals(mapOf("kept" to JsonValue.NumberValue(1.0)), mapped)
         assertEquals(
-            listOf(
-                "Trait \"pair\" was dropped: kotlin.Pair is not a supported type",
-                "Trait \"nested\" was dropped: java.lang.Object is not a supported type",
-            ),
+            listOf("Trait \"bad\" was dropped: reading it threw", "Trait \"nested\" was dropped: reading it threw"),
             logger.warnings,
         )
     }

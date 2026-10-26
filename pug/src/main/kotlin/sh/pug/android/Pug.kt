@@ -24,8 +24,8 @@ public object Pug {
      * on the main thread before any activity starts, as in `Application.onCreate`, it sees the first
      * screen; called later, it tracks from the next one on.
      *
-     * @throws IllegalArgumentException when [projectId] or the API key is blank, or the endpoint is
-     *   not an http(s) URL.
+     * @throws IllegalArgumentException when [projectId] is blank, the API key is not a public key
+     *   (`pub_…`), or the endpoint is not an http(s) URL.
      */
     @JvmStatic
     public fun init(context: Context, projectId: String, options: PugOptions) {

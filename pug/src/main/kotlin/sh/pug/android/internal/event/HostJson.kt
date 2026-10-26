@@ -12,7 +12,8 @@ internal class UnsupportedValueException(message: String) : Exception(message)
 /**
  * Host values as JSON, for identify traits and for properties holding maps, collections or arrays.
  * Follows `JSON.stringify` where it can: non-finite numbers become null and dates ISO 8601 strings.
- * Integers beyond ±(2^53 - 1) become strings, since a JSON number would round them.
+ * Integers beyond ±(2^53 - 1) become strings, since a JSON number would round them. Any other object
+ * becomes its `toString()`, where `JSON.stringify` would list its fields.
  */
 internal object HostJson {
     private const val MAX_DEPTH = 32
@@ -70,7 +71,7 @@ internal object HostJson {
         private fun other(value: Any, depth: Int): JsonValue {
             val elements = elementsOf(value)
             if (elements != null) return nested(depth) { array(elements, depth + 1) }
-            val millis = epochMillisOf(value, sdkInt) ?: throw unsupported(value)
+            val millis = epochMillisOf(value, sdkInt) ?: return JsonValue.StringValue(value.toString())
             return JsonValue.StringValue(dates.format(Date(millis)))
         }
 
@@ -169,9 +170,6 @@ internal fun scalarOf(value: Any): HostScalar? = when (value) {
 private fun integer(value: Long): HostScalar = HostScalar.Integer(value)
 
 private fun digits(value: Any): HostScalar = HostScalar.Digits(value.toString())
-
-internal fun unsupported(value: Any): UnsupportedValueException =
-    UnsupportedValueException("${value.javaClass.name} is not a supported type")
 
 // Float.toString is the shortest decimal that identifies the float, so 0.1f stays 0.1 rather than
 // widening to 0.10000000149011612.
