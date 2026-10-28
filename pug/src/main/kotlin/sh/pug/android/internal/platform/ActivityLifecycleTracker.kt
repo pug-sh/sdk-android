@@ -11,8 +11,8 @@ import java.util.IdentityHashMap
 import sh.pug.android.internal.logging.SafeLogger
 
 /**
- * Turns activity callbacks into the app's foreground and background transitions and its screens
- * (PLAN.md §4.9). The app is in the foreground while one of its activities is started; an activity
+ * Turns activity callbacks into the app's foreground and background transitions and its screens.
+ * The app is in the foreground while one of its activities is started; an activity
  * stopped for a configuration change does not count as leaving. Confined to the main thread, where
  * [start] and [stop] move themselves.
  */

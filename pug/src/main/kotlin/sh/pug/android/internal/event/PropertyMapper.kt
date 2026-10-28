@@ -45,7 +45,7 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
         return mapped
     }
 
-    // PLAN.md D19: a double-typed property of a well-known event gets one column type, even from `price: 10`.
+    // A double-typed property of a well-known event gets one column type, even from `price: 10`.
     private fun coerce(schema: EventSchema?, key: String, value: PropertyValue): PropertyValue {
         if (value !is PropertyValue.IntValue || schema?.field(key)?.type != FieldType.DOUBLE) return value
         return PropertyValue.DoubleValue(value.value.toDouble())

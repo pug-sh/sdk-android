@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Runtime dependency versions in gradle/libs.versions.toml are deliberate floors (PLAN.md D2/D3):
+  # Runtime dependency versions in gradle/libs.versions.toml are deliberate floors:
   # only test and build tooling should be bumped routinely. A version ref shared with a floor moves
   # the floor too, so every library on it is ignored. abi-tools must match the Kotlin AGP builds with.
   - package-ecosystem: "gradle"

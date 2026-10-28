@@ -15,7 +15,7 @@ private const val STORAGE_DIRECTORY = "pug"
 internal class AndroidPlatform(context: Context, private val sdkInt: Int = Build.VERSION.SDK_INT) : Platform {
     private val context: Context = context.applicationContext ?: context
 
-    // Not backed up (PLAN.md D10): restored on another device, the anonymous id and the queue would
+    // Not backed up: restored on another device, the anonymous id and the queue would
     // make two installs one user.
     override fun storageDirectory(): File? {
         val base: File = context.noBackupFilesDir ?: return null

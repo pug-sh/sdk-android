@@ -117,7 +117,7 @@ internal class PugClient(
     private var visible = false
     private var opened = false
 
-    // What `$url` and `$referrer` report (PLAN.md D18).
+    // What `$url` and `$referrer` report.
     private var screen: String? = null
     private var screenClass: String? = null
     private var previousScreen: String? = null
@@ -147,7 +147,7 @@ internal class PugClient(
 
     /**
      * Runs the calls made so far, then a bounded final flush. The job completes once this client no
-     * longer touches storage. Identity, consent and unsent events stay stored (PLAN.md D11).
+     * longer touches storage. Identity, consent and unsent events stay stored.
      */
     fun destroy(): Job {
         try {
@@ -188,7 +188,7 @@ internal class PugClient(
 
                 value != null -> typed[field.name] = value
 
-                // Only Java code can pass null for a required argument (PLAN.md D20).
+                // Only Java code can pass null for a required argument.
                 field.required -> {
                     logger.warn("$caller was dropped: ${field.name} is null")
                     return

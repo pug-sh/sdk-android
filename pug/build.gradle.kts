@@ -31,7 +31,7 @@ android {
     lint {
         abortOnError = true
         warningsAsErrors = true
-        // Dependency versions are deliberate floors (PLAN.md D2/D3), and these checks query the
+        // Dependency versions are deliberate floors, and these checks query the
         // network, which would make CI results depend on the day it runs.
         disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion")
     }
@@ -53,7 +53,7 @@ kotlin {
         languageVersion = KotlinVersion.KOTLIN_2_0
         allWarningsAsErrors = true
         // A Java caller passing null for a non-null parameter must get a logged no-op, not Kotlin's
-        // entry-point NullPointerException (PLAN.md D20).
+        // entry-point NullPointerException.
         freeCompilerArgs.add("-Xno-param-assertions")
     }
 }
@@ -160,7 +160,7 @@ tasks.register<Zip>("centralBundle") {
             }
         check(unsigned.isEmpty()) {
             "Unsigned artifacts: ${unsigned.joinToString { it.name }}. Set ORG_GRADLE_PROJECT_signingInMemoryKey " +
-                "and ORG_GRADLE_PROJECT_signingInMemoryKeyPassword (docs/development.md, Releasing)"
+                "and ORG_GRADLE_PROJECT_signingInMemoryKeyPassword"
         }
     }
 }

@@ -352,11 +352,6 @@ pug.sample.apiKey=pub_your_public_key
 pug.sample.endpoint=https://api.pugs.dev
 ```
 
-## Development
-
-See [docs/development.md](docs/development.md) for building, testing and releasing, and
-[PLAN.md](PLAN.md) for the design decisions.
-
 ## License
 
 [MIT](LICENSE)

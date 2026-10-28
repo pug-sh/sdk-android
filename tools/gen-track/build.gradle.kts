@@ -1,4 +1,4 @@
-// The typed-track generator (PLAN.md D19), run by `make typed-track`. Not part of the SDK.
+// The typed-track generator, run by `make typed-track`. Not part of the SDK.
 plugins {
     // AGP's built-in Kotlin puts this plugin on the build classpath, at the version AGP was built with.
     id("org.jetbrains.kotlin.jvm")

@@ -22,7 +22,7 @@ private const val TABLET_MIN_WIDTH_DP = 600
 private const val FEATURE_TELEVISION = "android.hardware.type.television"
 
 /**
- * The auto-properties of PLAN.md §4.10. Device and app details are read once, at construction;
+ * The SDK's auto-properties. Device and app details are read once, at construction;
  * screen size, locale, time zone and network type for each event, since they change while the app
  * runs. A value that cannot be read is left out and logged once.
  */

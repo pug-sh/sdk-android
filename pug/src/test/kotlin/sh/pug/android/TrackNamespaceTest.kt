@@ -31,7 +31,7 @@ import sh.pug.android.internal.wire.PropertyValue.DoubleValue
 import sh.pug.android.internal.wire.PropertyValue.IntValue
 import sh.pug.android.internal.wire.PropertyValue.StringValue
 
-// The events whose methods the generator leaves out, since Pug tracks them itself (PLAN.md D23).
+// The events whose methods the generator leaves out, since Pug tracks them itself.
 private val SDK_TRACKED = setOf("app_open", "app_close", "app_install", "app_update", "screen_view")
 
 class TrackNamespaceTest {
@@ -72,7 +72,7 @@ class TrackNamespaceTest {
                     assertEquals(3, overloads.size, event.method)
                     assertTrue(overloads.none { it.isSynthetic }, event.method)
                 } else {
-                    // Hidden from Java, which has the event's class instead (PLAN.md D31).
+                    // Hidden from Java, which has the event's class instead.
                     assertTrue(overloads.single().isSynthetic, event.method)
                 }
                 val arguments = event.parameters.mapIndexed { index, property -> Argument(property, index) }

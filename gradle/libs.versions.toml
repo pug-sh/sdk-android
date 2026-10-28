@@ -8,7 +8,7 @@ detekt = "1.23.8"
 r8 = "9.4.28"
 spotless = "8.10.4"
 # Floors, not targets: Gradle resolves highest-wins, so these set the oldest versions a host app
-# can be on. See PLAN.md D2/D3 before raising them.
+# can be on.
 coroutines = "1.9.0"
 kotlinStdlib = "2.0.21"
 junit = "4.13.2"

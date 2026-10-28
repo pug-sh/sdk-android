@@ -13,7 +13,7 @@
 PROTO_MODULE := buf.build/pugsh/pug
 PROTO_COMMIT := 8b5d0680b10c4693b4d9d15d3dbfc663
 # An allowlist: buf adds the transitive imports (buf/validate). sdk/devices is left out on purpose,
-# since this SDK does no device registration (PLAN.md §1).
+# since this SDK does no device registration.
 PROTO_PATHS := --path sdk/events/v1 --path sdk/profiles/v1 --path common/events/v1 --path common/v1/property_value.proto
 
 DESCRIPTORS := pug/src/test/resources/pug.binpb
@@ -106,7 +106,7 @@ publish-bundle: verify-version
 # Uploads the bundle to the Central Portal, where it waits for "Publish" (irreversible) after
 # validation. CENTRAL_TOKEN is base64 of a Portal user token's "username:password".
 publish-central:
-	@test -n "$$CENTRAL_TOKEN" || { echo "CENTRAL_TOKEN is not set (docs/development.md, Releasing)"; exit 1; }
+	@test -n "$$CENTRAL_TOKEN" || { echo "CENTRAL_TOKEN is not set"; exit 1; }
 	$(MAKE) publish-bundle
 	@curl --fail-with-body --silent --show-error -X POST \
 	  -H "Authorization: Bearer $$CENTRAL_TOKEN" \

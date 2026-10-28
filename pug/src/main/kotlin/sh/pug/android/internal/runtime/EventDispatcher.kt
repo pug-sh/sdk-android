@@ -21,7 +21,7 @@ private const val RETRY_JITTER = 0.2
 /**
  * Delivers queued events: a batch goes out once [maxSize] are pending, [maxWaitMs] after the first of
  * them, or on request, and only one batch is in flight at a time. A transient failure returns the
- * batch to the queue and retries with exponential backoff (PLAN.md D16), during which size triggers
+ * batch to the queue and retries with exponential backoff, during which size triggers
  * wait for the retry; a permanent one drops it. Confined to the SDK worker, like the queue it drives.
  */
 internal class EventDispatcher(

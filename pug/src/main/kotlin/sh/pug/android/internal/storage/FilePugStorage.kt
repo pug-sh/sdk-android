@@ -22,7 +22,7 @@ private const val MAX_FILE_NAME_LENGTH = 128
 private const val TEMP_SUFFIX = ".tmp"
 
 /**
- * The default storage (PLAN.md D10): one file per key in [directory], each read at most once. A
+ * The default storage: one file per key in [directory], each read at most once. A
  * change lands in memory at once and reaches the disk [syncDelayMs] later together with the changes
  * made meanwhile, or at [sync], so a burst of events rewrites the queue file once rather than once
  * per event. Confined to the SDK worker, like every storage.
