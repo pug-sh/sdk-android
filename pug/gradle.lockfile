@@ -1,0 +1,10 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+# To regenerate this file, run: ./gradlew :pug:dependencies --write-locks
+org.jetbrains.kotlin:kotlin-stdlib:2.0.21=releaseRuntimeClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.9.0=releaseRuntimeClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.9.0=releaseRuntimeClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0=releaseRuntimeClasspath
+org.jetbrains:annotations:23.0.0=releaseRuntimeClasspath
+empty=

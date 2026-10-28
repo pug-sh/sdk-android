@@ -1,3 +1,4 @@
+import org.gradle.api.artifacts.dsl.LockMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
@@ -68,6 +69,15 @@ dependencies {
     testImplementation(libs.org.json)
     testImplementation(libs.protobuf.java)
     testImplementation(libs.robolectric)
+}
+
+// The release runtime classpath is what apps get from the POM. Locking only it gives vulnerability
+// scanners, which read gradle.lockfile, exactly that set, without the build and test tooling.
+dependencyLocking {
+    lockMode = LockMode.STRICT
+}
+configurations.named { it == "releaseRuntimeClasspath" }.configureEach {
+    resolutionStrategy.activateDependencyLocking()
 }
 
 val sdkVersion = providers.gradleProperty("VERSION_NAME").get()

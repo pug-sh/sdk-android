@@ -7,3 +7,5 @@ local.properties
 .DS_Store
 captures/
 .cxx/
+# Written by every --write-locks run for the empty version catalog import; only pug/gradle.lockfile is kept.
+settings-gradle.lockfile

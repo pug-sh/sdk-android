@@ -1,7 +1,7 @@
 # sdk-android developer tasks. Mirrors the proto vendoring of sdk-web / sdk-flutter / sdk-node /
 # sdk-go / sdk-rust: proto/ is committed, so builds and CI never touch the Buf Schema Registry.
 
-.PHONY: sync-protos proto-latest check-proto-pin protos descriptors typed-track check-codegen verify-version fmt lint test build abi-dump sample publish-bundle publish-central check ci
+.PHONY: sync-protos proto-latest check-proto-pin protos descriptors typed-track check-codegen verify-version fmt lint test build abi-dump locks check-locks sample publish-bundle publish-central check ci
 
 # `ci` must run `protos` before `check-codegen` diffs the generated files. Keep everything serial
 # even under `make -jN`.
@@ -21,6 +21,7 @@ DESCRIPTORS := pug/src/test/resources/pug.binpb
 EVENTS_IMAGE := build/typed-track/events.json
 TYPED_TRACK := $(addprefix pug/src/main/kotlin/sh/pug/android/,TrackNamespace.kt Events.kt events/Events.kt internal/event/WellKnownEvents.kt)
 GENERATED := $(DESCRIPTORS) $(TYPED_TRACK)
+LOCKFILE := pug/gradle.lockfile
 
 GRADLE := ./gradlew --console=plain
 # The buf CLI pinned in gradle/libs.versions.toml, fetched from Maven Central by Gradle.
@@ -92,6 +93,18 @@ build:
 abi-dump:
 	$(GRADLE) :tools:abi-dump:abiDump
 
+# Rewrites pug/gradle.lockfile, the locked release runtime classpath, after a runtime dependency
+# changes; review the diff before committing it.
+locks:
+	$(GRADLE) :pug:dependencies --configuration releaseRuntimeClasspath --write-locks
+
+# CI gate: the committed lockfile must match a fresh `make locks`. Resolution cannot catch a stale
+# one, since Gradle enforces locked versions instead of failing on them.
+check-locks:
+	@drift="$$(git status --porcelain -- $(LOCKFILE))" || exit 1; \
+	test -z "$$drift" \
+	  || { git status --short -- $(LOCKFILE); echo "lockfile drift: run 'make locks' and commit"; exit 1; }
+
 # The sample app, debug and minified release.
 sample:
 	$(GRADLE) :sample:assemble
@@ -121,4 +134,4 @@ check: verify-version
 	$(GRADLE) spotlessCheck :detekt :pug:lintDebug :pug:testDebugUnitTest :pug:assembleRelease :tools:abi-dump:abiCheck \
 	  :tools:dead-code:deadCodeCheck :sample:assembleRelease
 
-ci: protos check-codegen check
+ci: protos check-codegen locks check-locks check
