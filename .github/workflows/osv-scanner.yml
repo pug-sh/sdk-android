@@ -1,0 +1,41 @@
+name: OSV-Scanner
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # Daily, for advisories published against dependencies that have not changed.
+  schedule:
+    - cron: "14 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only pug/gradle.lockfile is scanned: it is what the SDK ships, without the build and test tooling.
+# The reusable workflows ask for security-events: write, but nothing is uploaded: a private
+# repository on the free plan has no code scanning. Pinned to a commit, since a third-party action's
+# tags can be moved.
+jobs:
+  scan:
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: --lockfile=pug/gradle.lockfile
+      upload-sarif: false
+
+  # Fails only on vulnerabilities the pull request adds.
+  scan-pr:
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      scan-args: --lockfile=pug/gradle.lockfile
+      upload-sarif: false

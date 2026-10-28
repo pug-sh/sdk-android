@@ -129,8 +129,9 @@ under `noBackupFilesDir/pug/`.
   `gradle/libs.versions.toml` (floors, not targets: they set the oldest versions a host app can be
   on). protobuf-java, MockWebServer and the org.json artifact are test-only; the runtime uses the
   platform's org.json. Do not add a runtime dependency. `pug/gradle.lockfile` locks the release
-  runtime classpath alone, so vulnerability scanners see what ships and not the tooling; Gradle
-  enforces locked versions rather than failing on them, so `check-locks` diffs a fresh `make locks`.
+  runtime classpath alone, which OSV-Scanner (`.github/workflows/osv-scanner.yml`) scans on pull
+  requests, on `main` and daily, so it sees what ships and not the tooling; Gradle enforces locked
+  versions rather than failing on them, so `check-locks` diffs a fresh `make locks`.
 - **minSdk 21.** Lint `NewApi` runs with warnings as errors; `java.time`, `java.util.Base64`,
   `Math.floorDiv` and `ConcurrentHashMap.newKeySet()` are all above 21 (use the Kotlin stdlib
   equivalents). Code with an API-level branch takes the level as a constructor parameter
