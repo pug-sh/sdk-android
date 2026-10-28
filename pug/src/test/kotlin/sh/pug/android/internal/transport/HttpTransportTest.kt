@@ -278,14 +278,18 @@ class HttpTransportTest {
     fun `a body slower than the deadline times out and frees the request thread`() = runBlocking {
         val finished = CountDownLatch(1)
         // Each byte arrives well within the read timeout, so only the overall deadline can stop it.
-        // MockWebServer's throttling outlives the test, hence a bare socket.
+        // MockWebServer's throttling outlives the test, hence a bare socket. It sends Connection: close
+        // because the JDK (not Android) drains the unread rest of a keep-alive body on a cleaner thread
+        // that holds the stream's lock, stalling the request thread or disconnect(), whichever closes
+        // the stream second.
         ServerSocket(0).use { listener ->
             thread(isDaemon = true) {
                 try {
                     listener.accept().use { socket ->
                         val out = socket.getOutputStream()
                         val headers =
-                            "HTTP/1.1 200 OK\r\nContent-Type: application/proto\r\nContent-Length: 100\r\n\r\n"
+                            "HTTP/1.1 200 OK\r\nContent-Type: application/proto\r\nContent-Length: 100\r\n" +
+                                "Connection: close\r\n\r\n"
                         out.write(headers.toByteArray())
                         repeat(100) {
                             out.write(0)
