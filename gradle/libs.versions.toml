@@ -3,6 +3,7 @@ agp = "9.4.1"
 # The ABI dump library of the Kotlin Gradle plugin AGP builds with (tools/abi-dump).
 abiTools = "2.2.10"
 ktlint = "1.8.0"
+buf = "1.73.0"
 detekt = "1.23.8"
 # The R8 AGP builds with (tools/dead-code).
 r8 = "9.4.28"
@@ -22,6 +23,7 @@ abi-tools = { module = "org.jetbrains.kotlin:abi-tools", version.ref = "abiTools
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlinStdlib" }
+buf = { module = "build.buf:buf", version.ref = "buf" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
 junit = { module = "junit:junit", version.ref = "junit" }
 mockwebserver = { module = "com.squareup.okhttp3:mockwebserver3", version.ref = "okhttp" }

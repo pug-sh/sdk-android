@@ -52,3 +52,31 @@ tasks.register<JavaExec>("detekt") {
         "txt:${detektReport.get().asFile.path}",
     )
 }
+
+val bufCli = configurations.create("bufCli")
+
+dependencies {
+    val os = System.getProperty("os.name").lowercase()
+    val bufOs =
+        when {
+            os.startsWith("mac") -> "osx"
+            os.startsWith("windows") -> "windows"
+            else -> "linux"
+        }
+    val bufArch = if (System.getProperty("os.arch") in setOf("aarch64", "arm64")) "aarch_64" else "x86_64"
+    bufCli(
+        variantOf(libs.buf) {
+            classifier("$bufOs-$bufArch")
+            artifactType("exe")
+        },
+    )
+}
+
+tasks.register<Sync>("buf") {
+    description = "Puts the buf CLI pinned in the version catalog at build/buf/buf, for the Makefile."
+    from(bufCli) {
+        rename { "buf" }
+        filePermissions { unix("rwxr-xr-x") }
+    }
+    into(layout.buildDirectory.dir("buf"))
+}

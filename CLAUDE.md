@@ -11,10 +11,11 @@ out of scope.
 
 ## Setup
 
-JDK 21 and buf 1.73.0 come from `mise.toml` (`mise install`). Put the Android SDK path in an
-untracked `local.properties` (`sdk.dir=…`). The sample app runs in dry run until
-`~/.gradle/gradle.properties` sets `pug.sample.projectId` and `pug.sample.apiKey` (and, optionally,
-`pug.sample.endpoint`).
+Gradle provisions its own JDK 21 (`gradle/gradle-daemon-jvm.properties`; any JDK launches the
+wrapper) and fetches buf from Maven Central at the version in `gradle/libs.versions.toml` (the
+Makefile runs it from `build/buf/buf`). Put the Android SDK path in an untracked `local.properties`
+(`sdk.dir=…`). The sample app runs in dry run until `~/.gradle/gradle.properties` sets
+`pug.sample.projectId` and `pug.sample.apiKey` (and, optionally, `pug.sample.endpoint`).
 
 ## Commands
 
@@ -23,7 +24,7 @@ make check       # verify-version + spotlessCheck + detekt + lint + unit tests +
                  # + dead code check + minified sample build (one Gradle run)
 make fmt         # spotlessApply (ktlint, android_studio style)
 make abi-dump    # rewrite pug/api/pug.api after an intended public API change; review the diff
-make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
+make protos      # regenerate from proto/: test descriptor set + typed track API
 make typed-track # only the typed track API: TrackNamespace.kt, Events.kt, events/Events.kt, WellKnownEvents.kt
 make ci          # protos + check-codegen + check: what CI runs
 ```

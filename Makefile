@@ -23,22 +23,26 @@ TYPED_TRACK := $(addprefix pug/src/main/kotlin/sh/pug/android/,TrackNamespace.kt
 GENERATED := $(DESCRIPTORS) $(TYPED_TRACK)
 
 GRADLE := ./gradlew --console=plain
+# The buf CLI pinned in gradle/libs.versions.toml, fetched from Maven Central by Gradle.
+BUF := build/buf/buf
 
-sync-protos:
-	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
+$(BUF): gradle/libs.versions.toml
+	$(GRADLE) -q buf
+	@touch $@
+
+sync-protos: $(BUF)
 	rm -rf proto
-	buf export $(PROTO_MODULE):$(PROTO_COMMIT) --output proto $(PROTO_PATHS)
+	$(BUF) export $(PROTO_MODULE):$(PROTO_COMMIT) --output proto $(PROTO_PATHS)
 	@echo "Synced SDK protos into proto/ at $(PROTO_COMMIT). Run 'make protos' to regenerate."
 
-proto-latest:
-	@buf registry module commit resolve $(PROTO_MODULE):main
+proto-latest: $(BUF)
+	@$(BUF) registry module commit resolve $(PROTO_MODULE):main
 
 # Release gate (needs network): proves proto/ is exactly what the pinned commit exports. CI cannot
 # see a hand-patched proto/, because `protos` regenerates consistently from whatever is committed.
-check-proto-pin:
-	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
+check-proto-pin: $(BUF)
 	@rm -rf build/proto-pin-check
-	@buf export $(PROTO_MODULE):$(PROTO_COMMIT) --output build/proto-pin-check $(PROTO_PATHS)
+	@$(BUF) export $(PROTO_MODULE):$(PROTO_COMMIT) --output build/proto-pin-check $(PROTO_PATHS)
 	@diff -r proto build/proto-pin-check \
 	  && echo "proto/ matches $(PROTO_MODULE):$(PROTO_COMMIT)." \
 	  || { echo "proto/ diverges from $(PROTO_COMMIT); re-run 'make sync-protos protos'."; exit 1; }
@@ -47,15 +51,13 @@ check-proto-pin:
 protos: descriptors typed-track
 
 # The descriptor set the wire and typed-track conformance tests parse with protobuf-java.
-descriptors:
-	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
-	buf build --exclude-source-info --as-file-descriptor-set -o $(DESCRIPTORS)
+descriptors: $(BUF)
+	$(BUF) build --exclude-source-info --as-file-descriptor-set -o $(DESCRIPTORS)
 
 # The typed track API (`Pug.track.<event>(…)`, Events, the event classes, the event registry) from the event protos.
-typed-track:
-	@command -v buf >/dev/null || { echo "buf CLI required: https://buf.build/docs/installation"; exit 1; }
+typed-track: $(BUF)
 	@mkdir -p $(dir $(EVENTS_IMAGE))
-	buf build --path proto/common/events/v1 -o $(EVENTS_IMAGE)
+	$(BUF) build --path proto/common/events/v1 -o $(EVENTS_IMAGE)
 	$(GRADLE) :tools:gen-track:run --args="$(EVENTS_IMAGE) pug/src/main/kotlin"
 
 # CI gate: the committed generated files must match a fresh `make protos`.
