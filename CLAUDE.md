@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Guidance for Claude Code when working in this repository: the Pug analytics SDK for Android,
-written in Kotlin and published as `sh.pug:pug-android`.
+written in Kotlin and published as `sh.pug:android`.
 
 ## Scope
 

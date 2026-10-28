@@ -67,15 +67,16 @@ check-codegen:
 	test -z "$$drift" \
 	  || { git status --short -- $(GENERATED); echo "codegen drift: run 'make protos' and commit"; exit 1; }
 
-# $sdkVersion comes from SDK_VERSION; the published artifact version from VERSION_NAME, which the
-# README's install line names too.
+# $sdkVersion comes from SDK_VERSION; the published coordinates from GROUP, POM_ARTIFACT_ID and
+# VERSION_NAME, which the README's install line names too.
 verify-version:
 	@gradle_version="$$(sed -n 's/^VERSION_NAME=//p' gradle.properties)"; \
 	kotlin_version="$$(sed -n 's/.*SDK_VERSION: String = "\(.*\)"/\1/p' pug/src/main/kotlin/sh/pug/android/Version.kt)"; \
 	test "$$gradle_version" = "$$kotlin_version" \
 	  || { echo "version mismatch: gradle.properties=$$gradle_version Version.kt=$$kotlin_version"; exit 1; }; \
-	grep -qF "sh.pug:pug-android:$$gradle_version\"" README.md \
-	  || { echo "README.md does not install sh.pug:pug-android:$$gradle_version"; exit 1; }
+	coordinates="$$(sed -n 's/^GROUP=//p' gradle.properties):$$(sed -n 's/^POM_ARTIFACT_ID=//p' gradle.properties):$$gradle_version"; \
+	grep -qF "\"$$coordinates\"" README.md \
+	  || { echo "README.md does not install $$coordinates"; exit 1; }
 
 fmt:
 	$(GRADLE) spotlessApply
