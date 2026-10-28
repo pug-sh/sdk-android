@@ -2,9 +2,9 @@ package sh.pug.android
 
 /**
  * Receives the SDK's diagnostics in place of Logcat. Calls may arrive on any thread; a logger that
- * throws is contained. Debug messages arrive only when [PugOptions.Builder.debug] is on.
+ * throws is contained. Debug messages arrive only when [Options.Builder.debug] is on.
  */
-public interface PugLogger {
+public interface Logger {
     public fun debug(message: String)
 
     public fun warn(message: String, throwable: Throwable?)

@@ -8,7 +8,7 @@ import sh.pug.android.internal.isNull
  * worker thread, one at a time. If an implementation throws, the SDK keeps its state in memory
  * until `Pug.destroy()` or the process ends.
  */
-public interface PugStorage {
+public interface Storage {
     public fun getString(key: String): String?
 
     public fun putString(key: String, value: String)
@@ -17,7 +17,7 @@ public interface PugStorage {
 }
 
 /** Keeps everything in memory, so nothing outlives the process. A null from Java is ignored. */
-public class MemoryPugStorage : PugStorage {
+public class MemoryStorage : Storage {
     private val values = ConcurrentHashMap<String, String>()
 
     override fun getString(key: String): String? = if (isNull(key)) null else values[key]

@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
-import sh.pug.android.PugLogger
+import sh.pug.android.Logger
 import sh.pug.android.internal.RecordingLogger
 
 class SafeLoggerTest {
@@ -50,7 +50,7 @@ class SafeLoggerTest {
     @Test
     fun `a logger keeps working after it threw once`() {
         val delegate =
-            object : PugLogger {
+            object : Logger {
                 var calls = 0
 
                 override fun debug(message: String) = Unit
@@ -70,7 +70,7 @@ class SafeLoggerTest {
         assertEquals(2, delegate.calls)
     }
 
-    private class ThrowingLogger(private val failure: Throwable) : PugLogger {
+    private class ThrowingLogger(private val failure: Throwable) : Logger {
         override fun debug(message: String) = throw failure
 
         override fun warn(message: String, throwable: Throwable?) = throw failure

@@ -2,7 +2,7 @@
 
 package sh.pug.android.internal.event
 
-import sh.pug.android.PugEvents
+import sh.pug.android.Events
 import sh.pug.android.internal.event.FieldType.BOOLEAN
 import sh.pug.android.internal.event.FieldType.DOUBLE
 import sh.pug.android.internal.event.FieldType.DURATION
@@ -12,7 +12,7 @@ import sh.pug.android.internal.event.FieldType.STRING
 /** The schema of each well-known event, for typed tracking and the checks on untyped events. */
 internal object WellKnownEvents {
     val ADD_TO_CART = EventSchema(
-        PugEvents.ADD_TO_CART,
+        Events.ADD_TO_CART,
         "addToCart",
         FieldSchema("productId", STRING, required = true),
         FieldSchema("price", DOUBLE),
@@ -24,72 +24,72 @@ internal object WellKnownEvents {
         FieldSchema("sku", STRING),
     )
     val API_KEY_CREATED = EventSchema(
-        PugEvents.API_KEY_CREATED,
+        Events.API_KEY_CREATED,
         "apiKeyCreated",
         FieldSchema("apiKeyId", STRING),
         FieldSchema("name", STRING),
         FieldSchema("scope", STRING),
     )
     val API_KEY_REVOKED = EventSchema(
-        PugEvents.API_KEY_REVOKED,
+        Events.API_KEY_REVOKED,
         "apiKeyRevoked",
         FieldSchema("apiKeyId", STRING),
         FieldSchema("name", STRING),
         FieldSchema("reason", STRING),
     )
-    val APP_BACKGROUNDED = EventSchema(PugEvents.APP_BACKGROUNDED, "appBackgrounded")
-    private val APP_CLOSE = EventSchema(PugEvents.APP_CLOSE, "appClose")
+    val APP_BACKGROUNDED = EventSchema(Events.APP_BACKGROUNDED, "appBackgrounded")
+    private val APP_CLOSE = EventSchema(Events.APP_CLOSE, "appClose")
     val APP_CRASHED = EventSchema(
-        PugEvents.APP_CRASHED,
+        Events.APP_CRASHED,
         "appCrashed",
         FieldSchema("errorMessage", STRING),
         FieldSchema("errorType", STRING),
     )
-    val APP_FOREGROUNDED = EventSchema(PugEvents.APP_FOREGROUNDED, "appForegrounded")
+    val APP_FOREGROUNDED = EventSchema(Events.APP_FOREGROUNDED, "appForegrounded")
     private val APP_INSTALL = EventSchema(
-        PugEvents.APP_INSTALL,
+        Events.APP_INSTALL,
         "appInstall",
         FieldSchema("appVersion", STRING),
         FieldSchema("installSource", STRING),
     )
-    private val APP_OPEN = EventSchema(PugEvents.APP_OPEN, "appOpen")
+    private val APP_OPEN = EventSchema(Events.APP_OPEN, "appOpen")
     private val APP_UPDATE = EventSchema(
-        PugEvents.APP_UPDATE,
+        Events.APP_UPDATE,
         "appUpdate",
         FieldSchema("appVersion", STRING, required = true),
         FieldSchema("previousVersion", STRING),
     )
     val AUDIO_COMPLETED = EventSchema(
-        PugEvents.AUDIO_COMPLETED,
+        Events.AUDIO_COMPLETED,
         "audioCompleted",
         FieldSchema("audioId", STRING, required = true),
     )
     val AUDIO_PAUSE = EventSchema(
-        PugEvents.AUDIO_PAUSE,
+        Events.AUDIO_PAUSE,
         "audioPause",
         FieldSchema("audioId", STRING, required = true),
         FieldSchema("position", DURATION),
     )
     val AUDIO_PLAY = EventSchema(
-        PugEvents.AUDIO_PLAY,
+        Events.AUDIO_PLAY,
         "audioPlay",
         FieldSchema("audioId", STRING, required = true),
         FieldSchema("position", DURATION),
     )
     val AUDIO_SEEKED = EventSchema(
-        PugEvents.AUDIO_SEEKED,
+        Events.AUDIO_SEEKED,
         "audioSeeked",
         FieldSchema("audioId", STRING, required = true),
         FieldSchema("fromPosition", DURATION),
         FieldSchema("toPosition", DURATION),
     )
     val AUDIO_STARTED = EventSchema(
-        PugEvents.AUDIO_STARTED,
+        Events.AUDIO_STARTED,
         "audioStarted",
         FieldSchema("audioId", STRING, required = true),
     )
     val CART_VIEWED = EventSchema(
-        PugEvents.CART_VIEWED,
+        Events.CART_VIEWED,
         "cartViewed",
         FieldSchema("cartId", STRING),
         FieldSchema("itemCount", INT),
@@ -97,13 +97,13 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val CHAT_ARCHIVED = EventSchema(
-        PugEvents.CHAT_ARCHIVED,
+        Events.CHAT_ARCHIVED,
         "chatArchived",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
     )
     val CHAT_ATTACHMENT_DOWNLOADED = EventSchema(
-        PugEvents.CHAT_ATTACHMENT_DOWNLOADED,
+        Events.CHAT_ATTACHMENT_DOWNLOADED,
         "chatAttachmentDownloaded",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -113,7 +113,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_ATTACHMENT_UPLOADED = EventSchema(
-        PugEvents.CHAT_ATTACHMENT_UPLOADED,
+        Events.CHAT_ATTACHMENT_UPLOADED,
         "chatAttachmentUploaded",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -123,14 +123,14 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_CALL_JOINED = EventSchema(
-        PugEvents.CHAT_CALL_JOINED,
+        Events.CHAT_CALL_JOINED,
         "chatCallJoined",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("callId", STRING, required = true),
         FieldSchema("callType", STRING),
     )
     val CHAT_CALL_LEFT = EventSchema(
-        PugEvents.CHAT_CALL_LEFT,
+        Events.CHAT_CALL_LEFT,
         "chatCallLeft",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("callId", STRING, required = true),
@@ -138,74 +138,74 @@ internal object WellKnownEvents {
         FieldSchema("duration", DURATION),
     )
     val CHAT_CALL_RECORDING_STARTED = EventSchema(
-        PugEvents.CHAT_CALL_RECORDING_STARTED,
+        Events.CHAT_CALL_RECORDING_STARTED,
         "chatCallRecordingStarted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("callId", STRING, required = true),
     )
     val CHAT_CALL_SCREEN_SHARED = EventSchema(
-        PugEvents.CHAT_CALL_SCREEN_SHARED,
+        Events.CHAT_CALL_SCREEN_SHARED,
         "chatCallScreenShared",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("callId", STRING, required = true),
     )
     val CHAT_CALL_STARTED = EventSchema(
-        PugEvents.CHAT_CALL_STARTED,
+        Events.CHAT_CALL_STARTED,
         "chatCallStarted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("callId", STRING, required = true),
         FieldSchema("callType", STRING),
     )
     val CHAT_CREATED = EventSchema(
-        PugEvents.CHAT_CREATED,
+        Events.CHAT_CREATED,
         "chatCreated",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
         FieldSchema("participantCount", INT),
     )
     val CHAT_DELETED = EventSchema(
-        PugEvents.CHAT_DELETED,
+        Events.CHAT_DELETED,
         "chatDeleted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
         FieldSchema("reason", STRING),
     )
     val CHAT_JOINED = EventSchema(
-        PugEvents.CHAT_JOINED,
+        Events.CHAT_JOINED,
         "chatJoined",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
     )
     val CHAT_LEFT = EventSchema(
-        PugEvents.CHAT_LEFT,
+        Events.CHAT_LEFT,
         "chatLeft",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
         FieldSchema("reason", STRING),
     )
     val CHAT_MEMBER_ADDED = EventSchema(
-        PugEvents.CHAT_MEMBER_ADDED,
+        Events.CHAT_MEMBER_ADDED,
         "chatMemberAdded",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("memberId", STRING, required = true),
         FieldSchema("role", STRING),
     )
     val CHAT_MEMBER_MUTED = EventSchema(
-        PugEvents.CHAT_MEMBER_MUTED,
+        Events.CHAT_MEMBER_MUTED,
         "chatMemberMuted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("memberId", STRING, required = true),
         FieldSchema("muteDuration", DURATION),
     )
     val CHAT_MEMBER_REMOVED = EventSchema(
-        PugEvents.CHAT_MEMBER_REMOVED,
+        Events.CHAT_MEMBER_REMOVED,
         "chatMemberRemoved",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("memberId", STRING, required = true),
         FieldSchema("reason", STRING),
     )
     val CHAT_MEMBER_ROLE_CHANGED = EventSchema(
-        PugEvents.CHAT_MEMBER_ROLE_CHANGED,
+        Events.CHAT_MEMBER_ROLE_CHANGED,
         "chatMemberRoleChanged",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("memberId", STRING, required = true),
@@ -213,7 +213,7 @@ internal object WellKnownEvents {
         FieldSchema("newRole", STRING, required = true),
     )
     val CHAT_MESSAGE_DELETED = EventSchema(
-        PugEvents.CHAT_MESSAGE_DELETED,
+        Events.CHAT_MESSAGE_DELETED,
         "chatMessageDeleted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -222,7 +222,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_MESSAGE_EDITED = EventSchema(
-        PugEvents.CHAT_MESSAGE_EDITED,
+        Events.CHAT_MESSAGE_EDITED,
         "chatMessageEdited",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -230,7 +230,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_MESSAGE_FAILED = EventSchema(
-        PugEvents.CHAT_MESSAGE_FAILED,
+        Events.CHAT_MESSAGE_FAILED,
         "chatMessageFailed",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -239,7 +239,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_MESSAGE_PINNED = EventSchema(
-        PugEvents.CHAT_MESSAGE_PINNED,
+        Events.CHAT_MESSAGE_PINNED,
         "chatMessagePinned",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -247,7 +247,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_MESSAGE_READ = EventSchema(
-        PugEvents.CHAT_MESSAGE_READ,
+        Events.CHAT_MESSAGE_READ,
         "chatMessageRead",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -255,7 +255,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_MESSAGE_RECEIVED = EventSchema(
-        PugEvents.CHAT_MESSAGE_RECEIVED,
+        Events.CHAT_MESSAGE_RECEIVED,
         "chatMessageReceived",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -267,7 +267,7 @@ internal object WellKnownEvents {
         FieldSchema("parentMessageId", STRING),
     )
     val CHAT_MESSAGE_SENT = EventSchema(
-        PugEvents.CHAT_MESSAGE_SENT,
+        Events.CHAT_MESSAGE_SENT,
         "chatMessageSent",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -279,7 +279,7 @@ internal object WellKnownEvents {
         FieldSchema("parentMessageId", STRING),
     )
     val CHAT_MESSAGE_UNPINNED = EventSchema(
-        PugEvents.CHAT_MESSAGE_UNPINNED,
+        Events.CHAT_MESSAGE_UNPINNED,
         "chatMessageUnpinned",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -287,7 +287,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_REACTION_ADDED = EventSchema(
-        PugEvents.CHAT_REACTION_ADDED,
+        Events.CHAT_REACTION_ADDED,
         "chatReactionAdded",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -295,7 +295,7 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_REACTION_REMOVED = EventSchema(
-        PugEvents.CHAT_REACTION_REMOVED,
+        Events.CHAT_REACTION_REMOVED,
         "chatReactionRemoved",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("messageId", STRING),
@@ -303,30 +303,30 @@ internal object WellKnownEvents {
         FieldSchema("threadId", STRING),
     )
     val CHAT_TYPING_STARTED = EventSchema(
-        PugEvents.CHAT_TYPING_STARTED,
+        Events.CHAT_TYPING_STARTED,
         "chatTypingStarted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
     )
     val CHAT_TYPING_STOPPED = EventSchema(
-        PugEvents.CHAT_TYPING_STOPPED,
+        Events.CHAT_TYPING_STOPPED,
         "chatTypingStopped",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
     )
     val CHAT_UNARCHIVED = EventSchema(
-        PugEvents.CHAT_UNARCHIVED,
+        Events.CHAT_UNARCHIVED,
         "chatUnarchived",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("conversationType", STRING),
     )
     val CHAT_USER_BLOCKED = EventSchema(
-        PugEvents.CHAT_USER_BLOCKED,
+        Events.CHAT_USER_BLOCKED,
         "chatUserBlocked",
         FieldSchema("userId", STRING, required = true),
     )
     val CHECKOUT_STARTED = EventSchema(
-        PugEvents.CHECKOUT_STARTED,
+        Events.CHECKOUT_STARTED,
         "checkoutStarted",
         FieldSchema("productId", STRING),
         FieldSchema("amount", DOUBLE),
@@ -336,14 +336,14 @@ internal object WellKnownEvents {
         FieldSchema("itemCount", INT),
     )
     val CHECKOUT_STEP_COMPLETED = EventSchema(
-        PugEvents.CHECKOUT_STEP_COMPLETED,
+        Events.CHECKOUT_STEP_COMPLETED,
         "checkoutStepCompleted",
         FieldSchema("checkoutId", STRING, required = true),
         FieldSchema("step", STRING, required = true),
         FieldSchema("stepIndex", INT),
     )
     val COUPON_APPLIED = EventSchema(
-        PugEvents.COUPON_APPLIED,
+        Events.COUPON_APPLIED,
         "couponApplied",
         FieldSchema("couponId", STRING, required = true),
         FieldSchema("couponCode", STRING),
@@ -352,16 +352,16 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val COUPON_REMOVED = EventSchema(
-        PugEvents.COUPON_REMOVED,
+        Events.COUPON_REMOVED,
         "couponRemoved",
         FieldSchema("couponId", STRING, required = true),
         FieldSchema("couponCode", STRING),
         FieldSchema("cartId", STRING),
         FieldSchema("reason", STRING),
     )
-    val EMAIL_VERIFIED = EventSchema(PugEvents.EMAIL_VERIFIED, "emailVerified")
+    val EMAIL_VERIFIED = EventSchema(Events.EMAIL_VERIFIED, "emailVerified")
     val ERROR_OCCURRED = EventSchema(
-        PugEvents.ERROR_OCCURRED,
+        Events.ERROR_OCCURRED,
         "errorOccurred",
         FieldSchema("errorCode", STRING, required = true),
         FieldSchema("message", STRING),
@@ -370,33 +370,33 @@ internal object WellKnownEvents {
         FieldSchema("stack", STRING),
     )
     val EXPORT_COMPLETED = EventSchema(
-        PugEvents.EXPORT_COMPLETED,
+        Events.EXPORT_COMPLETED,
         "exportCompleted",
         FieldSchema("exportId", STRING, required = true),
         FieldSchema("exportType", STRING),
         FieldSchema("sizeBytes", INT),
     )
     val EXPORT_STARTED = EventSchema(
-        PugEvents.EXPORT_STARTED,
+        Events.EXPORT_STARTED,
         "exportStarted",
         FieldSchema("exportId", STRING, required = true),
         FieldSchema("exportType", STRING),
     )
     val FEATURE_USED = EventSchema(
-        PugEvents.FEATURE_USED,
+        Events.FEATURE_USED,
         "featureUsed",
         FieldSchema("featureId", STRING, required = true),
         FieldSchema("featureName", STRING),
     )
     val FEEDBACK_SUBMITTED = EventSchema(
-        PugEvents.FEEDBACK_SUBMITTED,
+        Events.FEEDBACK_SUBMITTED,
         "feedbackSubmitted",
         FieldSchema("feedbackId", STRING),
         FieldSchema("category", STRING),
         FieldSchema("comment", STRING),
     )
     val FILE_DOWNLOADED = EventSchema(
-        PugEvents.FILE_DOWNLOADED,
+        Events.FILE_DOWNLOADED,
         "fileDownloaded",
         FieldSchema("fileId", STRING, required = true),
         FieldSchema("fileName", STRING),
@@ -404,7 +404,7 @@ internal object WellKnownEvents {
         FieldSchema("sizeBytes", INT),
     )
     val FILE_UPLOADED = EventSchema(
-        PugEvents.FILE_UPLOADED,
+        Events.FILE_UPLOADED,
         "fileUploaded",
         FieldSchema("fileId", STRING, required = true),
         FieldSchema("fileName", STRING),
@@ -412,46 +412,46 @@ internal object WellKnownEvents {
         FieldSchema("sizeBytes", INT),
     )
     val FILTER_APPLIED = EventSchema(
-        PugEvents.FILTER_APPLIED,
+        Events.FILTER_APPLIED,
         "filterApplied",
         FieldSchema("key", STRING, required = true),
         FieldSchema("value", STRING),
     )
     val FORM_START = EventSchema(
-        PugEvents.FORM_START,
+        Events.FORM_START,
         "formStart",
         FieldSchema("formId", STRING, required = true),
         FieldSchema("formName", STRING),
     )
     val FORM_SUBMIT = EventSchema(
-        PugEvents.FORM_SUBMIT,
+        Events.FORM_SUBMIT,
         "formSubmit",
         FieldSchema("formId", STRING, required = true),
         FieldSchema("formName", STRING),
         FieldSchema("action", STRING),
     )
     val HELP_ARTICLE_VIEWED = EventSchema(
-        PugEvents.HELP_ARTICLE_VIEWED,
+        Events.HELP_ARTICLE_VIEWED,
         "helpArticleViewed",
         FieldSchema("articleId", STRING, required = true),
         FieldSchema("articleTitle", STRING),
         FieldSchema("category", STRING),
     )
     val INTEGRATION_CONNECTED = EventSchema(
-        PugEvents.INTEGRATION_CONNECTED,
+        Events.INTEGRATION_CONNECTED,
         "integrationConnected",
         FieldSchema("integrationId", STRING),
         FieldSchema("integrationType", STRING, required = true),
     )
     val INTEGRATION_DISCONNECTED = EventSchema(
-        PugEvents.INTEGRATION_DISCONNECTED,
+        Events.INTEGRATION_DISCONNECTED,
         "integrationDisconnected",
         FieldSchema("integrationId", STRING),
         FieldSchema("integrationType", STRING, required = true),
         FieldSchema("reason", STRING),
     )
     val INVITE_ACCEPTED = EventSchema(
-        PugEvents.INVITE_ACCEPTED,
+        Events.INVITE_ACCEPTED,
         "inviteAccepted",
         FieldSchema("inviteId", STRING),
         FieldSchema("workspaceId", STRING),
@@ -461,7 +461,7 @@ internal object WellKnownEvents {
         FieldSchema("role", STRING),
     )
     val INVITE_SENT = EventSchema(
-        PugEvents.INVITE_SENT,
+        Events.INVITE_SENT,
         "inviteSent",
         FieldSchema("inviteId", STRING),
         FieldSchema("workspaceId", STRING),
@@ -471,7 +471,7 @@ internal object WellKnownEvents {
         FieldSchema("role", STRING),
     )
     val INVOICE_FAILED = EventSchema(
-        PugEvents.INVOICE_FAILED,
+        Events.INVOICE_FAILED,
         "invoiceFailed",
         FieldSchema("invoiceId", STRING, required = true),
         FieldSchema("subscriptionId", STRING),
@@ -480,51 +480,51 @@ internal object WellKnownEvents {
         FieldSchema("reason", STRING),
     )
     val INVOICE_PAID = EventSchema(
-        PugEvents.INVOICE_PAID,
+        Events.INVOICE_PAID,
         "invoicePaid",
         FieldSchema("invoiceId", STRING, required = true),
         FieldSchema("subscriptionId", STRING),
         FieldSchema("amount", DOUBLE),
         FieldSchema("currency", STRING),
     )
-    val MFA_DISABLED = EventSchema(PugEvents.MFA_DISABLED, "mfaDisabled", FieldSchema("method", STRING))
-    val MFA_ENABLED = EventSchema(PugEvents.MFA_ENABLED, "mfaEnabled", FieldSchema("method", STRING))
+    val MFA_DISABLED = EventSchema(Events.MFA_DISABLED, "mfaDisabled", FieldSchema("method", STRING))
+    val MFA_ENABLED = EventSchema(Events.MFA_ENABLED, "mfaEnabled", FieldSchema("method", STRING))
     val NOTIFICATION_CLICKED = EventSchema(
-        PugEvents.NOTIFICATION_CLICKED,
+        Events.NOTIFICATION_CLICKED,
         "notificationClicked",
         FieldSchema("campaignId", STRING, required = true),
         FieldSchema("notificationType", STRING),
     )
     val NOTIFICATION_DISMISSED = EventSchema(
-        PugEvents.NOTIFICATION_DISMISSED,
+        Events.NOTIFICATION_DISMISSED,
         "notificationDismissed",
         FieldSchema("campaignId", STRING, required = true),
         FieldSchema("notificationType", STRING),
     )
     val NOTIFICATION_RECEIVED = EventSchema(
-        PugEvents.NOTIFICATION_RECEIVED,
+        Events.NOTIFICATION_RECEIVED,
         "notificationReceived",
         FieldSchema("campaignId", STRING, required = true),
         FieldSchema("notificationType", STRING),
     )
     val NPS_SUBMITTED = EventSchema(
-        PugEvents.NPS_SUBMITTED,
+        Events.NPS_SUBMITTED,
         "npsSubmitted",
         FieldSchema("score", INT),
         FieldSchema("comment", STRING),
     )
     val ORDER_REFUNDED = EventSchema(
-        PugEvents.ORDER_REFUNDED,
+        Events.ORDER_REFUNDED,
         "orderRefunded",
         FieldSchema("orderId", STRING, required = true),
         FieldSchema("amount", DOUBLE),
         FieldSchema("currency", STRING),
         FieldSchema("reason", STRING),
     )
-    val PASSWORD_RESET_COMPLETED = EventSchema(PugEvents.PASSWORD_RESET_COMPLETED, "passwordResetCompleted")
-    val PASSWORD_RESET_REQUESTED = EventSchema(PugEvents.PASSWORD_RESET_REQUESTED, "passwordResetRequested")
+    val PASSWORD_RESET_COMPLETED = EventSchema(Events.PASSWORD_RESET_COMPLETED, "passwordResetCompleted")
+    val PASSWORD_RESET_REQUESTED = EventSchema(Events.PASSWORD_RESET_REQUESTED, "passwordResetRequested")
     val PAYMENT_FAILED = EventSchema(
-        PugEvents.PAYMENT_FAILED,
+        Events.PAYMENT_FAILED,
         "paymentFailed",
         FieldSchema("paymentId", STRING),
         FieldSchema("invoiceId", STRING),
@@ -534,19 +534,19 @@ internal object WellKnownEvents {
         FieldSchema("reason", STRING),
     )
     val PAYMENT_METHOD_ADDED = EventSchema(
-        PugEvents.PAYMENT_METHOD_ADDED,
+        Events.PAYMENT_METHOD_ADDED,
         "paymentMethodAdded",
         FieldSchema("paymentMethodId", STRING),
         FieldSchema("paymentMethodType", STRING),
     )
     val PAYMENT_METHOD_REMOVED = EventSchema(
-        PugEvents.PAYMENT_METHOD_REMOVED,
+        Events.PAYMENT_METHOD_REMOVED,
         "paymentMethodRemoved",
         FieldSchema("paymentMethodId", STRING),
         FieldSchema("paymentMethodType", STRING),
     )
     val PAYMENT_SUCCEEDED = EventSchema(
-        PugEvents.PAYMENT_SUCCEEDED,
+        Events.PAYMENT_SUCCEEDED,
         "paymentSucceeded",
         FieldSchema("paymentId", STRING),
         FieldSchema("invoiceId", STRING),
@@ -555,7 +555,7 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val PRODUCT_LIST_VIEWED = EventSchema(
-        PugEvents.PRODUCT_LIST_VIEWED,
+        Events.PRODUCT_LIST_VIEWED,
         "productListViewed",
         FieldSchema("listId", STRING, required = true),
         FieldSchema("listName", STRING),
@@ -563,7 +563,7 @@ internal object WellKnownEvents {
         FieldSchema("itemCount", INT),
     )
     val PRODUCT_VIEWED = EventSchema(
-        PugEvents.PRODUCT_VIEWED,
+        Events.PRODUCT_VIEWED,
         "productViewed",
         FieldSchema("productId", STRING, required = true),
         FieldSchema("productName", STRING),
@@ -574,7 +574,7 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val PURCHASE = EventSchema(
-        PugEvents.PURCHASE,
+        Events.PURCHASE,
         "purchase",
         FieldSchema("productId", STRING),
         FieldSchema("amount", DOUBLE),
@@ -586,7 +586,7 @@ internal object WellKnownEvents {
         FieldSchema("sku", STRING),
     )
     val RECOMMENDATION_CLICKED = EventSchema(
-        PugEvents.RECOMMENDATION_CLICKED,
+        Events.RECOMMENDATION_CLICKED,
         "recommendationClicked",
         FieldSchema("recommendationId", STRING, required = true),
         FieldSchema("itemId", STRING, required = true),
@@ -594,7 +594,7 @@ internal object WellKnownEvents {
         FieldSchema("index", INT),
     )
     val RECOMMENDATION_VIEWED = EventSchema(
-        PugEvents.RECOMMENDATION_VIEWED,
+        Events.RECOMMENDATION_VIEWED,
         "recommendationViewed",
         FieldSchema("recommendationId", STRING, required = true),
         FieldSchema("itemId", STRING),
@@ -602,7 +602,7 @@ internal object WellKnownEvents {
         FieldSchema("index", INT),
     )
     val REFUND_FAILED = EventSchema(
-        PugEvents.REFUND_FAILED,
+        Events.REFUND_FAILED,
         "refundFailed",
         FieldSchema("orderId", STRING, required = true),
         FieldSchema("refundId", STRING),
@@ -611,7 +611,7 @@ internal object WellKnownEvents {
         FieldSchema("reason", STRING),
     )
     val REMOVE_FROM_CART = EventSchema(
-        PugEvents.REMOVE_FROM_CART,
+        Events.REMOVE_FROM_CART,
         "removeFromCart",
         FieldSchema("productId", STRING, required = true),
         FieldSchema("price", DOUBLE),
@@ -623,53 +623,53 @@ internal object WellKnownEvents {
         FieldSchema("sku", STRING),
     )
     private val SCREEN_VIEW = EventSchema(
-        PugEvents.SCREEN_VIEW,
+        Events.SCREEN_VIEW,
         "screenView",
         FieldSchema("screenName", STRING, required = true),
         FieldSchema("screenClass", STRING),
     )
-    val SCROLL = EventSchema(PugEvents.SCROLL, "scroll", FieldSchema("percent", INT), FieldSchema("scrollY", INT))
-    val SEARCH = EventSchema(PugEvents.SEARCH, "search", FieldSchema("query", STRING, required = true))
+    val SCROLL = EventSchema(Events.SCROLL, "scroll", FieldSchema("percent", INT), FieldSchema("scrollY", INT))
+    val SEARCH = EventSchema(Events.SEARCH, "search", FieldSchema("query", STRING, required = true))
     val SEARCH_RESULT_CLICKED = EventSchema(
-        PugEvents.SEARCH_RESULT_CLICKED,
+        Events.SEARCH_RESULT_CLICKED,
         "searchResultClicked",
         FieldSchema("query", STRING, required = true),
         FieldSchema("resultId", STRING, required = true),
         FieldSchema("index", INT),
     )
-    val SHARE = EventSchema(PugEvents.SHARE, "share")
-    val SIGNIN = EventSchema(PugEvents.SIGNIN, "signin")
-    val SIGNOUT = EventSchema(PugEvents.SIGNOUT, "signout")
-    val SIGNUP = EventSchema(PugEvents.SIGNUP, "signup")
+    val SHARE = EventSchema(Events.SHARE, "share")
+    val SIGNIN = EventSchema(Events.SIGNIN, "signin")
+    val SIGNOUT = EventSchema(Events.SIGNOUT, "signout")
+    val SIGNUP = EventSchema(Events.SIGNUP, "signup")
     val SORT_CHANGED = EventSchema(
-        PugEvents.SORT_CHANGED,
+        Events.SORT_CHANGED,
         "sortChanged",
         FieldSchema("key", STRING, required = true),
         FieldSchema("direction", STRING),
     )
     val SUBSCRIPTION_CANCELED = EventSchema(
-        PugEvents.SUBSCRIPTION_CANCELED,
+        Events.SUBSCRIPTION_CANCELED,
         "subscriptionCanceled",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
         FieldSchema("reason", STRING),
     )
     val SUBSCRIPTION_CHANGED = EventSchema(
-        PugEvents.SUBSCRIPTION_CHANGED,
+        Events.SUBSCRIPTION_CHANGED,
         "subscriptionChanged",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("previousPlanId", STRING),
         FieldSchema("newPlanId", STRING),
     )
     val SUBSCRIPTION_PAUSED = EventSchema(
-        PugEvents.SUBSCRIPTION_PAUSED,
+        Events.SUBSCRIPTION_PAUSED,
         "subscriptionPaused",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
         FieldSchema("reason", STRING),
     )
     val SUBSCRIPTION_RENEWED = EventSchema(
-        PugEvents.SUBSCRIPTION_RENEWED,
+        Events.SUBSCRIPTION_RENEWED,
         "subscriptionRenewed",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
@@ -677,14 +677,14 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val SUBSCRIPTION_RESUMED = EventSchema(
-        PugEvents.SUBSCRIPTION_RESUMED,
+        Events.SUBSCRIPTION_RESUMED,
         "subscriptionResumed",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
         FieldSchema("reason", STRING),
     )
     val SUBSCRIPTION_STARTED = EventSchema(
-        PugEvents.SUBSCRIPTION_STARTED,
+        Events.SUBSCRIPTION_STARTED,
         "subscriptionStarted",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
@@ -692,86 +692,86 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val SUBSCRIPTION_TRIAL_WILL_END = EventSchema(
-        PugEvents.SUBSCRIPTION_TRIAL_WILL_END,
+        Events.SUBSCRIPTION_TRIAL_WILL_END,
         "subscriptionTrialWillEnd",
         FieldSchema("subscriptionId", STRING, required = true),
         FieldSchema("planId", STRING),
         FieldSchema("trialId", STRING),
     )
     val SUPPORT_CHAT_STARTED = EventSchema(
-        PugEvents.SUPPORT_CHAT_STARTED,
+        Events.SUPPORT_CHAT_STARTED,
         "supportChatStarted",
         FieldSchema("conversationId", STRING, required = true),
         FieldSchema("topic", STRING),
     )
     val SUPPORT_TICKET_CREATED = EventSchema(
-        PugEvents.SUPPORT_TICKET_CREATED,
+        Events.SUPPORT_TICKET_CREATED,
         "supportTicketCreated",
         FieldSchema("ticketId", STRING, required = true),
         FieldSchema("category", STRING),
         FieldSchema("priority", STRING),
     )
     val SUPPORT_TICKET_RESOLVED = EventSchema(
-        PugEvents.SUPPORT_TICKET_RESOLVED,
+        Events.SUPPORT_TICKET_RESOLVED,
         "supportTicketResolved",
         FieldSchema("ticketId", STRING, required = true),
         FieldSchema("resolution", STRING),
     )
     val SURVEY_COMPLETED = EventSchema(
-        PugEvents.SURVEY_COMPLETED,
+        Events.SURVEY_COMPLETED,
         "surveyCompleted",
         FieldSchema("surveyId", STRING, required = true),
         FieldSchema("questionCount", INT),
     )
     val SURVEY_STARTED = EventSchema(
-        PugEvents.SURVEY_STARTED,
+        Events.SURVEY_STARTED,
         "surveyStarted",
         FieldSchema("surveyId", STRING, required = true),
     )
     val TRIAL_CONVERTED = EventSchema(
-        PugEvents.TRIAL_CONVERTED,
+        Events.TRIAL_CONVERTED,
         "trialConverted",
         FieldSchema("trialId", STRING),
         FieldSchema("subscriptionId", STRING),
         FieldSchema("planId", STRING),
     )
     val TRIAL_STARTED = EventSchema(
-        PugEvents.TRIAL_STARTED,
+        Events.TRIAL_STARTED,
         "trialStarted",
         FieldSchema("trialId", STRING),
         FieldSchema("planId", STRING),
     )
     val VIDEO_COMPLETED = EventSchema(
-        PugEvents.VIDEO_COMPLETED,
+        Events.VIDEO_COMPLETED,
         "videoCompleted",
         FieldSchema("videoId", STRING, required = true),
     )
     val VIDEO_PAUSE = EventSchema(
-        PugEvents.VIDEO_PAUSE,
+        Events.VIDEO_PAUSE,
         "videoPause",
         FieldSchema("videoId", STRING, required = true),
         FieldSchema("position", DURATION),
     )
     val VIDEO_PLAY = EventSchema(
-        PugEvents.VIDEO_PLAY,
+        Events.VIDEO_PLAY,
         "videoPlay",
         FieldSchema("videoId", STRING, required = true),
         FieldSchema("position", DURATION),
     )
     val VIDEO_SEEKED = EventSchema(
-        PugEvents.VIDEO_SEEKED,
+        Events.VIDEO_SEEKED,
         "videoSeeked",
         FieldSchema("videoId", STRING, required = true),
         FieldSchema("fromPosition", DURATION),
         FieldSchema("toPosition", DURATION),
     )
     val VIDEO_STARTED = EventSchema(
-        PugEvents.VIDEO_STARTED,
+        Events.VIDEO_STARTED,
         "videoStarted",
         FieldSchema("videoId", STRING, required = true),
     )
     val WISHLIST_ADDED = EventSchema(
-        PugEvents.WISHLIST_ADDED,
+        Events.WISHLIST_ADDED,
         "wishlistAdded",
         FieldSchema("productId", STRING, required = true),
         FieldSchema("wishlistId", STRING),
@@ -779,31 +779,31 @@ internal object WellKnownEvents {
         FieldSchema("currency", STRING),
     )
     val WISHLIST_REMOVED = EventSchema(
-        PugEvents.WISHLIST_REMOVED,
+        Events.WISHLIST_REMOVED,
         "wishlistRemoved",
         FieldSchema("productId", STRING, required = true),
         FieldSchema("wishlistId", STRING),
     )
     val WORKSPACE_CREATED = EventSchema(
-        PugEvents.WORKSPACE_CREATED,
+        Events.WORKSPACE_CREATED,
         "workspaceCreated",
         FieldSchema("workspaceId", STRING, required = true),
         FieldSchema("workspaceName", STRING),
     )
     val WORKSPACE_DELETED = EventSchema(
-        PugEvents.WORKSPACE_DELETED,
+        Events.WORKSPACE_DELETED,
         "workspaceDeleted",
         FieldSchema("workspaceId", STRING, required = true),
         FieldSchema("reason", STRING),
     )
     val WORKSPACE_JOINED = EventSchema(
-        PugEvents.WORKSPACE_JOINED,
+        Events.WORKSPACE_JOINED,
         "workspaceJoined",
         FieldSchema("workspaceId", STRING, required = true),
         FieldSchema("role", STRING),
     )
     val WORKSPACE_ROLE_CHANGED = EventSchema(
-        PugEvents.WORKSPACE_ROLE_CHANGED,
+        Events.WORKSPACE_ROLE_CHANGED,
         "workspaceRoleChanged",
         FieldSchema("workspaceId", STRING, required = true),
         FieldSchema("memberId", STRING, required = true),
@@ -811,7 +811,7 @@ internal object WellKnownEvents {
         FieldSchema("newRole", STRING, required = true),
     )
     val WORKSPACE_SETTINGS_UPDATED = EventSchema(
-        PugEvents.WORKSPACE_SETTINGS_UPDATED,
+        Events.WORKSPACE_SETTINGS_UPDATED,
         "workspaceSettingsUpdated",
         FieldSchema("workspaceId", STRING, required = true),
         FieldSchema("setting", STRING, required = true),

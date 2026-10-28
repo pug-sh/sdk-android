@@ -5,18 +5,18 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugStorage
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Storage
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.ThrowingStorage
 
-class SafePugStorageTest {
+class SafeStorageTest {
     private val logger = RecordingLogger()
 
     @Test
     fun `a healthy store is used directly`() {
-        val primary = MemoryPugStorage()
-        val storage = SafePugStorage(primary, logger.safe())
+        val primary = MemoryStorage()
+        val storage = SafeStorage(primary, logger.safe())
 
         storage.putString("a", "1")
         storage.putString("b", "2")
@@ -32,7 +32,7 @@ class SafePugStorageTest {
     fun `the first failure moves every later call to memory`() {
         val failure = IOException("disk full")
         val primary = ThrowingStorage(failure)
-        val storage = SafePugStorage(primary, logger.safe())
+        val storage = SafeStorage(primary, logger.safe())
 
         storage.putString("a", "1")
         storage.putString("b", "2")
@@ -48,7 +48,7 @@ class SafePugStorageTest {
 
     @Test
     fun `a failed read reports nothing stored`() {
-        val storage = SafePugStorage(ThrowingStorage(SecurityException()), logger.safe())
+        val storage = SafeStorage(ThrowingStorage(SecurityException()), logger.safe())
 
         assertNull(storage.getString("a"))
         storage.putString("a", "1")
@@ -58,7 +58,7 @@ class SafePugStorageTest {
     @Test
     fun `errors and cancellations from host storage are contained too`() {
         for (failure in listOf(StackOverflowError(), kotlinx.coroutines.CancellationException("host"))) {
-            val storage = SafePugStorage(ThrowingStorage(failure), RecordingLogger().safe())
+            val storage = SafeStorage(ThrowingStorage(failure), RecordingLogger().safe())
 
             storage.remove("a")
             storage.putString("a", "1")
@@ -70,14 +70,14 @@ class SafePugStorageTest {
     @Test
     fun `a store that fails only on writes keeps serving what was read`() {
         val primary =
-            object : PugStorage {
+            object : Storage {
                 override fun getString(key: String): String? = "stored"
 
                 override fun putString(key: String, value: String) = throw IOException("read-only")
 
                 override fun remove(key: String) = Unit
             }
-        val storage = SafePugStorage(primary, logger.safe())
+        val storage = SafeStorage(primary, logger.safe())
 
         assertEquals("stored", storage.getString("a"))
         storage.putString("a", "new")
@@ -87,7 +87,7 @@ class SafePugStorageTest {
 
     @Test
     fun `memory storage round-trips`() {
-        val storage = MemoryPugStorage()
+        val storage = MemoryStorage()
 
         storage.putString("a", "1")
         storage.putString("a", "2")
@@ -100,7 +100,7 @@ class SafePugStorageTest {
 
     @Test
     fun `keys follow the family scheme`() {
-        val keys = PugStorageKeys("proj_1")
+        val keys = StorageKeys("proj_1")
 
         assertEquals(
             listOf(

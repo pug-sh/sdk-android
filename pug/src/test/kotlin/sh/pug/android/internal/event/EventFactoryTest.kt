@@ -11,7 +11,7 @@ import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
-import sh.pug.android.internal.wire.PugWire
+import sh.pug.android.internal.wire.Wire
 
 class EventFactoryTest {
     private val logger = RecordingLogger()
@@ -130,7 +130,7 @@ class EventFactoryTest {
 
         val event = assertNotNull(create(many))
 
-        assertTrue(PugWire.eventSize(event) <= MAX_BATCH_BYTES)
+        assertTrue(Wire.eventSize(event) <= MAX_BATCH_BYTES)
     }
 
     private fun create(properties: Map<String, PropertyValue> = emptyMap()) = factory.create(

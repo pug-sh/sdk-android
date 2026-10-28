@@ -2,11 +2,11 @@ package sh.pug.android.internal.queue
 
 import org.json.JSONArray
 import org.json.JSONObject
-import sh.pug.android.PugStorage
+import sh.pug.android.Storage
 import sh.pug.android.internal.identity.RESERVED_ID_PREFIX
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.wire.Event
-import sh.pug.android.internal.wire.PugWire
+import sh.pug.android.internal.wire.Wire
 
 /**
  * Undelivered events, persisted as one JSON array. A batch is sent under a lock: [lock] takes events
@@ -15,7 +15,7 @@ import sh.pug.android.internal.wire.PugWire
  * mid-send resends the batch on its next launch.
  */
 internal class EventQueue(
-    private val storage: PugStorage,
+    private val storage: Storage,
     private val key: String,
     private val logger: SafeLogger,
     private val maxQueueSize: Int,
@@ -125,7 +125,7 @@ internal class EventQueue(
         return dropped
     }
 
-    private fun entry(event: Event) = Entry(event, EventJson.encode(event), PugWire.eventSize(event))
+    private fun entry(event: Event) = Entry(event, EventJson.encode(event), Wire.eventSize(event))
 
     private fun overflow(outcome: String) {
         if (overflowWarned) {

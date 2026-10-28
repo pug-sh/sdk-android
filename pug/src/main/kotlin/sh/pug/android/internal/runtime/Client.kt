@@ -13,14 +13,14 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugEvents
-import sh.pug.android.PugOptions
-import sh.pug.android.PugStorage
+import sh.pug.android.Events
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Options
+import sh.pug.android.Storage
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent
+import sh.pug.android.internal.Clock
 import sh.pug.android.internal.IdGenerator
-import sh.pug.android.internal.PugClock
 import sh.pug.android.internal.UuidV7Generator
 import sh.pug.android.internal.consent.TrackingConsentController
 import sh.pug.android.internal.event.EventFactory
@@ -39,11 +39,11 @@ import sh.pug.android.internal.platform.AutoProperties
 import sh.pug.android.internal.platform.LifecycleObserver
 import sh.pug.android.internal.platform.Platform
 import sh.pug.android.internal.queue.EventQueue
-import sh.pug.android.internal.storage.FilePugStorage
-import sh.pug.android.internal.storage.PugStorageKeys
-import sh.pug.android.internal.storage.SafePugStorage
-import sh.pug.android.internal.transport.PugTransport
-import sh.pug.android.internal.transport.PugTransportException
+import sh.pug.android.internal.storage.FileStorage
+import sh.pug.android.internal.storage.SafeStorage
+import sh.pug.android.internal.storage.StorageKeys
+import sh.pug.android.internal.transport.Transport
+import sh.pug.android.internal.transport.TransportException
 import sh.pug.android.internal.truncateUtf8
 import sh.pug.android.internal.wire.IdentifyRequest
 import sh.pug.android.internal.wire.JsonValue
@@ -58,13 +58,13 @@ internal const val TEARDOWN_TIMEOUT_MS: Long = 10_000L
  * order. The components holding state are built on the worker once the previous client's teardown
  * is over, and live there.
  */
-internal class PugClient(
+internal class Client(
     private val projectId: String,
-    private val options: PugOptions,
-    private val transport: PugTransport,
+    private val options: Options,
+    private val transport: Transport,
     worker: CoroutineDispatcher,
     private val platform: Platform,
-    private val clock: PugClock = PugClock.SYSTEM,
+    private val clock: Clock = Clock.SYSTEM,
     private val ids: IdGenerator = UuidV7Generator(clock),
     private val random: Random = Random.Default,
     sdkInt: Int = Build.VERSION.SDK_INT,
@@ -107,7 +107,7 @@ internal class PugClient(
     private lateinit var dispatcher: EventDispatcher
     private lateinit var installs: InstallTracker
     private lateinit var deviceProperties: AutoProperties
-    private var fileStorage: FilePugStorage? = null
+    private var fileStorage: FileStorage? = null
     private var disposed = false
     private var identifyCalls = 0
     private var linkedIdentifyCall = 0
@@ -410,8 +410,8 @@ internal class PugClient(
     }
 
     private fun restore(startTime: Long) {
-        val storage = SafePugStorage(options.storage ?: defaultStorage(), logger)
-        val keys = PugStorageKeys(projectId)
+        val storage = SafeStorage(options.storage ?: defaultStorage(), logger)
+        val keys = StorageKeys(projectId)
         consent =
             TrackingConsentController(
                 storage,
@@ -447,7 +447,7 @@ internal class PugClient(
         logger.debug("Pug started for project \"$projectId\"")
     }
 
-    private fun defaultStorage(): PugStorage {
+    private fun defaultStorage(): Storage {
         val directory =
             try {
                 platform.storageDirectory()
@@ -457,9 +457,9 @@ internal class PugClient(
             }
         if (directory == null) {
             logger.warn("No storage directory is available; state is kept in memory until the app restarts")
-            return MemoryPugStorage()
+            return MemoryStorage()
         }
-        return FilePugStorage(directory, logger, scope).also { fileStorage = it }
+        return FileStorage(directory, logger, scope).also { fileStorage = it }
     }
 
     private fun readAutoProperties(): AutoProperties = try {
@@ -550,12 +550,12 @@ internal class PugClient(
 
     private fun open(now: Long) {
         if (!options.autoOpenCloseEvents || opened) return
-        opened = capture(PugEvents.APP_OPEN, emptyMap(), now)
+        opened = capture(Events.APP_OPEN, emptyMap(), now)
     }
 
     private fun enterBackground(now: Long) {
         visible = false
-        if (options.autoOpenCloseEvents && opened && capture(PugEvents.APP_CLOSE, emptyMap(), now, immediate = true)) {
+        if (options.autoOpenCloseEvents && opened && capture(Events.APP_CLOSE, emptyMap(), now, immediate = true)) {
             opened = false
         }
         // The process may be frozen or killed from here on: whatever is queued gets its send now.
@@ -588,10 +588,10 @@ internal class PugClient(
 
     private fun captureScreenView(name: String, screenClass: String?, callTime: Long) {
         val properties = propertyMapper.mapCustom(
-            PugEvents.SCREEN_VIEW,
+            Events.SCREEN_VIEW,
             mapOf("screenName" to name, "screenClass" to screenClass),
         )
-        capture(PugEvents.SCREEN_VIEW, properties, callTime)
+        capture(Events.SCREEN_VIEW, properties, callTime)
     }
 
     private fun sendIdentify(externalId: String, traits: Map<String, JsonValue>) {
@@ -612,7 +612,7 @@ internal class PugClient(
                 transport.identify(request)
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: PugTransportException) {
+            } catch (e: TransportException) {
                 logger.error("identify() failed (${e.detail})", e)
                 return@launch
             } catch (t: Throwable) {

@@ -3,15 +3,15 @@ package sh.pug.android.internal.lifecycle
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugEvents.APP_INSTALL
-import sh.pug.android.PugEvents.APP_UPDATE
+import sh.pug.android.Events.APP_INSTALL
+import sh.pug.android.Events.APP_UPDATE
+import sh.pug.android.MemoryStorage
 import sh.pug.android.internal.RecordingLogger
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.StorageKeys
 
 class InstallTrackerTest {
-    private val storage = MemoryPugStorage()
-    private val keys = PugStorageKeys("proj_1")
+    private val storage = MemoryStorage()
+    private val keys = StorageKeys("proj_1")
     private val logger = RecordingLogger()
     private val captured = mutableListOf<Pair<String, Map<String, Any?>>>()
     private val tracker = InstallTracker(storage, keys, logger.safe())

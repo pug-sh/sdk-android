@@ -8,14 +8,14 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.json.JSONObject
-import sh.pug.android.MemoryPugStorage
+import sh.pug.android.MemoryStorage
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.StorageKeys
 
 class IdentityTest {
-    private val storage = MemoryPugStorage()
-    private val keys = PugStorageKeys("proj_1")
+    private val storage = MemoryStorage()
+    private val keys = StorageKeys("proj_1")
     private val logger = RecordingLogger()
     private val ids = SequentialIds()
 

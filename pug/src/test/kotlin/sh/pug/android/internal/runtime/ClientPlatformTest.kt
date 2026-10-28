@@ -16,8 +16,8 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.json.JSONArray
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugOptions
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Options
 import sh.pug.android.TrackingConsent.DENIED
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
@@ -27,15 +27,15 @@ import sh.pug.android.internal.platform.AutoProperties
 import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.platform.LifecycleObserver
 import sh.pug.android.internal.platform.Platform
-import sh.pug.android.internal.storage.FilePugStorage
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.FileStorage
 import sh.pug.android.internal.storage.STORAGE_SYNC_DELAY_MS
+import sh.pug.android.internal.storage.StorageKeys
 import sh.pug.android.internal.transport.RpcCode
 import sh.pug.android.internal.wire.PropertyValue.IntValue
 import sh.pug.android.internal.wire.PropertyValue.StringValue
 
 /** The client with a device under it: auto-properties, the app lifecycle, screens, installs, files. */
-class PugClientPlatformTest {
+class ClientPlatformTest {
     @get:Rule
     val folder = TemporaryFolder()
 
@@ -43,8 +43,8 @@ class PugClientPlatformTest {
     private val worker = StandardTestDispatcher(scheduler)
     private val transport = FakeTransport { scheduler.currentTime }
     private val logger = RecordingLogger()
-    private val storage = MemoryPugStorage()
-    private val keys = PugStorageKeys(PROJECT)
+    private val storage = MemoryStorage()
+    private val keys = StorageKeys(PROJECT)
     private val ids = SequentialIds()
 
     // Time that passes on the main thread while the worker has not run yet.
@@ -391,7 +391,7 @@ class PugClientPlatformTest {
         scheduler.runCurrent()
 
         assertEquals(emptyList(), storedKinds(directory))
-        assertEquals("denied", File(directory, FilePugStorage.fileName(keys.consent)).readText())
+        assertEquals("denied", File(directory, FileStorage.fileName(keys.consent)).readText())
     }
 
     @Test
@@ -541,16 +541,16 @@ class PugClientPlatformTest {
     private fun client(
         platform: Platform = FakePlatform(),
         previousTeardown: Job? = null,
-        configure: PugOptions.Builder.() -> Unit = {},
-    ): PugClient {
+        configure: Options.Builder.() -> Unit = {},
+    ): Client {
         val options =
-            PugOptions("pub_key") {
-                logger = this@PugClientPlatformTest.logger
-                storage = this@PugClientPlatformTest.storage
+            Options("pub_key") {
+                logger = this@ClientPlatformTest.logger
+                storage = this@ClientPlatformTest.storage
                 debug = true
                 configure()
             }
-        return PugClient(
+        return Client(
             PROJECT,
             options,
             transport,
@@ -564,7 +564,7 @@ class PugClientPlatformTest {
     }
 
     private fun storedKinds(directory: File): List<String> {
-        val file = File(directory, FilePugStorage.fileName(keys.queue))
+        val file = File(directory, FileStorage.fileName(keys.queue))
         if (!file.exists()) return emptyList()
         val array = JSONArray(file.readText())
         return List(array.length()) { array.getJSONObject(it).getString("kind") }

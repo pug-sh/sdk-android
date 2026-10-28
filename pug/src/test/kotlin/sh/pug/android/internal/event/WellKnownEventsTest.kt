@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import sh.pug.android.PugEvents
+import sh.pug.android.Events
 
 class WellKnownEventsTest {
     private val events = EventProtos.android
@@ -37,9 +37,9 @@ class WellKnownEventsTest {
     }
 
     @Test
-    fun `PugEvents has the kind of every Android event`() {
+    fun `Events has the kind of every Android event`() {
         val constants =
-            PugEvents::class.java.declaredFields
+            Events::class.java.declaredFields
                 .filter { Modifier.isStatic(it.modifiers) && it.type == String::class.java }
                 .associate { it.name to it.get(null) }
 

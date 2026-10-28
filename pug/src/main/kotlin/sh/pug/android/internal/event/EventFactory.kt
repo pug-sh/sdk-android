@@ -5,7 +5,7 @@ import sh.pug.android.internal.IdGenerator
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
-import sh.pug.android.internal.wire.PugWire
+import sh.pug.android.internal.wire.Wire
 
 internal const val PLATFORM: String = "android"
 
@@ -65,7 +65,7 @@ internal class EventFactory(
                 autoProperties = auto,
                 customProperties = customProperties,
             )
-        val size = PugWire.eventSize(event)
+        val size = Wire.eventSize(event)
         if (size > MAX_BATCH_BYTES) {
             logger.error(
                 "Event \"$kind\" was dropped: it encodes to $size bytes, over the $MAX_BATCH_BYTES-byte request limit",

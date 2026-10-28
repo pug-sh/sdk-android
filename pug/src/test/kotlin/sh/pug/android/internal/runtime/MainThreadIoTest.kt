@@ -19,14 +19,14 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import sh.pug.android.PugOptions
+import sh.pug.android.Options
 import sh.pug.android.TrackOptions
 import sh.pug.android.internal.event.WellKnownEvents
 import sh.pug.android.internal.logging.LogcatLogger
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.platform.AndroidPlatform
 import sh.pug.android.internal.platform.HomeActivity
-import sh.pug.android.internal.transport.HttpPugTransport
+import sh.pug.android.internal.transport.HttpTransport
 
 /**
  * `Pug.init` and most calls run on the main thread, often under StrictMode, so whatever reads the disk
@@ -69,15 +69,15 @@ class MainThreadIoTest {
     @Test
     fun `init, calls and lifecycle callbacks on the main thread leave the disk and the system to the worker`() {
         val application = RuntimeEnvironment.getApplication() as RecordingApplication
-        val clients = mutableListOf<PugClient>()
+        val clients = mutableListOf<Client>()
         val worker = Dispatchers.IO.limitedParallelism(1)
         val facade =
-            PugFacade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { context, projectId, options ->
-                val transport = HttpPugTransport(options.endpoint, options.apiKey)
-                PugClient(projectId, options, transport, worker, AndroidPlatform(context)).also { clients += it }
+            Facade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { context, projectId, options ->
+                val transport = HttpTransport(options.endpoint, options.apiKey)
+                Client(projectId, options, transport, worker, AndroidPlatform(context)).also { clients += it }
             }
 
-        facade.init(application, "proj_main_thread", PugOptions("pub_test") { dryRun = true })
+        facade.init(application, "proj_main_thread", Options("pub_test") { dryRun = true })
         facade.track("checkout_started", mapOf("cartId" to "c1"), TrackOptions { immediate = true })
         facade.trackTyped(WellKnownEvents.SEARCH, null, null, "trail shoes")
         facade.screen("Settings")

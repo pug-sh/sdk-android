@@ -21,9 +21,9 @@ import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.event.EventProtos
 import sh.pug.android.internal.platform.FakePlatform
+import sh.pug.android.internal.runtime.Client
+import sh.pug.android.internal.runtime.Facade
 import sh.pug.android.internal.runtime.FakeTransport
-import sh.pug.android.internal.runtime.PugClient
-import sh.pug.android.internal.runtime.PugFacade
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
 import sh.pug.android.internal.wire.PropertyValue.BoolValue
@@ -41,8 +41,8 @@ class TrackNamespaceTest {
     private val logger = RecordingLogger()
     private val fallbackLogger = RecordingLogger()
     private val facade =
-        PugFacade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
-            PugClient(
+        Facade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
+            Client(
                 projectId,
                 options,
                 transport,
@@ -179,7 +179,7 @@ class TrackNamespaceTest {
     @Test
     fun `the events Pug tracks itself have no method, only a kind`() {
         val methods = TrackNamespace::class.java.declaredMethods.map { it.name }.toSet()
-        val kinds = PugEvents::class.java.fields.map { it.get(null) }.toSet()
+        val kinds = Events::class.java.fields.map { it.get(null) }.toSet()
 
         for (kind in SDK_TRACKED) {
             val event = EventProtos.android.single { it.kind == kind }
@@ -280,9 +280,9 @@ class TrackNamespaceTest {
 
     private fun start() {
         val options =
-            PugOptions("pub_key") {
+            Options("pub_key") {
                 logger = this@TrackNamespaceTest.logger
-                storage = MemoryPugStorage()
+                storage = MemoryStorage()
                 debug = true
                 batchMaxSize = 1_000
             }

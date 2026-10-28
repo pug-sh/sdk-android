@@ -16,7 +16,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.json.JSONArray
-import sh.pug.android.MemoryPugStorage
+import sh.pug.android.MemoryStorage
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.queue.EventJson
@@ -28,7 +28,7 @@ import sh.pug.android.internal.wire.Event
 class EventDispatcherTest {
     private val scheduler = TestCoroutineScheduler()
     private val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(scheduler))
-    private val storage = MemoryPugStorage()
+    private val storage = MemoryStorage()
     private val logger = RecordingLogger()
     private val transport = FakeTransport { scheduler.currentTime }
 

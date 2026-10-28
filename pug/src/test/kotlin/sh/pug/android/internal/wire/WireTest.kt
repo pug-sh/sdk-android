@@ -8,12 +8,12 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class PugWireTest {
+class WireTest {
     @Test
     fun `batch with every property value type matches protobuf-java byte for byte`() {
         val events = listOf(fullEvent(), minimalEvent())
 
-        val encoded = PugWire.encodeBatchCreateRequest(events)
+        val encoded = Wire.encodeBatchCreateRequest(events)
 
         val reference = ReferenceMessages.batch(events)
         assertContentEquals(reference.toByteArray(), encoded)
@@ -34,7 +34,7 @@ class PugWireTest {
 
         val parsed = DynamicMessage.parseFrom(
             ReferenceMessages.batchCreateRequest,
-            PugWire.encodeBatchCreateRequest(listOf(event)),
+            Wire.encodeBatchCreateRequest(listOf(event)),
         )
 
         val customProperties = parsed.repeated("events").single().repeated("custom_properties")
@@ -53,7 +53,7 @@ class PugWireTest {
 
     @Test
     fun `empty batch encodes to an empty message`() {
-        assertContentEquals(ByteArray(0), PugWire.encodeBatchCreateRequest(emptyList()))
+        assertContentEquals(ByteArray(0), Wire.encodeBatchCreateRequest(emptyList()))
     }
 
     @Test
@@ -78,9 +78,9 @@ class PugWireTest {
             )
 
         for (event in events) {
-            assertEquals(PugWire.encodeBatchCreateRequest(listOf(event)).size, PugWire.eventSize(event), event.kind)
+            assertEquals(Wire.encodeBatchCreateRequest(listOf(event)).size, Wire.eventSize(event), event.kind)
         }
-        assertEquals(PugWire.encodeBatchCreateRequest(events).size, events.sumOf { PugWire.eventSize(it) })
+        assertEquals(Wire.encodeBatchCreateRequest(events).size, events.sumOf { Wire.eventSize(it) })
     }
 
     @Test
@@ -118,7 +118,7 @@ class PugWireTest {
                     ),
             )
 
-        val encoded = PugWire.encodeIdentifyRequest(request)
+        val encoded = Wire.encodeIdentifyRequest(request)
 
         val reference = ReferenceMessages.identify(request)
         assertContentEquals(reference.toByteArray(), encoded)
@@ -129,7 +129,7 @@ class PugWireTest {
     fun `identify omits traits and anonymous id when absent`() {
         val request = IdentifyRequest(externalId = "user-42", traits = emptyMap(), anonymousId = null)
 
-        val encoded = PugWire.encodeIdentifyRequest(request)
+        val encoded = Wire.encodeIdentifyRequest(request)
 
         assertContentEquals(ReferenceMessages.identify(request).toByteArray(), encoded)
         val parsed = DynamicMessage.parseFrom(ReferenceMessages.identifyRequest, encoded)
@@ -162,7 +162,7 @@ class PugWireTest {
                 .setUnknownFields(unknown)
                 .build()
 
-        val decoded = PugWire.decodeBatchCreateResponse(response.toByteArray())
+        val decoded = Wire.decodeBatchCreateResponse(response.toByteArray())
 
         assertEquals(BatchCreateResponse(7, mapOf("salt_unavailable" to 2L, "day_out_of_range" to 1L)), decoded)
     }
@@ -171,12 +171,12 @@ class PugWireTest {
     fun `decodes uint32 counts above Int MAX_VALUE`() {
         val response = ReferenceMessages.batchResponse(accepted = -1, dropped = 0, droppedByReason = emptyMap())
 
-        assertEquals(4_294_967_295L, PugWire.decodeBatchCreateResponse(response.toByteArray()).accepted)
+        assertEquals(4_294_967_295L, Wire.decodeBatchCreateResponse(response.toByteArray()).accepted)
     }
 
     @Test
     fun `an empty body decodes as nothing accepted`() {
-        assertEquals(BatchCreateResponse(0, emptyMap()), PugWire.decodeBatchCreateResponse(ByteArray(0)))
+        assertEquals(BatchCreateResponse(0, emptyMap()), Wire.decodeBatchCreateResponse(ByteArray(0)))
     }
 
     @Test
@@ -185,10 +185,10 @@ class PugWireTest {
             it.copyOf(it.size - 1)
         }
 
-        assertFailsWith<ProtoDecodeException> { PugWire.decodeBatchCreateResponse(truncated) }
-        assertFailsWith<ProtoDecodeException> { PugWire.decodeBatchCreateResponse(byteArrayOf(0x08)) }
-        assertFailsWith<ProtoDecodeException> { PugWire.decodeBatchCreateResponse(byteArrayOf(0x1A, 0x7F)) }
-        assertFailsWith<ProtoDecodeException> { PugWire.decodeBatchCreateResponse(byteArrayOf(0x0B)) }
+        assertFailsWith<ProtoDecodeException> { Wire.decodeBatchCreateResponse(truncated) }
+        assertFailsWith<ProtoDecodeException> { Wire.decodeBatchCreateResponse(byteArrayOf(0x08)) }
+        assertFailsWith<ProtoDecodeException> { Wire.decodeBatchCreateResponse(byteArrayOf(0x1A, 0x7F)) }
+        assertFailsWith<ProtoDecodeException> { Wire.decodeBatchCreateResponse(byteArrayOf(0x0B)) }
     }
 
     private fun fullEvent() = Event(

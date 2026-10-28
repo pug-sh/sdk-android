@@ -23,7 +23,7 @@ import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.IdentifyRequest
 import sh.pug.android.internal.wire.ProtoDecodeException
-import sh.pug.android.internal.wire.PugWire
+import sh.pug.android.internal.wire.Wire
 
 internal const val DEFAULT_BATCH_TIMEOUT_MILLIS: Long = 10_000L
 internal const val DEFAULT_IDENTIFY_TIMEOUT_MILLIS: Long = 15_000L
@@ -31,28 +31,28 @@ internal const val DEFAULT_IDENTIFY_TIMEOUT_MILLIS: Long = 15_000L
 // "PUG" in ASCII; tags from 0xFFFFFF00 up are reserved for the system.
 internal const val TRAFFIC_STATS_TAG: Int = 0x505547
 
-internal class HttpPugTransport(
+internal class HttpTransport(
     endpoint: String,
     private val apiKey: String,
     private val batchTimeoutMillis: Long = DEFAULT_BATCH_TIMEOUT_MILLIS,
     private val identifyTimeoutMillis: Long = DEFAULT_IDENTIFY_TIMEOUT_MILLIS,
     private val executor: Executor = Dispatchers.IO.asExecutor(),
     private val openConnection: (URL) -> URLConnection = URL::openConnection,
-) : PugTransport {
+) : Transport {
     private val baseUrl = endpoint.trimEnd('/')
 
     override suspend fun sendBatch(events: List<Event>): BatchCreateResponse? {
-        val body = encode { PugWire.encodeBatchCreateRequest(events) }
+        val body = encode { Wire.encodeBatchCreateRequest(events) }
         val response = unary(BATCH_CREATE_PATH, body, batchTimeoutMillis)
         return try {
-            PugWire.decodeBatchCreateResponse(response)
+            Wire.decodeBatchCreateResponse(response)
         } catch (e: ProtoDecodeException) {
             null
         }
     }
 
     override suspend fun identify(request: IdentifyRequest) {
-        val body = encode { PugWire.encodeIdentifyRequest(request) }
+        val body = encode { Wire.encodeIdentifyRequest(request) }
         unary(IDENTIFY_PATH, body, identifyTimeoutMillis)
     }
 
@@ -60,7 +60,7 @@ internal class HttpPugTransport(
     private inline fun encode(block: () -> ByteArray): ByteArray = try {
         block()
     } catch (t: Throwable) {
-        throw PugTransportException(RpcCode.INTERNAL, "could not encode the request", t, isPermanent = true)
+        throw TransportException(RpcCode.INTERNAL, "could not encode the request", t, isPermanent = true)
     }
 
     private suspend fun unary(path: String, body: ByteArray, timeoutMillis: Long): ByteArray {
@@ -70,13 +70,13 @@ internal class HttpPugTransport(
             try {
                 withTimeout(timeoutMillis) { exchange(connection, body, deadlineNanos) }
             } catch (e: TimeoutCancellationException) {
-                throw PugTransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out after $timeoutMillis ms", e)
+                throw TransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out after $timeoutMillis ms", e)
             }
         if (response.status !in 200..299) throw errorFrom(response)
         // A 2xx that is not protobuf comes from something between us and the server (a captive
         // portal, a proxy), which goes away when the network changes: retry rather than drop.
         if (response.contentType.isNotEmpty() && !response.contentType.contains("proto", ignoreCase = true)) {
-            throw PugTransportException(
+            throw TransportException(
                 RpcCode.UNAVAILABLE,
                 "expected a protobuf response but got content-type \"${response.contentType}\"",
             )
@@ -89,11 +89,11 @@ internal class HttpPugTransport(
             try {
                 openConnection(URL(baseUrl + path)) as HttpURLConnection
             } catch (e: MalformedURLException) {
-                throw PugTransportException(RpcCode.INVALID_ARGUMENT, "invalid endpoint URL", e)
+                throw TransportException(RpcCode.INVALID_ARGUMENT, "invalid endpoint URL", e)
             } catch (e: ClassCastException) {
-                throw PugTransportException(RpcCode.INVALID_ARGUMENT, "endpoint is not an http(s) URL", e)
+                throw TransportException(RpcCode.INVALID_ARGUMENT, "endpoint is not an http(s) URL", e)
             } catch (e: IOException) {
-                throw PugTransportException(RpcCode.UNAVAILABLE, "could not open a connection", e)
+                throw TransportException(RpcCode.UNAVAILABLE, "could not open a connection", e)
             }
         connection.requestMethod = "POST"
         connection.doOutput = true
@@ -145,15 +145,15 @@ internal class HttpPugTransport(
     } catch (e: Exception) {
         connection.disconnect()
         throw when (e) {
-            is SocketTimeoutException -> PugTransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out", e)
+            is SocketTimeoutException -> TransportException(RpcCode.DEADLINE_EXCEEDED, "request timed out", e)
 
             is IOException ->
-                PugTransportException(RpcCode.UNAVAILABLE, "network request failed (${e.javaClass.simpleName})", e)
+                TransportException(RpcCode.UNAVAILABLE, "network request failed (${e.javaClass.simpleName})", e)
 
-            is SecurityException -> PugTransportException(RpcCode.UNAVAILABLE, "network access was denied", e)
+            is SecurityException -> TransportException(RpcCode.UNAVAILABLE, "network access was denied", e)
 
             else ->
-                PugTransportException(
+                TransportException(
                     RpcCode.INTERNAL,
                     "HTTP client failed (${e.javaClass.simpleName})",
                     e,
@@ -162,11 +162,11 @@ internal class HttpPugTransport(
         }
     }
 
-    private fun errorFrom(response: RawResponse): PugTransportException {
+    private fun errorFrom(response: RawResponse): TransportException {
         val connectError = parseConnectError(response.body)
         val code = connectError?.first ?: RpcCode.fromHttpStatus(response.status)
         val message = connectError?.second?.takeIf { it.isNotEmpty() } ?: "HTTP ${response.status}"
-        return PugTransportException(code, message)
+        return TransportException(code, message)
     }
 
     private fun parseConnectError(body: ByteArray): Pair<RpcCode?, String>? {

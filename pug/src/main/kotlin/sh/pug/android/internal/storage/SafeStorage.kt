@@ -1,7 +1,7 @@
 package sh.pug.android.internal.storage
 
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugStorage
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Storage
 import sh.pug.android.internal.logging.SafeLogger
 
 /**
@@ -10,8 +10,8 @@ import sh.pug.android.internal.logging.SafeLogger
  * lost until the client is destroyed. Throwables are caught whole: storage is plain host code, not a
  * suspension point, so nothing it throws is a cancellation of ours.
  */
-internal class SafePugStorage(primary: PugStorage, private val logger: SafeLogger) : PugStorage {
-    private var active: PugStorage = primary
+internal class SafeStorage(primary: Storage, private val logger: SafeLogger) : Storage {
+    private var active: Storage = primary
     private var failedOver = false
 
     // A fresh memory store holds nothing, so a failed read or remove has nothing to retry.
@@ -41,7 +41,7 @@ internal class SafePugStorage(primary: PugStorage, private val logger: SafeLogge
     private fun failOver(failure: Throwable): Boolean {
         if (failedOver) return false
         failedOver = true
-        active = MemoryPugStorage()
+        active = MemoryStorage()
         logger.warn("Storage failed; state is kept in memory only until the app restarts", failure)
         return true
     }

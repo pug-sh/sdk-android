@@ -5,7 +5,7 @@ import sh.pug.android.internal.utf8Length
 // Field numbers mirror proto/sdk/events/v1/events.proto, proto/sdk/profiles/v1/profiles.proto,
 // proto/common/v1/property_value.proto and google/protobuf/{timestamp,struct}.proto. Map entries
 // are written key-sorted, which is what protobuf-java's deterministic serialization produces.
-internal object PugWire {
+internal object Wire {
     fun encodeBatchCreateRequest(events: List<Event>): ByteArray {
         val request = ProtoWriter(initialCapacity = 512 * events.size)
         for (event in events) {
@@ -141,7 +141,7 @@ internal object PugWire {
         if (value.isNotEmpty()) writeString(field, value)
     }
 
-    // Mirrors event() field by field without allocating; PugWireTest pins it to the encoder.
+    // Mirrors event() field by field without allocating; WireTest pins it to the encoder.
     private fun eventMessageSize(event: Event): Int {
         var size = 0
         if (event.eventId.isNotEmpty()) size += stringFieldSize(1, event.eventId)

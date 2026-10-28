@@ -3,7 +3,7 @@
 package sh.pug.android
 
 import sh.pug.android.internal.event.WellKnownEvents
-import sh.pug.android.internal.runtime.PugFacade
+import sh.pug.android.internal.runtime.Facade
 
 /**
  * The well-known events, one method each but for those below. `Pug.track.addToCart(productId = "p1", price = 9.99)`
@@ -20,7 +20,7 @@ import sh.pug.android.internal.runtime.PugFacade
  * Java sees only the methods of the events without properties, such as `Pug.track.signup()`: for the others it tracks
  * an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent("p1"))`.
  */
-public class TrackNamespace internal constructor(private val facade: PugFacade) {
+public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `add_to_cart`. */
     @JvmSynthetic
     public fun addToCart(

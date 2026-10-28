@@ -1,38 +1,4 @@
-public final class sh/pug/android/MemoryPugStorage : sh/pug/android/PugStorage {
-	public fun <init> ()V
-	public fun getString (Ljava/lang/String;)Ljava/lang/String;
-	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
-	public fun remove (Ljava/lang/String;)V
-}
-
-public final class sh/pug/android/Pug {
-	public static final field INSTANCE Lsh/pug/android/Pug;
-	public static final field track Lsh/pug/android/TrackNamespace;
-	public static final fun destroy ()V
-	public static final fun flush ()V
-	public static final fun getTrackingConsent ()Lsh/pug/android/TrackingConsent;
-	public static final fun identify (Ljava/lang/String;)V
-	public static final fun identify (Ljava/lang/String;Ljava/util/Map;)V
-	public static synthetic fun identify$default (Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
-	public static final fun init (Landroid/content/Context;Ljava/lang/String;Lsh/pug/android/PugOptions;)V
-	public static final fun isConsentPending ()Z
-	public static final fun isTrackingEnabled ()Z
-	public static final fun optInTracking ()V
-	public static final fun optOutTracking ()V
-	public static final fun reset ()V
-	public static final fun rotateSession ()V
-	public static final fun screen (Ljava/lang/String;)V
-	public static final fun track (Ljava/lang/String;)V
-	public static final fun track (Ljava/lang/String;Ljava/util/Map;)V
-	public static final fun track (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
-	public static final fun track (Lsh/pug/android/events/WellKnownEvent;)V
-	public static final fun track (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;)V
-	public static synthetic fun track$default (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public static synthetic fun track$default (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
-	public static final fun whenConsentReady (Ljava/lang/Runnable;)V
-}
-
-public final class sh/pug/android/PugEvents {
+public final class sh/pug/android/Events {
 	public static final field ADD_TO_CART Ljava/lang/String;
 	public static final field API_KEY_CREATED Ljava/lang/String;
 	public static final field API_KEY_REVOKED Ljava/lang/String;
@@ -95,7 +61,7 @@ public final class sh/pug/android/PugEvents {
 	public static final field FORM_START Ljava/lang/String;
 	public static final field FORM_SUBMIT Ljava/lang/String;
 	public static final field HELP_ARTICLE_VIEWED Ljava/lang/String;
-	public static final field INSTANCE Lsh/pug/android/PugEvents;
+	public static final field INSTANCE Lsh/pug/android/Events;
 	public static final field INTEGRATION_CONNECTED Ljava/lang/String;
 	public static final field INTEGRATION_DISCONNECTED Ljava/lang/String;
 	public static final field INVITE_ACCEPTED Ljava/lang/String;
@@ -159,29 +125,36 @@ public final class sh/pug/android/PugEvents {
 	public static final field WORKSPACE_SETTINGS_UPDATED Ljava/lang/String;
 }
 
-public abstract interface class sh/pug/android/PugLogger {
+public abstract interface class sh/pug/android/Logger {
 	public abstract fun debug (Ljava/lang/String;)V
 	public abstract fun error (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public abstract fun warn (Ljava/lang/String;Ljava/lang/Throwable;)V
 }
 
-public final class sh/pug/android/PugOptions {
-	public synthetic fun <init> (Lsh/pug/android/PugOptions$Builder;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class sh/pug/android/MemoryStorage : sh/pug/android/Storage {
+	public fun <init> ()V
+	public fun getString (Ljava/lang/String;)Ljava/lang/String;
+	public fun putString (Ljava/lang/String;Ljava/lang/String;)V
+	public fun remove (Ljava/lang/String;)V
 }
 
-public final class sh/pug/android/PugOptions$Builder {
+public final class sh/pug/android/Options {
+	public synthetic fun <init> (Lsh/pug/android/Options$Builder;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class sh/pug/android/Options$Builder {
 	public fun <init> (Ljava/lang/String;)V
-	public final fun autoInstallEvents (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun autoOpenCloseEvents (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun autoScreenViews (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun batchMaxQueueSize (I)Lsh/pug/android/PugOptions$Builder;
-	public final fun batchMaxSize (I)Lsh/pug/android/PugOptions$Builder;
-	public final fun batchMaxWaitMs (J)Lsh/pug/android/PugOptions$Builder;
-	public final fun build ()Lsh/pug/android/PugOptions;
-	public final fun debug (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun defaultTrackingConsent (Lsh/pug/android/TrackingConsent;)Lsh/pug/android/PugOptions$Builder;
-	public final fun dryRun (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun endpoint (Ljava/lang/String;)Lsh/pug/android/PugOptions$Builder;
+	public final fun autoInstallEvents (Z)Lsh/pug/android/Options$Builder;
+	public final fun autoOpenCloseEvents (Z)Lsh/pug/android/Options$Builder;
+	public final fun autoScreenViews (Z)Lsh/pug/android/Options$Builder;
+	public final fun batchMaxQueueSize (I)Lsh/pug/android/Options$Builder;
+	public final fun batchMaxSize (I)Lsh/pug/android/Options$Builder;
+	public final fun batchMaxWaitMs (J)Lsh/pug/android/Options$Builder;
+	public final fun build ()Lsh/pug/android/Options;
+	public final fun debug (Z)Lsh/pug/android/Options$Builder;
+	public final fun defaultTrackingConsent (Lsh/pug/android/TrackingConsent;)Lsh/pug/android/Options$Builder;
+	public final fun dryRun (Z)Lsh/pug/android/Options$Builder;
+	public final fun endpoint (Ljava/lang/String;)Lsh/pug/android/Options$Builder;
 	public final fun getApiKey ()Ljava/lang/String;
 	public final fun getAutoInstallEvents ()Z
 	public final fun getAutoOpenCloseEvents ()Z
@@ -193,15 +166,15 @@ public final class sh/pug/android/PugOptions$Builder {
 	public final fun getDefaultTrackingConsent ()Lsh/pug/android/TrackingConsent;
 	public final fun getDryRun ()Z
 	public final fun getEndpoint ()Ljava/lang/String;
-	public final fun getLogger ()Lsh/pug/android/PugLogger;
+	public final fun getLogger ()Lsh/pug/android/Logger;
 	public final fun getPersistTrackingConsent ()Z
 	public final fun getSessionIdleTimeoutMs ()J
 	public final fun getSessionMaxDurationMs ()J
-	public final fun getStorage ()Lsh/pug/android/PugStorage;
-	public final fun logger (Lsh/pug/android/PugLogger;)Lsh/pug/android/PugOptions$Builder;
-	public final fun persistTrackingConsent (Z)Lsh/pug/android/PugOptions$Builder;
-	public final fun sessionIdleTimeoutMs (J)Lsh/pug/android/PugOptions$Builder;
-	public final fun sessionMaxDurationMs (J)Lsh/pug/android/PugOptions$Builder;
+	public final fun getStorage ()Lsh/pug/android/Storage;
+	public final fun logger (Lsh/pug/android/Logger;)Lsh/pug/android/Options$Builder;
+	public final fun persistTrackingConsent (Z)Lsh/pug/android/Options$Builder;
+	public final fun sessionIdleTimeoutMs (J)Lsh/pug/android/Options$Builder;
+	public final fun sessionMaxDurationMs (J)Lsh/pug/android/Options$Builder;
 	public final synthetic fun setAutoInstallEvents (Z)V
 	public final synthetic fun setAutoOpenCloseEvents (Z)V
 	public final synthetic fun setAutoScreenViews (Z)V
@@ -212,20 +185,47 @@ public final class sh/pug/android/PugOptions$Builder {
 	public final synthetic fun setDefaultTrackingConsent (Lsh/pug/android/TrackingConsent;)V
 	public final synthetic fun setDryRun (Z)V
 	public final synthetic fun setEndpoint (Ljava/lang/String;)V
-	public final synthetic fun setLogger (Lsh/pug/android/PugLogger;)V
+	public final synthetic fun setLogger (Lsh/pug/android/Logger;)V
 	public final synthetic fun setPersistTrackingConsent (Z)V
 	public final synthetic fun setSessionIdleTimeoutMs (J)V
 	public final synthetic fun setSessionMaxDurationMs (J)V
-	public final synthetic fun setStorage (Lsh/pug/android/PugStorage;)V
-	public final fun storage (Lsh/pug/android/PugStorage;)Lsh/pug/android/PugOptions$Builder;
+	public final synthetic fun setStorage (Lsh/pug/android/Storage;)V
+	public final fun storage (Lsh/pug/android/Storage;)Lsh/pug/android/Options$Builder;
 }
 
-public final class sh/pug/android/PugOptionsKt {
-	public static final synthetic fun PugOptions (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lsh/pug/android/PugOptions;
-	public static synthetic fun PugOptions$default (Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lsh/pug/android/PugOptions;
+public final class sh/pug/android/OptionsKt {
+	public static final synthetic fun Options (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lsh/pug/android/Options;
+	public static synthetic fun Options$default (Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lsh/pug/android/Options;
 }
 
-public abstract interface class sh/pug/android/PugStorage {
+public final class sh/pug/android/Pug {
+	public static final field INSTANCE Lsh/pug/android/Pug;
+	public static final field track Lsh/pug/android/TrackNamespace;
+	public static final fun destroy ()V
+	public static final fun flush ()V
+	public static final fun getTrackingConsent ()Lsh/pug/android/TrackingConsent;
+	public static final fun identify (Ljava/lang/String;)V
+	public static final fun identify (Ljava/lang/String;Ljava/util/Map;)V
+	public static synthetic fun identify$default (Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)V
+	public static final fun init (Landroid/content/Context;Ljava/lang/String;Lsh/pug/android/Options;)V
+	public static final fun isConsentPending ()Z
+	public static final fun isTrackingEnabled ()Z
+	public static final fun optInTracking ()V
+	public static final fun optOutTracking ()V
+	public static final fun reset ()V
+	public static final fun rotateSession ()V
+	public static final fun screen (Ljava/lang/String;)V
+	public static final fun track (Ljava/lang/String;)V
+	public static final fun track (Ljava/lang/String;Ljava/util/Map;)V
+	public static final fun track (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;)V
+	public static final fun track (Lsh/pug/android/events/WellKnownEvent;)V
+	public static final fun track (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;)V
+	public static synthetic fun track$default (Ljava/lang/String;Ljava/util/Map;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
+	public static synthetic fun track$default (Lsh/pug/android/events/WellKnownEvent;Lsh/pug/android/TrackOptions;ILjava/lang/Object;)V
+	public static final fun whenConsentReady (Ljava/lang/Runnable;)V
+}
+
+public abstract interface class sh/pug/android/Storage {
 	public abstract fun getString (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun putString (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun remove (Ljava/lang/String;)V

@@ -1,6 +1,6 @@
 package sh.pug.android.internal.consent
 
-import sh.pug.android.PugStorage
+import sh.pug.android.Storage
 import sh.pug.android.TrackingConsent
 import sh.pug.android.internal.logging.SafeLogger
 
@@ -9,7 +9,7 @@ import sh.pug.android.internal.logging.SafeLogger
  * and forgets the identity; granting it again mints a fresh identity on the next event.
  */
 internal class TrackingConsentController(
-    private val storage: PugStorage,
+    private val storage: Storage,
     private val key: String,
     private val logger: SafeLogger,
     defaultConsent: TrackingConsent,

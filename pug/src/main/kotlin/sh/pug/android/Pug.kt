@@ -2,14 +2,14 @@ package sh.pug.android
 
 import android.content.Context
 import sh.pug.android.events.WellKnownEvent
-import sh.pug.android.internal.runtime.PugFacade
+import sh.pug.android.internal.runtime.Facade
 
 /**
  * The Pug SDK. Call [init] once, in `Application.onCreate`. Every other call can be made from any
  * thread, returns at once, and never throws: failures, and calls made before [init], are logged.
  */
 public object Pug {
-    private val facade = PugFacade.create()
+    private val facade = Facade.create()
 
     /**
      * The well-known events but those Pug tracks itself, each with a method that takes its properties
@@ -28,14 +28,14 @@ public object Pug {
      *   (`pub_…`), or the endpoint is not an http(s) URL.
      */
     @JvmStatic
-    public fun init(context: Context, projectId: String, options: PugOptions) {
+    public fun init(context: Context, projectId: String, options: Options) {
         facade.init(context, projectId, options)
     }
 
     /**
      * Tracks an event. [kind] may contain only letters, digits, '_', '.' and '-'. [properties] are
      * read during the call, so the map can be reused once it returns; keys starting with '$' are
-     * reserved and dropped. Most well-known events, listed in [PugEvents], also have a typed form,
+     * reserved and dropped. Most well-known events, listed in [Events], also have a typed form,
      * such as `Pug.track.addToCart(…)`.
      */
     @JvmStatic

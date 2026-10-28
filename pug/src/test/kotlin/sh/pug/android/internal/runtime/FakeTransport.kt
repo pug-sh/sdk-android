@@ -1,9 +1,9 @@
 package sh.pug.android.internal.runtime
 
 import kotlinx.coroutines.CompletableDeferred
-import sh.pug.android.internal.transport.PugTransport
-import sh.pug.android.internal.transport.PugTransportException
 import sh.pug.android.internal.transport.RpcCode
+import sh.pug.android.internal.transport.Transport
+import sh.pug.android.internal.transport.TransportException
 import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.IdentifyRequest
@@ -12,7 +12,7 @@ import sh.pug.android.internal.wire.IdentifyRequest
  * Records every call and answers from a script, accepting everything by default. After [hold], calls
  * wait until released, which opens the window between a request and its answer.
  */
-internal class FakeTransport(private val now: () -> Long = { 0L }) : PugTransport {
+internal class FakeTransport(private val now: () -> Long = { 0L }) : Transport {
     val batches = mutableListOf<List<Event>>()
     val batchTimes = mutableListOf<Long>()
     val identifies = mutableListOf<IdentifyRequest>()
@@ -75,5 +75,5 @@ internal class FakeTransport(private val now: () -> Long = { 0L }) : PugTranspor
         gate.await()
     }
 
-    private fun failure(code: RpcCode) = PugTransportException(code, "scripted")
+    private fun failure(code: RpcCode) = TransportException(code, "scripted")
 }

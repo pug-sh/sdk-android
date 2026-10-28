@@ -27,7 +27,7 @@ Call `Pug.init` once, in `Application.onCreate`:
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        Pug.init(this, "your-project-id", PugOptions("pub_your_public_key"))
+        Pug.init(this, "your-project-id", Options("pub_your_public_key"))
     }
 }
 ```
@@ -58,7 +58,7 @@ is safe on the main thread under StrictMode, and the SDK's connections carry a T
 Pug.init(
     this,
     "your-project-id",
-    PugOptions("pub_your_public_key") {
+    Options("pub_your_public_key") {
         debug = BuildConfig.DEBUG
         batchMaxSize = 20
         batchMaxWaitMs = 10_000
@@ -82,8 +82,8 @@ Pug.init(
 | `autoOpenCloseEvents` | `true` | Tracks `app_open` and `app_close`, nothing else. |
 | `autoScreenViews` | `true` | Tracks a `screen_view` each time an activity resumes on a different screen. |
 | `autoInstallEvents` | `true` | Tracks `app_install` and `app_update`. |
-| `logger` | Logcat | A `PugLogger` to receive the SDK's messages instead. |
-| `storage` | files | A `PugStorage` to keep the SDK's state in instead; `MemoryPugStorage` keeps nothing on the device. |
+| `logger` | Logcat | A `Logger` to receive the SDK's messages instead. |
+| `storage` | files | A `Storage` to keep the SDK's state in instead; `MemoryStorage` keeps nothing on the device. |
 
 Each option is set on its own; the ones left out keep their defaults. Nothing here throws: a number
 out of range is logged and replaced by its default, and a `batchMaxSize` above 1000 is capped.
@@ -143,9 +143,9 @@ Pug.track.addToCart(
   not enforced on the device.
 - The events the SDK tracks itself have no method: `app_open`, `app_close`, `app_install`,
   `app_update` and `screen_view`. For a screen that is not an activity, call `Pug.screen`. With the
-  automatic events turned off, `Pug.track(PugEvents.APP_OPEN)` and the like still work.
+  automatic events turned off, `Pug.track(Events.APP_OPEN)` and the like still work.
 
-The kinds are constants in `PugEvents` (`PugEvents.ADD_TO_CART` is `"add_to_cart"`). Tracking a
+The kinds are constants in `Events` (`Events.ADD_TO_CART` is `"add_to_cart"`). Tracking a
 well-known kind with `Pug.track(kind, properties)` works too, and a whole number given for a decimal
 property is sent as a decimal (`"price" to 10` arrives as `10.0`), so both paths fill the same
 column.
@@ -208,7 +208,7 @@ waiting for the next batch. `destroy()` keeps identity, persisted consent and un
 Consent is granted by default. To wait for the user's choice, start denied:
 
 ```kotlin
-PugOptions("pub_your_public_key") { defaultTrackingConsent = TrackingConsent.DENIED }
+Options("pub_your_public_key") { defaultTrackingConsent = TrackingConsent.DENIED }
 ```
 
 ```kotlin
@@ -270,7 +270,7 @@ the rest once per launch.
   `Pug.flush()` and on `Pug.destroy()`.
 - Requests are capped at 4 MiB. A single event over that, which only very large properties make, is
   dropped when tracked.
-- Pass `storage = MemoryPugStorage()` to keep nothing on the device, or your own `PugStorage`. If
+- Pass `storage = MemoryStorage()` to keep nothing on the device, or your own `Storage`. If
   your storage throws, the SDK falls back to memory until `Pug.destroy()` or the process ends.
 
 In a multi-process app, call `Pug.init` in one process only, usually the main one: processes would
@@ -279,11 +279,11 @@ otherwise share the SDK's files.
 ## Logging
 
 Messages go to Logcat under the tag `Pug`: warnings and errors always, debug messages with
-`debug = true`. A `PugLogger` receives them instead:
+`debug = true`. A `Logger` receives them instead:
 
 ```kotlin
-PugOptions("pub_your_public_key") {
-    logger = object : PugLogger {
+Options("pub_your_public_key") {
+    logger = object : Logger {
         override fun debug(message: String) = Timber.d(message)
         override fun warn(message: String, throwable: Throwable?) = Timber.w(throwable, message)
         override fun error(message: String, throwable: Throwable?) = Timber.e(throwable, message)
@@ -297,7 +297,7 @@ A logger that throws is contained.
 
 ```java
 Pug.init(this, "your-project-id",
-        new PugOptions.Builder("pub_your_public_key")
+        new Options.Builder("pub_your_public_key")
                 .debug(BuildConfig.DEBUG)
                 .batchMaxSize(20)
                 .batchMaxWaitMs(10_000L)
@@ -325,7 +325,7 @@ event requires are constructor arguments, every other property has a setter (num
 so `amount(89)` compiles), and `extra(key, value)` adds a property the event does not define. A
 property never set is not sent. `Pug.track` reads the object during the call, so it can be changed
 and tracked again. A `null` passed for a required argument drops the event with a warning instead of
-throwing. `PugEvents` constants work in a `switch`.
+throwing. `Events` constants work in a `switch`.
 
 From Java, `Pug.track` has methods only for the events without properties, such as
 `Pug.track.signup()`, with overloads that add `extras` and then `options`. The others are hidden

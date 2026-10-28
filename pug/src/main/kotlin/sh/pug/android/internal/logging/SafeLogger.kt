@@ -1,11 +1,11 @@
 package sh.pug.android.internal.logging
 
 import android.util.Log
-import sh.pug.android.PugLogger
+import sh.pug.android.Logger
 
 internal const val LOG_TAG: String = "Pug"
 
-internal object LogcatLogger : PugLogger {
+internal object LogcatLogger : Logger {
     override fun debug(message: String) {
         Log.d(LOG_TAG, message)
     }
@@ -24,7 +24,7 @@ internal object LogcatLogger : PugLogger {
  * delegate that throws. Throwables are caught whole here, CancellationException included: a logger
  * is plain host code, not a suspension point, so nothing it throws is a cancellation of ours.
  */
-internal class SafeLogger(private val delegate: PugLogger, val isDebugEnabled: Boolean) {
+internal class SafeLogger(private val delegate: Logger, val isDebugEnabled: Boolean) {
     @Volatile private var failureReported = false
 
     fun debug(message: String) {
@@ -56,7 +56,7 @@ internal class SafeLogger(private val delegate: PugLogger, val isDebugEnabled: B
         if (failureReported) return
         failureReported = true
         try {
-            Log.w(LOG_TAG, "The PugLogger threw; its failing messages are dropped", failure)
+            Log.w(LOG_TAG, "The Logger threw; its failing messages are dropped", failure)
         } catch (t: Throwable) {
             // Nowhere left to report to.
         }

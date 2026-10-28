@@ -19,7 +19,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import sh.pug.android.internal.RecordingLogger
 
-class FilePugStorageTest {
+class FileStorageTest {
     @get:Rule
     val folder = TemporaryFolder()
 
@@ -105,7 +105,7 @@ class FilePugStorageTest {
     @Test
     fun `a leftover temporary file is ignored and replaced`() {
         directory.mkdirs()
-        File(directory, FilePugStorage.fileName(KEY) + ".tmp").writeText("half-written")
+        File(directory, FileStorage.fileName(KEY) + ".tmp").writeText("half-written")
         val storage = storage()
 
         assertNull(storage.getString(KEY))
@@ -113,13 +113,13 @@ class FilePugStorageTest {
         storage.sync()
 
         assertEquals("v1", file(KEY).readText())
-        assertEquals(listOf(FilePugStorage.fileName(KEY)), directory.list()?.toList())
+        assertEquals(listOf(FileStorage.fileName(KEY)), directory.list()?.toList())
     }
 
     @Test
     fun `a project id cannot lead outside the directory`() {
         val storage = storage()
-        val key = PugStorageKeys("../../etc/x y").queue
+        val key = StorageKeys("../../etc/x y").queue
 
         storage.putString(key, "v1")
         storage.sync()
@@ -131,7 +131,7 @@ class FilePugStorageTest {
     @Test
     fun `a key too long for a file name is stored under its hash`() {
         val storage = storage()
-        val key = PugStorageKeys("p".repeat(300)).session
+        val key = StorageKeys("p".repeat(300)).session
 
         storage.putString(key, "v1")
         storage.sync()
@@ -146,7 +146,7 @@ class FilePugStorageTest {
         // A directory where the file should be cannot be read.
         file(KEY).mkdirs()
         val files = storage()
-        val storage = SafePugStorage(files, logger.safe())
+        val storage = SafeStorage(files, logger.safe())
 
         assertNull(storage.getString(KEY))
         storage.putString(OTHER_KEY, "v1")
@@ -180,12 +180,12 @@ class FilePugStorageTest {
         assertEquals("v3", file(OTHER_KEY).readText())
     }
 
-    private fun storage() = FilePugStorage(directory, logger.safe(), scope)
+    private fun storage() = FileStorage(directory, logger.safe(), scope)
 
-    private fun file(key: String) = File(directory, FilePugStorage.fileName(key))
+    private fun file(key: String) = File(directory, FileStorage.fileName(key))
 
     private companion object {
-        val KEY = PugStorageKeys("proj_1").queue
-        val OTHER_KEY = PugStorageKeys("proj_1").session
+        val KEY = StorageKeys("proj_1").queue
+        val OTHER_KEY = StorageKeys("proj_1").session
     }
 }

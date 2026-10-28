@@ -1,11 +1,11 @@
 package sh.pug.android.internal
 
 import kotlin.random.Random
-import sh.pug.android.PugLogger
-import sh.pug.android.PugStorage
+import sh.pug.android.Logger
+import sh.pug.android.Storage
 import sh.pug.android.internal.logging.SafeLogger
 
-internal class RecordingLogger : PugLogger {
+internal class RecordingLogger : Logger {
     data class Entry(val level: String, val message: String, val throwable: Throwable?)
 
     val entries = mutableListOf<Entry>()
@@ -31,7 +31,7 @@ internal class RecordingLogger : PugLogger {
     private fun messages(level: String) = entries.filter { it.level == level }.map { it.message }
 }
 
-internal class FakeClock(var now: Long = 1_760_000_000_000L) : PugClock {
+internal class FakeClock(var now: Long = 1_760_000_000_000L) : Clock {
     override fun nowMillis(): Long = now
 }
 
@@ -49,7 +49,7 @@ internal class FixedRandom(private val value: Double = 0.5) : Random() {
     override fun nextDouble(): Double = value
 }
 
-internal class ThrowingStorage(private val failure: Throwable) : PugStorage {
+internal class ThrowingStorage(private val failure: Throwable) : Storage {
     var calls: Int = 0
         private set
 

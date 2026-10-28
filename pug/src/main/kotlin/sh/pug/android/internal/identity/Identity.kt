@@ -1,12 +1,12 @@
 package sh.pug.android.internal.identity
 
 import org.json.JSONObject
-import sh.pug.android.PugStorage
+import sh.pug.android.Storage
 import sh.pug.android.internal.IdGenerator
 import sh.pug.android.internal.isUuid
 import sh.pug.android.internal.json.JsonWriter
 import sh.pug.android.internal.logging.SafeLogger
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.StorageKeys
 
 /** The server mints cookieless ids with this prefix and rejects any batch whose distinct id has it. */
 internal const val RESERVED_ID_PREFIX: String = "cookieless-"
@@ -19,8 +19,8 @@ internal const val ANONYMOUS_ID_PREFIX: String = "anon-"
  * client whose consent is denied never writes one.
  */
 internal class Identity(
-    private val storage: PugStorage,
-    private val keys: PugStorageKeys,
+    private val storage: Storage,
+    private val keys: StorageKeys,
     private val logger: SafeLogger,
     private val ids: IdGenerator,
     private val idleTimeoutMs: Long,

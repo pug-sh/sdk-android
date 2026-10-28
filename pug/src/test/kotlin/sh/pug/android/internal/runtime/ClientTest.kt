@@ -15,9 +15,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.json.JSONArray
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugLogger
-import sh.pug.android.PugOptions
+import sh.pug.android.Logger
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Options
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent.DENIED
 import sh.pug.android.TrackingConsent.GRANTED
@@ -28,20 +28,20 @@ import sh.pug.android.internal.ThrowingStorage
 import sh.pug.android.internal.isUuid
 import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.queue.EventJson
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.StorageKeys
 import sh.pug.android.internal.transport.RpcCode
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.IdentifyRequest
 import sh.pug.android.internal.wire.JsonValue
 import sh.pug.android.internal.wire.PropertyValue
 
-class PugClientTest {
+class ClientTest {
     private val scheduler = TestCoroutineScheduler()
     private val worker = StandardTestDispatcher(scheduler)
     private val transport = FakeTransport { scheduler.currentTime }
     private val logger = RecordingLogger()
-    private val storage = MemoryPugStorage()
-    private val keys = PugStorageKeys(PROJECT)
+    private val storage = MemoryStorage()
+    private val keys = StorageKeys(PROJECT)
     private val ids = SequentialIds()
     private val platform = FakePlatform()
 
@@ -654,7 +654,7 @@ class PugClientTest {
     @Test
     fun `a throwing logger changes nothing`() {
         val throwing =
-            object : PugLogger {
+            object : Logger {
                 override fun debug(message: String): Unit = throw IllegalStateException("debug")
 
                 override fun warn(message: String, throwable: Throwable?): Unit = throw IllegalStateException("warn")
@@ -673,15 +673,15 @@ class PugClientTest {
         assertEquals(listOf(listOf("a")), transport.kinds)
     }
 
-    private fun client(previousTeardown: Job? = null, configure: PugOptions.Builder.() -> Unit = {}): PugClient {
+    private fun client(previousTeardown: Job? = null, configure: Options.Builder.() -> Unit = {}): Client {
         val options =
-            PugOptions("pub_key") {
-                logger = this@PugClientTest.logger
-                storage = this@PugClientTest.storage
+            Options("pub_key") {
+                logger = this@ClientTest.logger
+                storage = this@ClientTest.storage
                 debug = true
                 configure()
             }
-        return PugClient(
+        return Client(
             PROJECT,
             options,
             transport,

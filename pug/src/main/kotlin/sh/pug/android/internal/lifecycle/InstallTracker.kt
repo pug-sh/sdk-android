@@ -1,9 +1,9 @@
 package sh.pug.android.internal.lifecycle
 
-import sh.pug.android.PugEvents
-import sh.pug.android.PugStorage
+import sh.pug.android.Events
+import sh.pug.android.Storage
 import sh.pug.android.internal.logging.SafeLogger
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.StorageKeys
 
 /**
  * `app_install` and `app_update`, once per app version (Flutter's InstallTracker). [check] decides
@@ -12,8 +12,8 @@ import sh.pug.android.internal.storage.PugStorageKeys
  * from being tracked is tracked by [emit] once the user opts in.
  */
 internal class InstallTracker(
-    private val storage: PugStorage,
-    private val keys: PugStorageKeys,
+    private val storage: Storage,
+    private val keys: StorageKeys,
     private val logger: SafeLogger,
 ) {
     private class Pending(val kind: String, val properties: Map<String, Any?>, val version: String)
@@ -32,7 +32,7 @@ internal class InstallTracker(
 
                 !lastVersion.isNullOrEmpty() -> {
                     val properties = mapOf("appVersion" to appVersion, "previousVersion" to lastVersion)
-                    Pending(PugEvents.APP_UPDATE, properties, appVersion)
+                    Pending(Events.APP_UPDATE, properties, appVersion)
                 }
 
                 // Pug ran here before it recorded a version: this app already used it, so this is
@@ -44,7 +44,7 @@ internal class InstallTracker(
 
                 else -> {
                     val properties = mapOf("appVersion" to appVersion, "installSource" to installSource())
-                    Pending(PugEvents.APP_INSTALL, properties, appVersion)
+                    Pending(Events.APP_INSTALL, properties, appVersion)
                 }
             }
     }

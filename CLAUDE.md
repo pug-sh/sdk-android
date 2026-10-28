@@ -24,7 +24,7 @@ make check       # verify-version + spotlessCheck + detekt + lint + unit tests +
 make fmt         # spotlessApply (ktlint, android_studio style)
 make abi-dump    # rewrite pug/api/pug.api after an intended public API change; review the diff
 make protos      # regenerate from proto/ (needs buf): test descriptor set + typed track API
-make typed-track # only the typed track API: TrackNamespace.kt, PugEvents.kt, events/Events.kt, WellKnownEvents.kt
+make typed-track # only the typed track API: TrackNamespace.kt, Events.kt, events/Events.kt, WellKnownEvents.kt
 make ci          # protos + check-codegen + check: what CI runs
 ```
 
@@ -42,10 +42,10 @@ signing key in `ORG_GRADLE_PROJECT_signingInMemoryKey` and `ORG_GRADLE_PROJECT_s
 ## Architecture
 
 Module `:pug`, package `sh.pug.android`, explicit API mode. Public: the `Pug` object (the entry
-point, `@JvmStatic`), `PugOptions` (opaque, built by `PugOptions.Builder` or the Kotlin
-`PugOptions(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `PugLogger`, `PugStorage`,
-`MemoryPugStorage`, the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
-`track(kind, …)` and `track(event)` functions) and `PugEvents`, and in `sh.pug.android.events` the
+point, `@JvmStatic`), `Options` (opaque, built by `Options.Builder` or the Kotlin
+`Options(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `Logger`, `Storage`,
+`MemoryStorage`, the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
+`track(kind, …)` and `track(event)` functions) and `Events`, and in `sh.pug.android.events` the
 `WellKnownEvent` base of the generated event classes (Java's typed form). Storage defaults to files
 under `noBackupFilesDir/pug/`.
 
@@ -57,18 +57,18 @@ under `noBackupFilesDir/pug/`.
   `tools/dead-code/allowed.txt`).
 - **`sample/`** (`:sample`) is a framework-only app on the SDK, from Kotlin and Java, with StrictMode
   `penaltyDeath` in debug builds; its release build is minified with no keep rules for the SDK.
-- **Generated, never edited:** `TrackNamespace.kt`, `PugEvents.kt`, `events/Events.kt` and
+- **Generated, never edited:** `TrackNamespace.kt`, `Events.kt`, `events/Events.kt` and
   `internal/event/WellKnownEvents.kt` come from `tools/gen-track` (the Gradle module
   `:tools:gen-track`, run by `make typed-track` on a `buf build` JSON image). Change the generator
   and regenerate; `check-codegen` fails on drift, so the generator emits what ktlint would format.
   Events the SDK tracks itself (`app_open`, `app_close`, `app_install`, `app_update`,
   `screen_view`) get no typed method or class. Typed methods pass their values in schema order to
-  `PugFacade.trackTyped`, event objects hold theirs in that order, and `PugClient.trackTyped` names
+  `Facade.trackTyped`, event objects hold theirs in that order, and `Client.trackTyped` names
   them from the `EventSchema` (`internal/event/EventSchema.kt`), formats Durations and merges
   `extras`.
-- `internal/runtime/`: `PugFacade` is the state behind `Pug`: init validation, pre-init warnings,
+- `internal/runtime/`: `Facade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
-  last one's teardown. `PugClient` is one configured instance: calls (and lifecycle callbacks) map
+  last one's teardown. `Client` is one configured instance: calls (and lifecycle callbacks) map
   their arguments on the caller's thread and send an op into a channel that one coroutine runs in
   order on the worker, after restoring state from storage; it also owns the foreground state
   (`app_open`/`app_close`), the current screen (`$url`/`$referrer`) and the replay of what the
@@ -78,15 +78,15 @@ under `noBackupFilesDir/pug/`.
   backgrounding and teardown.
 - `internal/platform/`: `Platform` is what the runtime takes from the device (storage directory,
   auto-properties, install source, lifecycle observation, posting to the main thread), so
-  `PugClient` runs on a plain JVM in tests. `AndroidPlatform` is the real one:
+  `Client` runs on a plain JVM in tests. `AndroidPlatform` is the real one:
   `AndroidAutoProperties` (fixed values read once, screen/locale/time zone/network per event) and
   `ActivityLifecycleTracker` (main thread: foreground while an activity is started, resumed
   activities as screens, seeded from `getMyMemoryState`).
 - `internal/lifecycle/InstallTracker`: `app_install` and `app_update`, decided at start before
   anything is written and emitted once consent allows.
 - `internal/logging/SafeLogger` is the only logger internals call (debug gating, contains a throwing
-  host logger). `internal/storage/SafePugStorage` fails over to memory on the first throw;
-  `FilePugStorage` is the default store: a file per key, cached, written behind by 1 s and synced
+  host logger). `internal/storage/SafeStorage` fails over to memory on the first throw;
+  `FileStorage` is the default store: a file per key, cached, written behind by 1 s and synced
   on backgrounding, flush and teardown.
 - `internal/event/`: `PropertyMapper` / `TraitsMapper` (host values to `PropertyValue` / Struct,
   size guards, double coercion for well-known kinds), `EventFactory` (kind gate, timestamps, SDK
@@ -98,12 +98,12 @@ under `noBackupFilesDir/pug/`.
   nothing.
 - `internal/wire/`: hand-rolled protobuf codec. `Models.kt` holds the domain types the rest of the
   SDK builds (`Event`, `PropertyValue`, `JsonValue` for identify traits, `IdentifyRequest`,
-  `BatchCreateResponse`). `PugWire` encodes `BatchCreateRequest` / `IdentifyRequest` and decodes
+  `BatchCreateResponse`). `Wire` encodes `BatchCreateRequest` / `IdentifyRequest` and decodes
   `BatchCreateResponse`; `ProtoWriter` / `ProtoReader` are the wire primitives.
-- `internal/transport/`: `PugTransport` (suspend `sendBatch` / `identify`), implemented by
-  `HttpPugTransport`: Connect unary over `HttpURLConnection`, its sockets opened under a
+- `internal/transport/`: `Transport` (suspend `sendBatch` / `identify`), implemented by
+  `HttpTransport`: Connect unary over `HttpURLConnection`, its sockets opened under a
   TrafficStats tag (StrictMode's `detectUntaggedSockets`). Every failure surfaces as
-  `PugTransportException(code, isPermanent)`; `RpcCode` holds the Connect codes, the permanent set
+  `TransportException(code, isPermanent)`; `RpcCode` holds the Connect codes, the permanent set
   and the HTTP-status fallback table.
 
 ## Invariants
@@ -133,7 +133,7 @@ under `noBackupFilesDir/pug/`.
   (`sdkInt`), since `Build.VERSION.SDK_INT` reads 0 in JVM tests and Robolectric runs SDK 36 only.
 - **Wire pitfalls**: a selected oneof member is written even when it holds a default value; empty
   ids are omitted (edition 2023 explicit presence); map entries are written key-sorted.
-  `PugWireTest` compares against protobuf-java byte for byte; keep it passing.
+  `WireTest` compares against protobuf-java byte for byte; keep it passing.
 - **Transport contract**: permanent = invalid_argument, not_found, already_exists,
   permission_denied, failed_precondition, unimplemented, unauthenticated. A 2xx that is not
   protobuf is transient (captive portals). A timeout or caller cancellation must `disconnect()` the
@@ -159,7 +159,7 @@ under `noBackupFilesDir/pug/`.
   through protobuf-java, not through the generator.
 - Robolectric (SDK 36, set in `src/test/resources/robolectric.properties`) runs the
   `internal/platform/` tests, `AndroidEndToEndTest`, `MainThreadIoTest` and
-  `HttpPugTransportTrafficStatsTest`. Under it, serve HTTP with the JDK's `com.sun.net.httpserver`,
+  `HttpTransportTrafficStatsTest`. Under it, serve HTTP with the JDK's `com.sun.net.httpserver`,
   not MockWebServer, whose OkHttp resolves to its Android build and needs API 37 classes. Its
   `getInstallSourceInfo` throws `NameNotFoundException` unless the test calls
   `setInstallSourceInfo`, which `AndroidPlatform` reads as no install source.

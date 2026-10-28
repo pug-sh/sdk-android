@@ -26,7 +26,7 @@ private val TRACK_NAMESPACE_DOC =
             "others it tracks an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent(\"p1\"))`.",
     )
 
-private const val PUG_EVENTS_DOC =
+private const val EVENTS_DOC =
     "The kinds of Pug's well-known events, for `Pug.track(kind, properties)` and for comparisons. " +
         "[TrackNamespace] has a method for each but those Pug tracks itself, which takes the event's properties " +
         "as typed arguments; from Java, an event with properties is an object of `sh.pug.android.events`."
@@ -34,7 +34,7 @@ private const val PUG_EVENTS_DOC =
 /** The generated sources, by their path under the SDK's Kotlin source root. */
 fun render(events: List<Event>): Map<String, String> = mapOf(
     "sh/pug/android/TrackNamespace.kt" to trackNamespace(events),
-    "sh/pug/android/PugEvents.kt" to pugEvents(events),
+    "sh/pug/android/Events.kt" to eventKinds(events),
     "sh/pug/android/events/Events.kt" to eventClasses(events),
     "sh/pug/android/internal/event/WellKnownEvents.kt" to wellKnownEvents(events),
 )
@@ -42,10 +42,10 @@ fun render(events: List<Event>): Map<String, String> = mapOf(
 private fun trackNamespace(events: List<Event>): String = buildString {
     preamble("sh.pug.android")
     appendLine("import sh.pug.android.internal.event.WellKnownEvents")
-    appendLine("import sh.pug.android.internal.runtime.PugFacade")
+    appendLine("import sh.pug.android.internal.runtime.Facade")
     appendLine()
     kdoc("", TRACK_NAMESPACE_DOC.flatMap { if (it.isEmpty()) listOf(it) else wrap(it, "") })
-    appendLine("public class TrackNamespace internal constructor(private val facade: PugFacade) {")
+    appendLine("public class TrackNamespace internal constructor(private val facade: Facade) {")
     events.filterNot { it.kind in SDK_TRACKED }.forEachIndexed { index, event ->
         if (index > 0) appendLine()
         method(event)
@@ -139,17 +139,17 @@ private fun StringBuilder.eventClass(event: Event) {
     appendLine("}")
 }
 
-private fun pugEvents(events: List<Event>): String = buildString {
+private fun eventKinds(events: List<Event>): String = buildString {
     preamble("sh.pug.android")
-    kdoc("", wrap(PUG_EVENTS_DOC, ""))
-    appendLine("public object PugEvents {")
+    kdoc("", wrap(EVENTS_DOC, ""))
+    appendLine("public object Events {")
     events.forEach { appendLine("    public const val ${it.constant}: String = \"${it.kind}\"") }
     appendLine("}")
 }
 
 private fun wellKnownEvents(events: List<Event>): String = buildString {
     preamble("sh.pug.android.internal.event")
-    appendLine("import sh.pug.android.PugEvents")
+    appendLine("import sh.pug.android.Events")
     events.flatMap { event -> event.fields.map { it.type.schema } }.toSortedSet().forEach {
         appendLine("import sh.pug.android.internal.event.FieldType.$it")
     }
@@ -162,7 +162,7 @@ private fun wellKnownEvents(events: List<Event>): String = buildString {
                 val required = if (field.required) ", required = true" else ""
                 "FieldSchema(\"${field.key}\", ${field.type.schema}$required)"
             }
-        val arguments = listOf("PugEvents.${event.constant}", "\"${event.method}\"") + fields
+        val arguments = listOf("Events.${event.constant}", "\"${event.method}\"") + fields
         // Only TrackNamespace and the event classes read a schema by name; the rest live in byKind alone.
         val visibility = if (event.kind in SDK_TRACKED) "private " else ""
         wrapped("    ", "${visibility}val ${event.constant} = EventSchema(", arguments, ")")

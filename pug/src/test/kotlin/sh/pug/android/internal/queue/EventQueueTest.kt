@@ -6,15 +6,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.json.JSONArray
-import sh.pug.android.MemoryPugStorage
+import sh.pug.android.MemoryStorage
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.event.MAX_BATCH_BYTES
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
-import sh.pug.android.internal.wire.PugWire
+import sh.pug.android.internal.wire.Wire
 
 class EventQueueTest {
-    private val storage = MemoryPugStorage()
+    private val storage = MemoryStorage()
     private val logger = RecordingLogger()
 
     @Test
@@ -170,15 +170,15 @@ class EventQueueTest {
         val queue = queue()
         val events = List(4) { event(it) }
         events.forEach(queue::push)
-        val size = PugWire.eventSize(events[0])
+        val size = Wire.eventSize(events[0])
 
         val batch = assertNotNull(queue.lock(maxCount = 10, maxBytes = 3 * size - 1))
 
         assertEquals(events.take(2), batch.events)
         assertEquals(2, queue.size)
         assertEquals(
-            PugWire.encodeBatchCreateRequest(batch.events).size,
-            batch.events.sumOf { PugWire.eventSize(it) },
+            Wire.encodeBatchCreateRequest(batch.events).size,
+            batch.events.sumOf { Wire.eventSize(it) },
         )
     }
 
@@ -189,7 +189,7 @@ class EventQueueTest {
         queue.push(large)
         queue.push(event(1))
 
-        val batch = assertNotNull(queue.lock(maxCount = 10, maxBytes = PugWire.eventSize(large) - 1))
+        val batch = assertNotNull(queue.lock(maxCount = 10, maxBytes = Wire.eventSize(large) - 1))
 
         assertEquals(listOf(event(1)), batch.events)
         assertEquals(1, queue.totalSize)

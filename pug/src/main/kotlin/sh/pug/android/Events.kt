@@ -7,7 +7,7 @@ package sh.pug.android
  * method for each but those Pug tracks itself, which takes the event's properties as typed arguments; from Java, an
  * event with properties is an object of `sh.pug.android.events`.
  */
-public object PugEvents {
+public object Events {
     public const val ADD_TO_CART: String = "add_to_cart"
     public const val API_KEY_CREATED: String = "api_key_created"
     public const val API_KEY_REVOKED: String = "api_key_revoked"

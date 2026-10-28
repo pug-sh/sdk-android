@@ -20,7 +20,7 @@ import sh.pug.android.internal.wire.IdentifyRequest
 
 /** The transport opens its sockets under the SDK's TrafficStats tag, which StrictMode looks for. */
 @RunWith(RobolectricTestRunner::class)
-class HttpPugTransportTrafficStatsTest {
+class HttpTransportTrafficStatsTest {
     @AfterTest
     fun clearTag() {
         TrafficStats.clearThreadStatsTag()
@@ -42,7 +42,7 @@ class HttpPugTransportTrafficStatsTest {
         val connection = RecordingConnection(failure = IOException("unreachable"))
         TrafficStats.setThreadStatsTag(HOST_TAG)
 
-        assertFailsWith<PugTransportException> {
+        assertFailsWith<TransportException> {
             transport(connection).identify(IdentifyRequest("user-42", emptyMap(), anonymousId = null))
         }
 
@@ -51,7 +51,7 @@ class HttpPugTransportTrafficStatsTest {
     }
 
     // The executor runs requests on the calling thread, so the test thread's tag is the one in play.
-    private fun transport(connection: HttpURLConnection) = HttpPugTransport(
+    private fun transport(connection: HttpURLConnection) = HttpTransport(
         ENDPOINT,
         "pub_test",
         executor = Executor { it.run() },

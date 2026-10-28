@@ -8,10 +8,10 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import sh.pug.android.internal.RecordingLogger
 
-class PugOptionsTest {
+class OptionsTest {
     @Test
     fun `defaults match the family's`() {
-        val options = PugOptions("pub_test")
+        val options = Options("pub_test")
 
         assertEquals("pub_test", options.apiKey)
         assertEquals("https://api.pugs.dev", options.endpoint)
@@ -34,10 +34,10 @@ class PugOptionsTest {
     @Test
     fun `the Kotlin DSL and the Java builder configure the same options`() {
         val logger = RecordingLogger()
-        val storage = MemoryPugStorage()
+        val storage = MemoryStorage()
 
         val dsl =
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 endpoint = "https://eu.pugs.dev"
                 debug = true
                 dryRun = true
@@ -55,7 +55,7 @@ class PugOptionsTest {
                 persistTrackingConsent = false
             }
         val builder =
-            PugOptions
+            Options
                 .Builder("pub_test")
                 .endpoint("https://eu.pugs.dev")
                 .debug(true)
@@ -97,12 +97,12 @@ class PugOptionsTest {
     @Test
     fun `each setter changes only its own option`() {
         val options =
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 batchMaxWaitMs = 0
                 sessionMaxDurationMs = 60_000
                 persistTrackingConsent = false
             }
-        val consent = PugOptions("pub_test") { defaultTrackingConsent = TrackingConsent.DENIED }
+        val consent = Options("pub_test") { defaultTrackingConsent = TrackingConsent.DENIED }
 
         assertEquals(TrackingConsent.DENIED, consent.defaultTrackingConsent)
         assertTrue(consent.persistTrackingConsent)
@@ -121,7 +121,7 @@ class PugOptionsTest {
         val logger = RecordingLogger()
 
         val options =
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 this.logger = logger
                 batchMaxSize = 0
                 batchMaxWaitMs = -1
@@ -152,7 +152,7 @@ class PugOptionsTest {
         val logger = RecordingLogger()
 
         val options =
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 this.logger = logger
                 batchMaxSize = 5_000
             }
@@ -164,7 +164,7 @@ class PugOptionsTest {
     @Test
     fun `building never throws, leaving key and endpoint checks to init`() {
         val options =
-            PugOptions(" ") {
+            Options(" ") {
                 endpoint = "not a url"
                 logger = RecordingLogger()
             }
@@ -175,7 +175,7 @@ class PugOptionsTest {
 
     @Test
     fun `a builder can be reused`() {
-        val builder = PugOptions.Builder("pub_test").batchMaxSize(20)
+        val builder = Options.Builder("pub_test").batchMaxSize(20)
 
         val first = builder.build()
         val second = builder.batchMaxSize(30).build()

@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import sh.pug.android.PugStorage
+import sh.pug.android.Storage
 import sh.pug.android.internal.appendHex
 import sh.pug.android.internal.logging.SafeLogger
 
@@ -27,12 +27,12 @@ private const val TEMP_SUFFIX = ".tmp"
  * made meanwhile, or at [sync], so a burst of events rewrites the queue file once rather than once
  * per event. Confined to the SDK worker, like every storage.
  */
-internal class FilePugStorage(
+internal class FileStorage(
     private val directory: File,
     private val logger: SafeLogger,
     private val scope: CoroutineScope,
     private val syncDelayMs: Long = STORAGE_SYNC_DELAY_MS,
-) : PugStorage {
+) : Storage {
     // A null value is a key known to be absent.
     private val values = HashMap<String, String?>()
     private val unsynced = LinkedHashSet<String>()
@@ -54,7 +54,7 @@ internal class FilePugStorage(
 
     /**
      * Writes every change not yet on disk. A write that fails is logged and retried at the next
-     * sync. Never throws: callers reach this directly, not through `SafePugStorage`.
+     * sync. Never throws: callers reach this directly, not through `SafeStorage`.
      */
     fun sync() {
         scheduledSync?.cancel()
@@ -85,7 +85,7 @@ internal class FilePugStorage(
             }
     }
 
-    // An unreadable file reads as absent rather than throwing: a throw would move SafePugStorage to
+    // An unreadable file reads as absent rather than throwing: a throw would move SafeStorage to
     // memory while this store's earlier changes still sync, freezing the disk at a stale state.
     private fun read(key: String): String? {
         val file = file(key)

@@ -1,7 +1,7 @@
 package sh.pug.android.internal.storage
 
 /** The family-wide `__pug_<projectId>_<name>__` key scheme. */
-internal class PugStorageKeys(projectId: String) {
+internal class StorageKeys(projectId: String) {
     val session: String = key(projectId, "session")
     val profile: String = key(projectId, "profile")
     val externalId: String = key(projectId, "external_id")

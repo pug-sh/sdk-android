@@ -15,14 +15,14 @@ internal const val DEFAULT_SESSION_MAX_DURATION_MS: Long = 24 * 60 * 60 * 1_000L
 internal const val MAX_BATCH_SIZE: Int = 1_000
 
 /**
- * Configuration for `Pug.init`. In Kotlin: `PugOptions("pub_…") { debug = true }`; in Java:
- * `new PugOptions.Builder("pub_…").debug(true).build()`.
+ * Configuration for `Pug.init`. In Kotlin: `Options("pub_…") { debug = true }`; in Java:
+ * `new Options.Builder("pub_…").debug(true).build()`.
  *
  * Nothing here throws: an out-of-range number is logged and replaced by its default (a
  * `batchMaxSize` above 1000 is capped instead). The API key and
  * endpoint are checked by `Pug.init`.
  */
-public class PugOptions private constructor(builder: Builder) {
+public class Options private constructor(builder: Builder) {
     internal val apiKey: String = builder.apiKey
     internal val endpoint: String = builder.endpoint
     internal val debug: Boolean = builder.debug
@@ -30,8 +30,8 @@ public class PugOptions private constructor(builder: Builder) {
     internal val autoOpenCloseEvents: Boolean = builder.autoOpenCloseEvents
     internal val autoScreenViews: Boolean = builder.autoScreenViews
     internal val autoInstallEvents: Boolean = builder.autoInstallEvents
-    internal val logger: PugLogger? = builder.logger
-    internal val storage: PugStorage? = builder.storage
+    internal val logger: Logger? = builder.logger
+    internal val storage: Storage? = builder.storage
     internal val defaultTrackingConsent: TrackingConsent
     internal val persistTrackingConsent: Boolean = builder.persistTrackingConsent
     internal val batchMaxSize: Int
@@ -103,11 +103,11 @@ public class PugOptions private constructor(builder: Builder) {
 
         /** Replaces the default Logcat logger (tag `Pug`). */
         @set:JvmSynthetic
-        public var logger: PugLogger? = null
+        public var logger: Logger? = null
 
-        /** Replaces the default file storage. [MemoryPugStorage] keeps nothing on the device. */
+        /** Replaces the default file storage. [MemoryStorage] keeps nothing on the device. */
         @set:JvmSynthetic
-        public var storage: PugStorage? = null
+        public var storage: Storage? = null
 
         /**
          * Events are sent in requests of up to this many (at most 1000): as soon as that many are
@@ -158,9 +158,9 @@ public class PugOptions private constructor(builder: Builder) {
         public fun autoInstallEvents(autoInstallEvents: Boolean): Builder =
             apply { this.autoInstallEvents = autoInstallEvents }
 
-        public fun logger(logger: PugLogger?): Builder = apply { this.logger = logger }
+        public fun logger(logger: Logger?): Builder = apply { this.logger = logger }
 
-        public fun storage(storage: PugStorage?): Builder = apply { this.storage = storage }
+        public fun storage(storage: Storage?): Builder = apply { this.storage = storage }
 
         public fun batchMaxSize(batchMaxSize: Int): Builder = apply { this.batchMaxSize = batchMaxSize }
 
@@ -181,7 +181,7 @@ public class PugOptions private constructor(builder: Builder) {
         public fun persistTrackingConsent(persistTrackingConsent: Boolean): Builder =
             apply { this.persistTrackingConsent = persistTrackingConsent }
 
-        public fun build(): PugOptions = PugOptions(this)
+        public fun build(): Options = Options(this)
     }
 
     private companion object {
@@ -197,5 +197,5 @@ public class PugOptions private constructor(builder: Builder) {
 }
 
 @JvmSynthetic
-public fun PugOptions(apiKey: String, configure: PugOptions.Builder.() -> Unit = {}): PugOptions =
-    PugOptions.Builder(apiKey).apply(configure).build()
+public fun Options(apiKey: String, configure: Options.Builder.() -> Unit = {}): Options =
+    Options.Builder(apiKey).apply(configure).build()

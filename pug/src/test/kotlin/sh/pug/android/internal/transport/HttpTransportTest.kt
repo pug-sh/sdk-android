@@ -35,10 +35,10 @@ import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.IdentifyRequest
 import sh.pug.android.internal.wire.JsonValue
 import sh.pug.android.internal.wire.PropertyValue
-import sh.pug.android.internal.wire.PugWire
 import sh.pug.android.internal.wire.ReferenceMessages
+import sh.pug.android.internal.wire.Wire
 
-class HttpPugTransportTest {
+class HttpTransportTest {
     private val server = MockWebServer()
 
     @BeforeTest
@@ -74,7 +74,7 @@ class HttpPugTransportTest {
         assertEquals("1", request.headers["Connect-Protocol-Version"])
         assertEquals("pub_test", request.headers["X-Api-Key"])
         assertEquals("pug-android/$SDK_VERSION", request.headers["User-Agent"])
-        assertContentEquals(PugWire.encodeBatchCreateRequest(events), assertNotNull(request.body).toByteArray())
+        assertContentEquals(Wire.encodeBatchCreateRequest(events), assertNotNull(request.body).toByteArray())
     }
 
     @Test
@@ -87,7 +87,7 @@ class HttpPugTransportTest {
 
         val recorded = assertNotNull(server.takeRequest(1, TimeUnit.SECONDS))
         assertEquals("/sdk.profiles.v1.ProfilesSDKService/Identify", recorded.url.encodedPath)
-        assertContentEquals(PugWire.encodeIdentifyRequest(request), assertNotNull(recorded.body).toByteArray())
+        assertContentEquals(Wire.encodeIdentifyRequest(request), assertNotNull(recorded.body).toByteArray())
     }
 
     @Test
@@ -342,14 +342,14 @@ class HttpPugTransportTest {
         assertEquals(0, server.requestCount)
     }
 
-    private suspend fun sendFailure(transport: HttpPugTransport = transport()): PugTransportException =
-        assertFailsWith<PugTransportException> { transport.sendBatch(listOf(event("first"))) }
+    private suspend fun sendFailure(transport: HttpTransport = transport()): TransportException =
+        assertFailsWith<TransportException> { transport.sendBatch(listOf(event("first"))) }
 
     private fun transport(
         endpoint: String = server.url("/").toString(),
         timeoutMillis: Long = 5_000,
         executor: Executor = Dispatchers.IO.asExecutor(),
-    ) = HttpPugTransport(
+    ) = HttpTransport(
         endpoint,
         apiKey = "pub_test",
         batchTimeoutMillis = timeoutMillis,

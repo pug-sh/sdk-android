@@ -5,14 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import sh.pug.android.MemoryPugStorage
+import sh.pug.android.MemoryStorage
 import sh.pug.android.TrackingConsent
 import sh.pug.android.TrackingConsent.DENIED
 import sh.pug.android.TrackingConsent.GRANTED
 import sh.pug.android.internal.RecordingLogger
 
 class TrackingConsentControllerTest {
-    private val storage = MemoryPugStorage()
+    private val storage = MemoryStorage()
     private val logger = RecordingLogger()
     private val purge = RecordingPurge()
 

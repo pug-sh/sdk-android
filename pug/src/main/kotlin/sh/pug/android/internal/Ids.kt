@@ -8,10 +8,8 @@ internal fun interface IdGenerator {
 }
 
 /** RFC 9562 version 7: a 48-bit millisecond timestamp followed by 74 random bits. */
-internal class UuidV7Generator(
-    private val clock: PugClock = PugClock.SYSTEM,
-    private val random: Random = SecureRandom(),
-) : IdGenerator {
+internal class UuidV7Generator(private val clock: Clock = Clock.SYSTEM, private val random: Random = SecureRandom()) :
+    IdGenerator {
     override fun nextId(): String {
         val bytes = ByteArray(16)
         random.nextBytes(bytes)

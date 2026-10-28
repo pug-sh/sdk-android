@@ -6,7 +6,7 @@ import android.widget.TextView;
 import java.util.HashMap;
 import java.util.Map;
 import sh.pug.android.Pug;
-import sh.pug.android.PugEvents;
+import sh.pug.android.Events;
 import sh.pug.android.events.SearchEvent;
 import sh.pug.android.events.SearchResultClickedEvent;
 
@@ -30,7 +30,7 @@ public final class ConsentActivity extends Activity {
             Pug.track("consent_screen_action", properties);
             Pug.track(new SearchEvent("from java"));
             Pug.track(new SearchResultClickedEvent("from java", "r1").index(0).extra("source", "java"));
-            Pug.track(PugEvents.SHARE);
+            Pug.track(Events.SHARE);
         });
     }
 

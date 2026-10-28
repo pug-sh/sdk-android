@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 import sh.pug.android.internal.event.MAX_BATCH_BYTES
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.queue.EventQueue
-import sh.pug.android.internal.transport.PugTransport
-import sh.pug.android.internal.transport.PugTransportException
+import sh.pug.android.internal.transport.Transport
+import sh.pug.android.internal.transport.TransportException
 import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
 
@@ -26,7 +26,7 @@ private const val RETRY_JITTER = 0.2
  */
 internal class EventDispatcher(
     private val queue: EventQueue,
-    private val transport: PugTransport,
+    private val transport: Transport,
     private val logger: SafeLogger,
     private val scope: CoroutineScope,
     private val maxSize: Int,
@@ -145,13 +145,13 @@ internal class EventDispatcher(
      * Sends [events] and logs the outcome. Returns the failure when they should be sent again, or null
      * once they were delivered or rejected for good.
      */
-    private suspend fun deliver(events: List<Event>): PugTransportException? {
+    private suspend fun deliver(events: List<Event>): TransportException? {
         val response =
             try {
                 transport.sendBatch(events)
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: PugTransportException) {
+            } catch (e: TransportException) {
                 if (!e.isPermanent) return e
                 recovered()
                 logger.error(
@@ -176,7 +176,7 @@ internal class EventDispatcher(
         logger.warn("The server accepted ${response.accepted} of ${eventCount(sent)}$detail")
     }
 
-    private fun retryLater(failure: PugTransportException, events: Int) {
+    private fun retryLater(failure: TransportException, events: Int) {
         failures++
         cancelTimer()
         val reason = "Sending ${eventCount(events)} failed (${failure.detail})"

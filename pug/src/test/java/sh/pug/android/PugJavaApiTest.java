@@ -19,7 +19,7 @@ import sh.pug.android.events.WellKnownEvent;
 public class PugJavaApiTest {
     @Test
     public void optionsBuildFluently() {
-        PugOptions options = new PugOptions.Builder("pub_key")
+        Options options = new Options.Builder("pub_key")
                 .endpoint("https://api.example.com")
                 .debug(true)
                 .dryRun(true)
@@ -27,7 +27,7 @@ public class PugJavaApiTest {
                 .autoScreenViews(false)
                 .autoInstallEvents(false)
                 .logger(null)
-                .storage(new MemoryPugStorage())
+                .storage(new MemoryStorage())
                 .batchMaxSize(20)
                 .batchMaxWaitMs(1_000L)
                 .batchMaxQueueSize(500)
@@ -46,7 +46,7 @@ public class PugJavaApiTest {
 
     @Test
     public void initRejectsInvalidArguments() {
-        PugOptions options = new PugOptions.Builder("pub_key").build();
+        Options options = new Options.Builder("pub_key").build();
         ContextWrapper context = new ContextWrapper(null);
 
         assertThrows(IllegalArgumentException.class, () -> Pug.init(null, "proj_1", options));
@@ -54,10 +54,10 @@ public class PugJavaApiTest {
         assertThrows(IllegalArgumentException.class, () -> Pug.init(context, "proj_1", null));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> Pug.init(context, "proj_1", new PugOptions.Builder(null).build()));
+                () -> Pug.init(context, "proj_1", new Options.Builder(null).build()));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> Pug.init(context, "proj_1", new PugOptions.Builder("pub_key").endpoint("ftp://x").build()));
+                () -> Pug.init(context, "proj_1", new Options.Builder("pub_key").endpoint("ftp://x").build()));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class PugJavaApiTest {
 
     @Test
     public void memoryStorageIgnoresNulls() {
-        MemoryPugStorage storage = new MemoryPugStorage();
+        MemoryStorage storage = new MemoryStorage();
         storage.putString("key", "value");
 
         storage.putString(null, "value");
@@ -102,7 +102,7 @@ public class PugJavaApiTest {
         Pug.track.share();
         Pug.track.signup(Collections.singletonMap("method", "google"));
         Pug.track.signout(null, new TrackOptions.Builder().immediate(true).build());
-        Pug.track(PugEvents.ADD_TO_CART, Collections.singletonMap("productId", "p1"));
+        Pug.track(Events.ADD_TO_CART, Collections.singletonMap("productId", "p1"));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class PugJavaApiTest {
     public void eventKindsAreCompileTimeConstants() {
         String kind = "add_to_cart";
         switch (kind) {
-            case PugEvents.ADD_TO_CART:
+            case Events.ADD_TO_CART:
                 break;
             default:
                 throw new AssertionError(kind);

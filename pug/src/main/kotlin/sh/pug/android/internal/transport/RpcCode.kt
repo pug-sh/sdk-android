@@ -51,7 +51,7 @@ internal enum class RpcCode(val wireName: String) {
     }
 }
 
-internal class PugTransportException(
+internal class TransportException(
     val code: RpcCode,
     message: String,
     cause: Throwable? = null,

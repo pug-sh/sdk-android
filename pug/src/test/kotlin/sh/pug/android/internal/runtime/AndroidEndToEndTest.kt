@@ -19,10 +19,10 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
-import sh.pug.android.PugOptions
+import sh.pug.android.Options
 import sh.pug.android.internal.platform.HomeActivity
-import sh.pug.android.internal.storage.FilePugStorage
-import sh.pug.android.internal.storage.PugStorageKeys
+import sh.pug.android.internal.storage.FileStorage
+import sh.pug.android.internal.storage.StorageKeys
 import sh.pug.android.internal.wire.ReferenceMessages
 
 /**
@@ -56,12 +56,12 @@ class AndroidEndToEndTest {
         val packageManager = shadowOf(application.packageManager)
         packageManager.getInternalMutablePackageInfo(application.packageName).versionName = "1.0"
         packageManager.setInstallSourceInfo(application.packageName, "com.android.vending", "com.android.vending")
-        val facade = PugFacade.create()
+        val facade = Facade.create()
 
         facade.init(
             application,
             PROJECT,
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 endpoint = "http://127.0.0.1:${server.address.port}"
                 batchMaxSize = 3
             },
@@ -83,7 +83,7 @@ class AndroidEndToEndTest {
         assertEquals("1.0", auto["\$appVersion"])
         assertEquals(application.packageName, auto["\$appPackage"])
         assertEquals(listOf("app_close"), close.map { it.string("kind") })
-        val keys = PugStorageKeys(PROJECT)
+        val keys = StorageKeys(PROJECT)
         awaitStoredKeys(listOf(keys.session, keys.profile, keys.lastVersion))
     }
 
@@ -92,7 +92,7 @@ class AndroidEndToEndTest {
     // The queue was delivered, so its file is gone once destroy() has written storage.
     private fun awaitStoredKeys(keys: List<String>) {
         val directory = File(application.noBackupFilesDir, "pug")
-        val expected = keys.map(FilePugStorage::fileName).sorted()
+        val expected = keys.map(FileStorage::fileName).sorted()
         runBlocking {
             withTimeout(10_000) {
                 while (directory.list()?.sorted() != expected) delay(10)

@@ -5,7 +5,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import sh.pug.android.PugOptions
+import sh.pug.android.Options
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent
 import sh.pug.android.events.WellKnownEvent
@@ -14,28 +14,28 @@ import sh.pug.android.internal.isNull
 import sh.pug.android.internal.logging.LogcatLogger
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.platform.AndroidPlatform
-import sh.pug.android.internal.transport.HttpPugTransport
+import sh.pug.android.internal.transport.HttpTransport
 
 /**
  * The state behind `Pug`: the running client, and the last client's teardown, which the next one
  * waits for before it touches storage. Callable from any thread; only [init] throws, and only for
  * invalid arguments.
  */
-internal class PugFacade(
+internal class Facade(
     private val fallbackLogger: SafeLogger,
-    private val newClient: (context: Context, projectId: String, options: PugOptions) -> PugClient,
+    private val newClient: (context: Context, projectId: String, options: Options) -> Client,
 ) {
     private val lock = Any()
 
-    @Volatile private var client: PugClient? = null
+    @Volatile private var client: Client? = null
 
     // Guarded by lock.
     private var teardown: Job? = null
 
-    fun init(context: Context, projectId: String, options: PugOptions) {
+    fun init(context: Context, projectId: String, options: Options) {
         require(!isNull(context)) { "Pug.init() needs a Context" }
         require(!isNull(projectId) && projectId.isNotBlank()) { "Pug.init() needs a projectId" }
-        require(!isNull(options)) { "Pug.init() needs PugOptions" }
+        require(!isNull(options)) { "Pug.init() needs Options" }
         require(!isNull(options.apiKey) && options.apiKey.isNotBlank()) { "Pug.init() needs an API key" }
         // Android's HttpURLConnection throws on a header holding a control character, such as a
         // trailing newline, so every batch would fail.
@@ -164,7 +164,7 @@ internal class PugFacade(
         }
     }
 
-    private inline fun call(name: String, block: (PugClient) -> Unit) {
+    private inline fun call(name: String, block: (Client) -> Unit) {
         val current = client
         if (current == null) {
             fallbackLogger.warn("Pug.$name() was called before Pug.init(); it was ignored")
@@ -177,7 +177,7 @@ internal class PugFacade(
         }
     }
 
-    private inline fun <T> query(name: String, fallback: T, block: (PugClient) -> T): T {
+    private inline fun <T> query(name: String, fallback: T, block: (Client) -> T): T {
         val current = client
         if (current == null) {
             fallbackLogger.warn("Pug.$name() was called before Pug.init(); returning $fallback")
@@ -192,12 +192,12 @@ internal class PugFacade(
     }
 
     companion object {
-        fun create(): PugFacade {
+        fun create(): Facade {
             // Shared by every client, so two never touch storage at once.
             val worker = Dispatchers.IO.limitedParallelism(1)
-            return PugFacade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { context, projectId, options ->
-                val transport = HttpPugTransport(options.endpoint, options.apiKey)
-                PugClient(projectId, options, transport, worker, AndroidPlatform(context))
+            return Facade(SafeLogger(LogcatLogger, isDebugEnabled = false)) { context, projectId, options ->
+                val transport = HttpTransport(options.endpoint, options.apiKey)
+                Client(projectId, options, transport, worker, AndroidPlatform(context))
             }
         }
 

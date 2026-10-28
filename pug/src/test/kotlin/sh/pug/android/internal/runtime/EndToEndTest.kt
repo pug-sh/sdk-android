@@ -13,12 +13,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugOptions
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Options
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.platform.FakePlatform
-import sh.pug.android.internal.storage.PugStorageKeys
-import sh.pug.android.internal.transport.HttpPugTransport
+import sh.pug.android.internal.storage.StorageKeys
+import sh.pug.android.internal.transport.HttpTransport
 import sh.pug.android.internal.wire.ReferenceMessages
 
 /** The whole pipeline on a real worker, over HTTP, with requests decoded by protobuf-java. */
@@ -61,7 +61,7 @@ class EndToEndTest {
     fun `identify reaches the server with the anonymous id`() {
         server.enqueue(protobufResponse(ByteArray(0)))
         server.enqueue(protobufResponse(ReferenceMessages.batchResponse(accepted = 1, dropped = 0, emptyMap())))
-        val storage = MemoryPugStorage()
+        val storage = MemoryStorage()
         val client = client(storage) { batchMaxSize = 1 }
 
         client.identify("user-42", mapOf("plan" to "pro"))
@@ -95,30 +95,27 @@ class EndToEndTest {
         destroy(client)
     }
 
-    private fun client(
-        storage: MemoryPugStorage = MemoryPugStorage(),
-        configure: PugOptions.Builder.() -> Unit,
-    ): PugClient {
+    private fun client(storage: MemoryStorage = MemoryStorage(), configure: Options.Builder.() -> Unit): Client {
         val options =
-            PugOptions("pub_test") {
+            Options("pub_test") {
                 endpoint = server.url("/").toString()
                 this.storage = storage
                 configure()
             }
-        val transport = HttpPugTransport(options.endpoint, options.apiKey, 5_000, 5_000)
+        val transport = HttpTransport(options.endpoint, options.apiKey, 5_000, 5_000)
         val worker = Dispatchers.IO.limitedParallelism(1)
-        return PugClient(PROJECT, options, transport, worker, FakePlatform(), random = FixedRandom())
+        return Client(PROJECT, options, transport, worker, FakePlatform(), random = FixedRandom())
             .also { it.start(null) }
     }
 
     // The link lands on the worker after the response, so it can trail the server seeing the request.
-    private fun awaitLinked(storage: MemoryPugStorage) = runBlocking {
+    private fun awaitLinked(storage: MemoryStorage) = runBlocking {
         withTimeout(10_000) {
-            while (storage.getString(PugStorageKeys(PROJECT).externalId) == null) delay(10)
+            while (storage.getString(StorageKeys(PROJECT).externalId) == null) delay(10)
         }
     }
 
-    private fun destroy(client: PugClient) = runBlocking {
+    private fun destroy(client: Client) = runBlocking {
         withTimeout(10_000) { client.destroy().join() }
     }
 

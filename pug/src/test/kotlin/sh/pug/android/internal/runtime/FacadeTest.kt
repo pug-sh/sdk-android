@@ -12,8 +12,8 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
-import sh.pug.android.MemoryPugStorage
-import sh.pug.android.PugOptions
+import sh.pug.android.MemoryStorage
+import sh.pug.android.Options
 import sh.pug.android.TrackOptions
 import sh.pug.android.TrackingConsent
 import sh.pug.android.internal.FixedRandom
@@ -22,19 +22,19 @@ import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.wire.PropertyValue
 
-class PugFacadeTest {
+class FacadeTest {
     private val scheduler = TestCoroutineScheduler()
     private val worker = StandardTestDispatcher(scheduler)
     private val transport = FakeTransport { scheduler.currentTime }
     private val logger = RecordingLogger()
     private val fallbackLogger = RecordingLogger()
-    private val storage = MemoryPugStorage()
+    private val storage = MemoryStorage()
     private val ids = SequentialIds()
     private val context = ContextWrapper(null)
     private val platform = FakePlatform()
     private val facade =
-        PugFacade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
-            PugClient(
+        Facade(fallbackLogger.safe(debug = false)) { _, projectId, options ->
+            Client(
                 projectId,
                 options,
                 transport,
@@ -54,7 +54,7 @@ class PugFacadeTest {
         )
         assertEquals(
             "Pug.init() needs an API key",
-            assertFailsWith<IllegalArgumentException> { facade.init(context, PROJECT, PugOptions(" ")) }.message,
+            assertFailsWith<IllegalArgumentException> { facade.init(context, PROJECT, Options(" ")) }.message,
         )
         assertNull(facade.getTrackingConsent())
     }
@@ -105,7 +105,7 @@ class PugFacadeTest {
             listOf(
                 "Pug.init() needs a Context" to { JavaCallers.init(facade, null, PROJECT, options()) },
                 "Pug.init() needs a projectId" to { JavaCallers.init(facade, context, null, options()) },
-                "Pug.init() needs PugOptions" to { JavaCallers.init(facade, context, PROJECT, null) },
+                "Pug.init() needs Options" to { JavaCallers.init(facade, context, PROJECT, null) },
                 "Pug.init() needs an API key" to {
                     JavaCallers.init(facade, context, PROJECT, JavaCallers.optionsWithNullApiKey())
                 },
@@ -185,7 +185,7 @@ class PugFacadeTest {
         val otherLogger = RecordingLogger()
         facade.init(context, PROJECT, options())
 
-        facade.init(context, "other", PugOptions("pub_other") { logger = otherLogger })
+        facade.init(context, "other", Options("pub_other") { logger = otherLogger })
         facade.track("a", null, TrackOptions { immediate = true })
         scheduler.runCurrent()
 
@@ -288,7 +288,7 @@ class PugFacadeTest {
 
     @Test
     fun `a client that cannot be built leaves Pug uninitialized`() {
-        val failing = PugFacade(fallbackLogger.safe(debug = false)) { _, _, _ -> throw IllegalStateException("boom") }
+        val failing = Facade(fallbackLogger.safe(debug = false)) { _, _, _ -> throw IllegalStateException("boom") }
 
         failing.init(context, PROJECT, options())
         failing.track("a", null, null)
@@ -297,10 +297,10 @@ class PugFacadeTest {
         assertEquals(listOf("Pug.track() was called before Pug.init(); it was ignored"), fallbackLogger.warnings)
     }
 
-    private fun options(apiKey: String = "pub_key", configure: PugOptions.Builder.() -> Unit = {}): PugOptions =
-        PugOptions(apiKey) {
-            logger = this@PugFacadeTest.logger
-            storage = this@PugFacadeTest.storage
+    private fun options(apiKey: String = "pub_key", configure: Options.Builder.() -> Unit = {}): Options =
+        Options(apiKey) {
+            logger = this@FacadeTest.logger
+            storage = this@FacadeTest.storage
             configure()
         }
 
