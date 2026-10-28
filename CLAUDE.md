@@ -38,8 +38,12 @@ filter.
 it by hand: bump `PROTO_COMMIT`, run `make sync-protos protos` and review the diff.
 `make check-proto-pin` proves `proto/` matches the pin.
 
-Releasing (`make publish-bundle`, `make publish-central`) is manual. It needs `CENTRAL_TOKEN` and the
-signing key in `ORG_GRADLE_PROJECT_signingInMemoryKey` and `ORG_GRADLE_PROJECT_signingInMemoryKeyPassword`.
+Releasing: pushing a tag `v<VERSION_NAME>` runs `.github/workflows/release.yml`, which checks the
+tagged commit and runs `make publish-central` with the repository secrets `CENTRAL_USERNAME` and
+`CENTRAL_PASSWORD` (a Central Portal user token), `SIGNING_KEY` (the armored secret key) and
+`SIGNING_KEY_PASSWORD`. The upload then waits for "Publish" in the Portal, which is irreversible.
+Locally, `make publish-central` takes the same values as `CENTRAL_USERNAME`, `CENTRAL_PASSWORD`,
+`ORG_GRADLE_PROJECT_signingInMemoryKey` and `ORG_GRADLE_PROJECT_signingInMemoryKeyPassword`.
 
 ## Architecture
 

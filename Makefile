@@ -119,12 +119,14 @@ publish-bundle: verify-version
 	@echo "Built $(BUNDLE)"
 
 # Uploads the bundle to the Central Portal, where it waits for "Publish" (irreversible) after
-# validation. CENTRAL_TOKEN is base64 of a Portal user token's "username:password".
+# validation. CENTRAL_USERNAME and CENTRAL_PASSWORD are a Portal user token. Pushing a version tag
+# runs this in CI (.github/workflows/release.yml).
 publish-central:
-	@test -n "$$CENTRAL_TOKEN" || { echo "CENTRAL_TOKEN is not set"; exit 1; }
+	@test -n "$$CENTRAL_USERNAME" && test -n "$$CENTRAL_PASSWORD" \
+	  || { echo "CENTRAL_USERNAME and CENTRAL_PASSWORD are not set"; exit 1; }
 	$(MAKE) publish-bundle
 	@curl --fail-with-body --silent --show-error -X POST \
-	  -H "Authorization: Bearer $$CENTRAL_TOKEN" \
+	  -H "Authorization: Bearer $$(printf '%s:%s' "$$CENTRAL_USERNAME" "$$CENTRAL_PASSWORD" | base64 | tr -d '\n')" \
 	  -F "bundle=@$(BUNDLE)" \
 	  "https://central.sonatype.com/api/v1/publisher/upload?name=pug-android-$(VERSION)&publishingType=USER_MANAGED" \
 	  && echo " <- deployment id: release it at https://central.sonatype.com/publishing/deployments"

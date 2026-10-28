@@ -1,0 +1,55 @@
+name: Release
+
+# Pushing a version tag (v0.1.0) checks the tagged commit as CI does, then uploads the signed bundle
+# to the Central Portal, where it waits for "Publish" (irreversible) at
+# https://central.sonatype.com/publishing/deployments.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check the tagged commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      # The bundle takes its version from gradle.properties, whatever the tag says.
+      - name: Check the tag matches VERSION_NAME
+        run: |
+          version="$(sed -n 's/^VERSION_NAME=//p' gradle.properties)"
+          test "$GITHUB_REF_NAME" = "v$version" \
+            || { echo "::error::Tag $GITHUB_REF_NAME does not match VERSION_NAME=$version"; exit 1; }
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-${{ hashFiles('gradle/libs.versions.toml', 'pug/src/test/resources/robolectric.properties') }}
+
+      - run: make check-proto-pin ci
+
+      - name: Check for uncommitted changes
+        run: git diff --exit-code
+
+  # A job of its own without setup-gradle, whose init script hooks every Gradle build in its job, so
+  # no third-party action runs where the signing key and the Portal token are.
+  publish:
+    name: Upload to the Central Portal
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: make publish-central
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
