@@ -72,6 +72,39 @@ class ActivityLifecycleTrackerTest {
     }
 
     @Test
+    fun `an activity resuming after only pausing, as under a permission dialog, is the same screen`() {
+        tracker()
+        val home = Robolectric.buildActivity(HomeActivity::class.java).setup()
+
+        home.pause().resume()
+
+        assertEquals(listOf("foreground", HOME), events)
+    }
+
+    @Test
+    fun `an activity resuming after one of the app's own activities covered it is a screen again`() {
+        tracker()
+        val home = Robolectric.buildActivity(HomeActivity::class.java).setup()
+
+        home.pause()
+        val detail = Robolectric.buildActivity(DetailActivity::class.java).setup()
+        detail.pause()
+        home.resume()
+
+        assertEquals(listOf("foreground", HOME, DETAIL, HOME), events)
+    }
+
+    @Test
+    fun `an activity resuming after it stopped is a screen again`() {
+        tracker()
+        val home = Robolectric.buildActivity(HomeActivity::class.java).setup()
+
+        home.pause().stop().start().resume()
+
+        assertEquals(listOf("foreground", HOME, "background", "foreground", HOME), events)
+    }
+
+    @Test
     fun `an app on screen before tracking starts is in the foreground until its activity stops`() {
         val home = Robolectric.buildActivity(HomeActivity::class.java).setup()
 

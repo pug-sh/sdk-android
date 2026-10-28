@@ -25,6 +25,8 @@ for a class.
   which must not ship in an app, or the project id passed in the key's place. It also throws for a
   key with spaces, control characters or non-ASCII, such as a trailing newline, with which every
   send failed.
+- An activity resuming after only pausing, as under a permission dialog, no longer tracks a
+  `screen_view`, so `$url` stays the screen `Pug.screen` named instead of going back to the activity.
 - Property and trait values of other types, such as `UUID` or `Uri`, are sent as their `toString()`
   instead of being dropped.
 
