@@ -31,6 +31,11 @@ internal class ActivityLifecycleTracker(
     private var foreground = false
     private var stopped = false
 
+    // The activity paused last, until it stops or another activity resumes. Resuming it then means
+    // it was only covered, as by a permission dialog from another process: the same screen, so
+    // whatever Pug.screen named on it stays current.
+    private var covered: Activity? = null
+
     fun start() {
         onMainThread {
             if (stopped) return@onMainThread
@@ -59,13 +64,22 @@ internal class ActivityLifecycleTracker(
 
     override fun onActivityResumed(activity: Activity) {
         guarded {
-            val type = activity.javaClass
-            observer.onActivityResumed(type.simpleName.ifEmpty { type.name }, type.name)
+            val uncovered = activity === covered
+            covered = null
+            if (!uncovered) {
+                val type = activity.javaClass
+                observer.onActivityResumed(type.simpleName.ifEmpty { type.name }, type.name)
+            }
         }
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        covered = activity
     }
 
     override fun onActivityStopped(activity: Activity) {
         guarded {
+            if (activity === covered) covered = null
             // An activity started before registration can only be the one the seed assumed.
             if (!started.remove(activity)) assumedStarted = false
             if (foreground && started.isEmpty() && !assumedStarted && !activity.isChangingConfigurations) {
@@ -77,11 +91,11 @@ internal class ActivityLifecycleTracker(
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
 
-    override fun onActivityPaused(activity: Activity) {}
-
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
-    override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivityDestroyed(activity: Activity) {
+        if (activity === covered) covered = null
+    }
 
     private fun enterForeground() {
         if (foreground) return

@@ -441,7 +441,8 @@ dropped on load (Flutter).
   background, sent immediately. Backgrounding always drains the queue, backoff or not, and syncs
   storage at once and again once the sends settle, even with `autoOpenCloseEvents` off.
 - `autoScreenViews` (default on): `screen_view{screenName = activity simple name, screenClass =
-  qualified name}` on `onActivityResumed`. `Pug.screen(name)` tracks `screen_view{screenName}` for
+  qualified name}` on `onActivityResumed`, unless the activity only paused and nothing of the app
+  resumed since (a permission dialog), which keeps the current screen. `Pug.screen(name)` tracks `screen_view{screenName}` for
   Compose and fragments. Both share the dedup (a screen shown again while current is not tracked)
   and the `$url`/`$referrer` state (D18); names are cut to 1024 bytes. Off: activities are ignored
   (D22).
