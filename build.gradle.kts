@@ -33,7 +33,7 @@ dependencies {
 }
 
 val detektSources = listOf("pug/src", "sample/src", "tools/abi-dump/src", "tools/gen-track/src")
-val detektConfig = layout.projectDirectory.file("config/detekt.yml")
+val detektConfig = layout.projectDirectory.file("detekt.yml")
 val detektReport = layout.buildDirectory.file("reports/detekt.txt")
 
 tasks.register<JavaExec>("detekt") {

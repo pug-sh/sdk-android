@@ -54,7 +54,7 @@ under `noBackupFilesDir/pug/`.
 - **Public API is pinned** by `pug/api/pug.api`, which `make check` compares with the release AAR
   through `tools/abi-dump` (KGP's ABI validation and BCV do not run under AGP's built-in Kotlin).
   Any change to a public signature, the generated ones included, shows there.
-- **Dead code is checked**: detekt's unused rules (`config/detekt.yml`) within a file, and
+- **Dead code is checked**: detekt's unused rules (`detekt.yml`) within a file, and
   `tools/dead-code` across the SDK (R8 keeping only `pug.api`; test-only members are listed in
   `tools/dead-code/allowed.txt`).
 - **`sample/`** (`:sample`) is a framework-only app on the SDK, from Kotlin and Java, with StrictMode
