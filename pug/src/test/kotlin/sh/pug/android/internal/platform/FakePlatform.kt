@@ -10,6 +10,7 @@ internal class FakePlatform(
     private val directory: File? = null,
     private val properties: Map<String, Any?> = emptyMap(),
     private val appVersion: String? = null,
+    private val installSource: String? = null,
     private val observable: Boolean = true,
 ) : Platform {
     private var observer: LifecycleObserver? = null
@@ -25,6 +26,8 @@ internal class FakePlatform(
 
         override fun current(): Map<String, Any?> = properties
     }
+
+    override fun installSource(): String? = installSource
 
     override fun observeLifecycle(observer: LifecycleObserver, logger: SafeLogger): (() -> Unit)? {
         if (!observable) return null

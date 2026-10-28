@@ -20,7 +20,7 @@ internal class InstallTracker(
 
     private var pending: Pending? = null
 
-    fun check(appVersion: String?) {
+    fun check(appVersion: String?, installSource: () -> String?) {
         if (appVersion.isNullOrEmpty()) {
             logger.debug("app_install and app_update are not tracked: the app version could not be read")
             return
@@ -42,7 +42,10 @@ internal class InstallTracker(
                     null
                 }
 
-                else -> Pending(PugEvents.APP_INSTALL, mapOf("appVersion" to appVersion), appVersion)
+                else -> {
+                    val properties = mapOf("appVersion" to appVersion, "installSource" to installSource())
+                    Pending(PugEvents.APP_INSTALL, properties, appVersion)
+                }
             }
     }
 

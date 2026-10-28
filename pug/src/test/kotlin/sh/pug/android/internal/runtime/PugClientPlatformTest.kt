@@ -284,9 +284,41 @@ class PugClientPlatformTest {
     }
 
     @Test
-    fun `a new app version tracks app_update`() {
+    fun `app_install names the app that installed it`() {
+        client(FakePlatform(appVersion = "1.0", installSource = "com.android.vending")) { batchMaxSize = 1 }
+
+        scheduler.runCurrent()
+
+        val install = transport.batches.single().single()
+        assertEquals(
+            mapOf("appVersion" to StringValue("1.0"), "installSource" to StringValue("com.android.vending")),
+            install.customProperties,
+        )
+    }
+
+    @Test
+    fun `an install source that cannot be read is left out`() {
+        val platform =
+            object : Platform by FakePlatform(appVersion = "1.0") {
+                override fun installSource(): String? = throw SecurityException("no access")
+            }
+        client(platform) { batchMaxSize = 1 }
+
+        scheduler.runCurrent()
+
+        val install = transport.batches.single().single()
+        assertEquals(mapOf("appVersion" to StringValue("1.0")), install.customProperties)
+        assertEquals(listOf("The install source could not be read"), logger.warnings)
+    }
+
+    @Test
+    fun `a new app version tracks app_update, without reading the install source`() {
         storage.putString(keys.lastVersion, "1.0")
-        client(FakePlatform(appVersion = "1.1")) { batchMaxSize = 1 }
+        val platform =
+            object : Platform by FakePlatform(appVersion = "1.1") {
+                override fun installSource(): String? = throw AssertionError("the install source was read")
+            }
+        client(platform) { batchMaxSize = 1 }
 
         scheduler.runCurrent()
 
@@ -296,6 +328,7 @@ class PugClientPlatformTest {
             mapOf("appVersion" to StringValue("1.1"), "previousVersion" to StringValue("1.0")),
             update.customProperties,
         )
+        assertEquals(emptyList(), logger.warnings)
     }
 
     @Test

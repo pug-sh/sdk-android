@@ -426,7 +426,7 @@ internal class PugClient(
         deviceProperties = readAutoProperties()
         // Before anything this launch writes, so the probe for earlier launches sees only theirs.
         installs = InstallTracker(storage, keys, logger)
-        if (options.autoInstallEvents) installs.check(deviceProperties.appVersion)
+        if (options.autoInstallEvents) installs.check(deviceProperties.appVersion, ::readInstallSource)
         identity = Identity(storage, keys, logger, ids, options.sessionIdleTimeoutMs, options.sessionMaxDurationMs)
         val queue = EventQueue(storage, keys.queue, logger, options.batchMaxQueueSize)
         dispatcher =
@@ -467,6 +467,13 @@ internal class PugClient(
     } catch (t: Throwable) {
         logger.warn("Device and app auto-properties could not be read", t)
         NoAutoProperties
+    }
+
+    private fun readInstallSource(): String? = try {
+        platform.installSource()
+    } catch (t: Throwable) {
+        logger.warn("The install source could not be read", t)
+        null
     }
 
     // Ops never suspend, so whatever one throws is that op's failure, never a cancellation of the

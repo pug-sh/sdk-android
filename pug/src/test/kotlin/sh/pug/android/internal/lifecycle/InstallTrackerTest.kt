@@ -17,11 +17,14 @@ class InstallTrackerTest {
     private val tracker = InstallTracker(storage, keys, logger.safe())
 
     @Test
-    fun `the first launch is an install`() {
-        tracker.check("1.0")
+    fun `the first launch is an install, with its source`() {
+        tracker.check("1.0") { "com.android.vending" }
         tracker.emit(::capture)
 
-        assertEquals(listOf(APP_INSTALL to mapOf<String, Any?>("appVersion" to "1.0")), captured)
+        assertEquals(
+            listOf(APP_INSTALL to mapOf<String, Any?>("appVersion" to "1.0", "installSource" to "com.android.vending")),
+            captured,
+        )
         assertEquals("1.0", storage.getString(keys.lastVersion))
     }
 
@@ -29,7 +32,7 @@ class InstallTrackerTest {
     fun `a new version is an update from the last one`() {
         storage.putString(keys.lastVersion, "1.0")
 
-        tracker.check("1.1")
+        tracker.check("1.1", ::unread)
         tracker.emit(::capture)
 
         assertEquals(
@@ -43,7 +46,7 @@ class InstallTrackerTest {
     fun `the same version tracks nothing`() {
         storage.putString(keys.lastVersion, "1.0")
 
-        tracker.check("1.0")
+        tracker.check("1.0", ::unread)
         tracker.emit(::capture)
 
         assertEquals(emptyList(), captured)
@@ -53,7 +56,7 @@ class InstallTrackerTest {
     fun `an app that used Pug before recording versions is not a new install`() {
         storage.putString(keys.profile, """{"anonymousId":"anon-1"}""")
 
-        tracker.check("1.0")
+        tracker.check("1.0", ::unread)
         tracker.emit(::capture)
 
         assertEquals(emptyList(), captured)
@@ -65,7 +68,7 @@ class InstallTrackerTest {
         storage.putString(keys.consent, "granted")
         storage.putString(keys.lastVersion, "")
 
-        tracker.check("1.0")
+        tracker.check("1.0") { null }
         tracker.emit(::capture)
 
         assertEquals(listOf(APP_INSTALL), captured.map { it.first })
@@ -73,7 +76,7 @@ class InstallTrackerTest {
 
     @Test
     fun `an event consent kept back waits for the next emit`() {
-        tracker.check("1.0")
+        tracker.check("1.0") { null }
 
         tracker.emit { _, _ -> false }
         assertNull(storage.getString(keys.lastVersion))
@@ -86,8 +89,8 @@ class InstallTrackerTest {
 
     @Test
     fun `without an app version nothing is tracked`() {
-        tracker.check(null)
-        tracker.check("")
+        tracker.check(null, ::unread)
+        tracker.check("", ::unread)
         tracker.emit(::capture)
 
         assertEquals(emptyList(), captured)
@@ -97,6 +100,8 @@ class InstallTrackerTest {
             logger.debugs,
         )
     }
+
+    private fun unread(): String? = throw AssertionError("the install source was read")
 
     private fun capture(kind: String, properties: Map<String, Any?>): Boolean {
         captured += kind to properties

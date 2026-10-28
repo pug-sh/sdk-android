@@ -29,6 +29,9 @@ for a class.
   `screen_view`, so `$url` stays the screen `Pug.screen` named instead of going back to the activity.
 - Property and trait values of other types, such as `UUID` or `Uri`, are sent as their `toString()`
   instead of being dropped.
+- `app_install` carries `installSource`, the package name of the app that installed yours, such as
+  `com.android.vending` for Google Play. It is left out when none is recorded, as for an app
+  installed with `adb`.
 
 ## 0.1.0 (2026-10-12)
 

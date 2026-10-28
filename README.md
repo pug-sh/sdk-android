@@ -157,8 +157,11 @@ column.
 | `app_open` | The app comes to the foreground (an activity starts while none was started). | `autoOpenCloseEvents` |
 | `app_close` | The app leaves the foreground (its last started activity stops, not for a rotation). | `autoOpenCloseEvents` |
 | `screen_view` | An activity resumes: `screenName` is its class's simple name, `screenClass` the full one. | `autoScreenViews` |
-| `app_install` | The first launch with the SDK on this device, with `appVersion`. | `autoInstallEvents` |
+| `app_install` | The first launch with the SDK on this device, with `appVersion` and `installSource`. | `autoInstallEvents` |
 | `app_update` | The first launch of a new app version, with `appVersion` and `previousVersion`. | `autoInstallEvents` |
+
+`installSource` is the package name of the app that installed yours, such as `com.android.vending`
+for Google Play. It is left out when none is recorded, as for an app installed with `adb`.
 
 When the app leaves the foreground the SDK sends what is queued and writes its state to disk,
 whatever `autoOpenCloseEvents` says, since the process may be stopped from then on.

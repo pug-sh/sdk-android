@@ -38,6 +38,43 @@ class AndroidPlatformTest {
     }
 
     @Test
+    fun `the install source is the installer of record, not the app that started the install`() {
+        shadowOf(application.packageManager)
+            .setInstallSourceInfo(application.packageName, "com.example.browser", "com.android.vending")
+
+        assertEquals("com.android.vending", AndroidPlatform(application).installSource())
+    }
+
+    @Test
+    fun `below API 30 the install source is the installer package name`() {
+        application.packageManager.setInstallerPackageName(application.packageName, "com.android.vending")
+
+        assertEquals("com.android.vending", AndroidPlatform(application, sdkInt = 29).installSource())
+    }
+
+    @Test
+    fun `an app installed without an installer has no install source`() {
+        shadowOf(application.packageManager).setInstallSourceInfo(application.packageName, "com.android.shell", null)
+
+        assertNull(AndroidPlatform(application).installSource())
+        assertNull(AndroidPlatform(application, sdkInt = 29).installSource())
+    }
+
+    @Test
+    fun `an empty installer name is no install source`() {
+        shadowOf(application.packageManager).setInstallSourceInfo(application.packageName, null, "")
+        application.packageManager.setInstallerPackageName(application.packageName, "")
+
+        assertNull(AndroidPlatform(application).installSource())
+        assertNull(AndroidPlatform(application, sdkInt = 29).installSource())
+    }
+
+    @Test
+    fun `a package manager that does not know the app has no install source for it`() {
+        assertNull(AndroidPlatform(application).installSource())
+    }
+
+    @Test
     fun `any context of the app leads to its Application`() {
         val platform = AndroidPlatform(ContextWrapper(application))
 

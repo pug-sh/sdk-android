@@ -14,6 +14,9 @@ internal interface Platform {
     /** Reads the fixed values once; the rest are read per event by [AutoProperties.current]. Called on the worker. */
     fun autoProperties(logger: SafeLogger): AutoProperties
 
+    /** The package name of the app that installed this one, or null when none is recorded. Called on the worker. */
+    fun installSource(): String?
+
     /**
      * Reports the app's lifecycle to [observer] until the returned function is called, or returns
      * null when the lifecycle cannot be observed.

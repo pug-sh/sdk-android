@@ -53,7 +53,9 @@ class AndroidEndToEndTest {
 
     @Test
     fun `a launch, its first screen and leaving the app reach the server, and the state is stored`() {
-        shadowOf(application.packageManager).getInternalMutablePackageInfo(application.packageName).versionName = "1.0"
+        val packageManager = shadowOf(application.packageManager)
+        packageManager.getInternalMutablePackageInfo(application.packageName).versionName = "1.0"
+        packageManager.setInstallSourceInfo(application.packageName, "com.android.vending", "com.android.vending")
         val facade = PugFacade.create()
 
         facade.init(
@@ -71,6 +73,7 @@ class AndroidEndToEndTest {
         facade.destroy()
 
         assertEquals(listOf("app_install", "app_open", "screen_view"), launch.map { it.string("kind") })
+        assertEquals("com.android.vending", launch[0].properties("custom_properties")["installSource"])
         val screenView = launch[2]
         assertEquals("HomeActivity", screenView.properties("custom_properties")["screenName"])
         val auto = screenView.properties("auto_properties")
