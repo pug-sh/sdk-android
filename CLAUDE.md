@@ -148,7 +148,6 @@ under `noBackupFilesDir/pug/`.
   deliberate design choice.
 - No em dashes in code, comments or docs. `proto/` is exempt, since it is vendored.
 - Commit messages describe the change itself, in the `feat:` / `fix:` style of the history.
-- Record user-visible changes in `CHANGELOG.md` under Unreleased.
 
 ## Tests
 
