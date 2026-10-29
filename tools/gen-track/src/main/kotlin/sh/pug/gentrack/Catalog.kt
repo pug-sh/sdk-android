@@ -58,9 +58,6 @@ class Event(val kind: String, val comment: List<String>, val fields: List<Field>
             .joinToString("")
     val constant: String = kind.uppercase()
     val className: String = method.replaceFirstChar(Char::uppercaseChar) + "Event"
-
-    /** Required properties first, each group in schema order. */
-    val parameters: List<Field> = fields.filter { it.required } + fields.filterNot { it.required }
 }
 
 /**
@@ -133,12 +130,11 @@ private fun checkNames(events: Collection<Event>) {
             fail("kind \"${event.kind}\" makes the method name ${event.method}, which is not usable")
         }
         // Names the generated code uses beside the parameters: a parameter would shadow them.
-        val parameters = hashSetOf("extras", "options", "extra", "facade", "values")
+        val parameters = hashSetOf("named", "extras", "options", "extra", "facade", "values")
         for (field in event.fields) {
             val name = field.parameter
-            // An optional property is also a setter of the event's class, which Java calls.
-            val unusable = if (field.required) KOTLIN_KEYWORDS else UNUSABLE_METHODS
-            if (!IDENTIFIER.matches(name) || name in unusable || !parameters.add(name)) {
+            // Every property is also a setter of the event's class, which Java calls.
+            if (!IDENTIFIER.matches(name) || name in UNUSABLE_METHODS || !parameters.add(name)) {
                 fail("${event.kind}.${field.key} makes the parameter name $name, which is not usable")
             }
         }

@@ -14,7 +14,8 @@ public object Pug {
     /**
      * The well-known events but those Pug tracks itself, each with a method that takes its properties
      * as named arguments: `Pug.track.addToCart(productId = "p1", price = 9.99)`. From Java, an event
-     * with properties is an object instead: `Pug.track(new AddToCartEvent("p1").price(9.99))`.
+     * with properties is an object instead:
+     * `Pug.track(new AddToCartEvent().productId("p1").price(9.99))`.
      */
     @JvmField
     public val track: TrackNamespace = TrackNamespace(facade)
@@ -46,8 +47,9 @@ public object Pug {
 
     /**
      * Tracks a well-known event built as an object, the typed form for Java:
-     * `Pug.track(new AddToCartEvent("p1").price(9.99))`. From Kotlin, the methods of [TrackNamespace]
-     * take the same properties as named arguments.
+     * `Pug.track(new AddToCartEvent().productId("p1").price(9.99))`. From Kotlin, the methods of
+     * [TrackNamespace] take the same properties as named arguments. An event missing a required
+     * property is sent without it and logs a warning; each event class names its required properties.
      */
     @JvmStatic
     @JvmOverloads
@@ -120,9 +122,9 @@ public object Pug {
     }
 
     /**
-     * The consent in effect, or null when it is not known yet: before [init], and right after it until
-     * Pug has read what an earlier launch stored, unless the user has chosen since. Never waits; see
-     * [whenConsentReady].
+     * The consent in effect, or null when it is not known: before [init], right after it until Pug has
+     * read what an earlier launch stored (unless the user has chosen since), and if Pug failed to
+     * start. Never waits; see [whenConsentReady].
      */
     @JvmStatic
     public fun getTrackingConsent(): TrackingConsent? = facade.getTrackingConsent()

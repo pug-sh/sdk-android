@@ -28,8 +28,8 @@ public final class ConsentActivity extends Activity {
             Map<String, Object> properties = new HashMap<>();
             properties.put("source", "java");
             Pug.track("consent_screen_action", properties);
-            Pug.track(new SearchEvent("from java"));
-            Pug.track(new SearchResultClickedEvent("from java", "r1").index(0).extra("source", "java"));
+            Pug.track(new SearchEvent().query("from java"));
+            Pug.track(new SearchResultClickedEvent().query("from java").resultId("r1").index(0).extra("source", "java"));
             Pug.track(Events.SHARE);
         });
     }

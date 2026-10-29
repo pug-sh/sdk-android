@@ -12,8 +12,9 @@ private val TRACK_NAMESPACE_DOC =
     listOf(
         "The well-known events, one method each but for those below. " +
             "`Pug.track.addToCart(productId = \"p1\", price = 9.99)` tracks `add_to_cart` with the properties " +
-            "`productId` and `price`: parameters without a default are the properties the event requires, and an " +
-            "argument left null is not sent.",
+            "`productId` and `price`: properties without a default are those the event requires, and an argument " +
+            "left null is not sent. For an event with properties the arguments must be named ([NamedArguments]): " +
+            "a call that passes them by position does not compile, so two of one type cannot swap places.",
         "",
         "The events Pug tracks on its own have no method here: `app_open`, `app_close`, `app_install`, " +
             "`app_update`, and `screen_view`, which [Pug.screen] tracks for screens that are not activities.",
@@ -23,7 +24,8 @@ private val TRACK_NAMESPACE_DOC =
             "every call to [Pug], these return at once and never throw.",
         "",
         "Java sees only the methods of the events without properties, such as `Pug.track.signup()`: for the " +
-            "others it tracks an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent(\"p1\"))`.",
+            "others it tracks an object of `sh.pug.android.events`, such as " +
+            "`Pug.track(new AddToCartEvent().productId(\"p1\"))`.",
     )
 
 private const val EVENTS_DOC =
@@ -56,16 +58,23 @@ private fun trackNamespace(events: List<Event>): String = buildString {
 private fun StringBuilder.method(event: Event) {
     val doc = mutableListOf("Tracks `${event.kind}`.")
     if (event.comment.isNotEmpty()) doc += listOf("") + event.comment
-    val tags = event.parameters.flatMap { field -> parameterDoc(field)?.let { wrap(it, "    ", "  ") }.orEmpty() }
+    val tags = event.fields.flatMap { field -> parameterDoc(field)?.let { wrap(it, "    ", "  ") }.orEmpty() }
     if (tags.isNotEmpty()) doc += listOf("") + tags
     kdoc("    ", doc)
     // Java tracks an event with properties as an object instead, so it sees one typed form.
     appendLine(if (event.fields.isEmpty()) "    @JvmOverloads" else "    @JvmSynthetic")
-    val parameters =
-        event.parameters.map { field ->
+    // Every argument after a vararg must be named, and NamedArguments has no instance to pass, so
+    // property values cannot swap places. An event without properties gets no marker: its extras
+    // and options differ in type, and Java calls its method.
+    val marker = if (event.fields.isEmpty()) emptyList() else listOf("vararg named: NamedArguments")
+    // In schema order, required or not: a compiled call passes them by position, so a property
+    // that becomes required or optional keeps its place.
+    val properties =
+        event.fields.map { field ->
             val type = field.type.kotlin
             if (field.required) "${field.parameter}: $type" else "${field.parameter}: $type? = null"
-        } + listOf("extras: Map<String, Any?>? = null", "options: TrackOptions? = null")
+        }
+    val parameters = marker + properties + listOf("extras: Map<String, Any?>? = null", "options: TrackOptions? = null")
     wrapped("    ", "public fun ${event.method}(", parameters, ") {")
     val arguments = listOf("WellKnownEvents.${event.constant}", "extras", "options") + event.fields.map { it.parameter }
     wrapped("        ", "facade.trackTyped(", arguments, ")")
@@ -93,39 +102,33 @@ private fun eventClasses(events: List<Event>): String = buildString {
     }
 }
 
+// Java has no named arguments, so every property is a setter, required ones too: a constructor
+// taking them would let two of one type swap places.
 private fun StringBuilder.eventClass(event: Event) {
     val name = event.className
-    val required = event.fields.filter { it.required }
+    val required = event.fields.filter { it.required }.map { "`${it.parameter}`" }
     val doc =
         wrap(
             "The `${event.kind}` event, for `Pug.track(event)`. From Kotlin, `Pug.track.${event.method}(…)` takes " +
                 "the same properties as named arguments.",
             "",
         ).toMutableList()
+    if (required.isNotEmpty()) doc += listOf("") + wrap(requiredDoc(required), "")
     if (event.comment.isNotEmpty()) doc += listOf("") + event.comment
-    val tags = required.flatMap { field -> parameterDoc(field)?.let { wrap(it, "", "  ") }.orEmpty() }
-    if (tags.isNotEmpty()) doc += listOf("") + tags
     kdoc("", doc)
+    val open = "public class $name"
     val superclass = "WellKnownEvent(WellKnownEvents.${event.constant}, \"$name\")"
-    val parameters = required.map { "${it.parameter}: ${it.type.kotlin}" }
-    val open = if (required.isEmpty()) "public class $name" else "public class $name(${parameters.joinToString(", ")})"
-    // ktlint's layouts: the superclass moves to its own line before the parameters do.
-    when {
-        "$open : $superclass {".length <= MAX_LINE -> appendLine("$open : $superclass {")
-        "$open :".length <= MAX_LINE -> appendLine("$open :\n    $superclass {")
-        else -> wrapped("", "public class $name(", parameters, ") : $superclass {")
+    // ktlint's layout: the superclass moves to its own line.
+    if ("$open : $superclass {".length <= MAX_LINE) {
+        appendLine("$open : $superclass {")
+    } else {
+        appendLine("$open :\n    $superclass {")
     }
-    if (required.isNotEmpty()) {
-        appendLine("    init {")
-        required.forEach { appendLine("        values[${event.fields.indexOf(it)}] = ${it.parameter}") }
-        appendLine("    }")
-        appendLine()
-    }
-    event.fields.filterNot { it.required }.forEach { field ->
+    event.fields.forEachIndexed { index, field ->
         parameterDoc(field)?.let { kdoc("    ", wrap(it, "    ", "  ")) }
-        val type = if (field.type == FieldType.STRING) "String?" else field.type.kotlin
+        val type = if (field.type == FieldType.STRING && !field.required) "String?" else field.type.kotlin
         val signature = "    public fun ${field.parameter}(${field.parameter}: $type): $name ="
-        val body = "apply { values[${event.fields.indexOf(field)}] = ${field.parameter} }"
+        val body = "apply { values[$index] = ${field.parameter} }"
         if ("$signature $body".length <=
             MAX_LINE
         ) {
@@ -137,6 +140,13 @@ private fun StringBuilder.eventClass(event: Event) {
     }
     appendLine("    public fun extra(key: String, value: Any?): $name = apply { putExtra(key, value) }")
     appendLine("}")
+}
+
+private fun requiredDoc(names: List<String>): String = if (names.size == 1) {
+    "${names[0]} is required: tracking the event without it logs a warning."
+} else {
+    "${names.dropLast(1).joinToString(", ")} and ${names.last()} are required: tracking the event with any of them " +
+        "missing logs a warning."
 }
 
 private fun eventKinds(events: List<Event>): String = buildString {

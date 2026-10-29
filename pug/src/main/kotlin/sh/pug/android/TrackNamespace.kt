@@ -7,8 +7,9 @@ import sh.pug.android.internal.runtime.Facade
 
 /**
  * The well-known events, one method each but for those below. `Pug.track.addToCart(productId = "p1", price = 9.99)`
- * tracks `add_to_cart` with the properties `productId` and `price`: parameters without a default are the properties the
- * event requires, and an argument left null is not sent.
+ * tracks `add_to_cart` with the properties `productId` and `price`: properties without a default are those the event
+ * requires, and an argument left null is not sent. For an event with properties the arguments must be named
+ * ([NamedArguments]): a call that passes them by position does not compile, so two of one type cannot swap places.
  *
  * The events Pug tracks on its own have no method here: `app_open`, `app_close`, `app_install`, `app_update`, and
  * `screen_view`, which [Pug.screen] tracks for screens that are not activities.
@@ -18,12 +19,13 @@ import sh.pug.android.internal.runtime.Facade
  * these return at once and never throw.
  *
  * Java sees only the methods of the events without properties, such as `Pug.track.signup()`: for the others it tracks
- * an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent("p1"))`.
+ * an object of `sh.pug.android.events`, such as `Pug.track(new AddToCartEvent().productId("p1"))`.
  */
 public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `add_to_cart`. */
     @JvmSynthetic
     public fun addToCart(
+        vararg named: NamedArguments,
         productId: String,
         price: Double? = null,
         currency: String? = null,
@@ -53,6 +55,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `api_key_created`. */
     @JvmSynthetic
     public fun apiKeyCreated(
+        vararg named: NamedArguments,
         apiKeyId: String? = null,
         name: String? = null,
         scope: String? = null,
@@ -65,6 +68,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `api_key_revoked`. */
     @JvmSynthetic
     public fun apiKeyRevoked(
+        vararg named: NamedArguments,
         apiKeyId: String? = null,
         name: String? = null,
         reason: String? = null,
@@ -87,6 +91,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `app_crashed`. */
     @JvmSynthetic
     public fun appCrashed(
+        vararg named: NamedArguments,
         errorMessage: String? = null,
         errorType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -107,7 +112,12 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `audio_completed`. */
     @JvmSynthetic
-    public fun audioCompleted(audioId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun audioCompleted(
+        vararg named: NamedArguments,
+        audioId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.AUDIO_COMPLETED, extras, options, audioId)
     }
 
@@ -118,6 +128,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun audioPause(
+        vararg named: NamedArguments,
         audioId: String,
         positionMs: Long? = null,
         extras: Map<String, Any?>? = null,
@@ -133,6 +144,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun audioPlay(
+        vararg named: NamedArguments,
         audioId: String,
         positionMs: Long? = null,
         extras: Map<String, Any?>? = null,
@@ -149,6 +161,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun audioSeeked(
+        vararg named: NamedArguments,
         audioId: String,
         fromPositionMs: Long? = null,
         toPositionMs: Long? = null,
@@ -160,13 +173,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `audio_started`. */
     @JvmSynthetic
-    public fun audioStarted(audioId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun audioStarted(
+        vararg named: NamedArguments,
+        audioId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.AUDIO_STARTED, extras, options, audioId)
     }
 
     /** Tracks `cart_viewed`. */
     @JvmSynthetic
     public fun cartViewed(
+        vararg named: NamedArguments,
         cartId: String? = null,
         itemCount: Int? = null,
         amount: Double? = null,
@@ -180,6 +199,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_archived`. */
     @JvmSynthetic
     public fun chatArchived(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -191,9 +211,10 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_attachment_downloaded`. */
     @JvmSynthetic
     public fun chatAttachmentDownloaded(
+        vararg named: NamedArguments,
         conversationId: String,
-        attachmentId: String,
         messageId: String? = null,
+        attachmentId: String,
         attachmentType: String? = null,
         sizeBytes: Long? = null,
         threadId: String? = null,
@@ -216,9 +237,10 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_attachment_uploaded`. */
     @JvmSynthetic
     public fun chatAttachmentUploaded(
+        vararg named: NamedArguments,
         conversationId: String,
-        attachmentId: String,
         messageId: String? = null,
+        attachmentId: String,
         attachmentType: String? = null,
         sizeBytes: Long? = null,
         threadId: String? = null,
@@ -241,6 +263,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_call_joined`. */
     @JvmSynthetic
     public fun chatCallJoined(
+        vararg named: NamedArguments,
         conversationId: String,
         callId: String,
         callType: String? = null,
@@ -257,6 +280,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun chatCallLeft(
+        vararg named: NamedArguments,
         conversationId: String,
         callId: String,
         callType: String? = null,
@@ -270,6 +294,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_call_recording_started`. */
     @JvmSynthetic
     public fun chatCallRecordingStarted(
+        vararg named: NamedArguments,
         conversationId: String,
         callId: String,
         extras: Map<String, Any?>? = null,
@@ -281,6 +306,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_call_screen_shared`. */
     @JvmSynthetic
     public fun chatCallScreenShared(
+        vararg named: NamedArguments,
         conversationId: String,
         callId: String,
         extras: Map<String, Any?>? = null,
@@ -292,6 +318,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_call_started`. */
     @JvmSynthetic
     public fun chatCallStarted(
+        vararg named: NamedArguments,
         conversationId: String,
         callId: String,
         callType: String? = null,
@@ -304,6 +331,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_created`. */
     @JvmSynthetic
     public fun chatCreated(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         participantCount: Int? = null,
@@ -323,6 +351,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_deleted`. */
     @JvmSynthetic
     public fun chatDeleted(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         reason: String? = null,
@@ -335,6 +364,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_joined`. */
     @JvmSynthetic
     public fun chatJoined(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -346,6 +376,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_left`. */
     @JvmSynthetic
     public fun chatLeft(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         reason: String? = null,
@@ -358,6 +389,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_member_added`. */
     @JvmSynthetic
     public fun chatMemberAdded(
+        vararg named: NamedArguments,
         conversationId: String,
         memberId: String,
         role: String? = null,
@@ -377,6 +409,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun chatMemberMuted(
+        vararg named: NamedArguments,
         conversationId: String,
         memberId: String,
         muteDurationMs: Long? = null,
@@ -389,6 +422,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_member_removed`. */
     @JvmSynthetic
     public fun chatMemberRemoved(
+        vararg named: NamedArguments,
         conversationId: String,
         memberId: String,
         reason: String? = null,
@@ -401,10 +435,11 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_member_role_changed`. */
     @JvmSynthetic
     public fun chatMemberRoleChanged(
+        vararg named: NamedArguments,
         conversationId: String,
         memberId: String,
-        newRole: String,
         previousRole: String? = null,
+        newRole: String,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
     ) {
@@ -422,6 +457,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_deleted`. */
     @JvmSynthetic
     public fun chatMessageDeleted(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -445,6 +481,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_edited`. */
     @JvmSynthetic
     public fun chatMessageEdited(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -466,10 +503,11 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_failed`. */
     @JvmSynthetic
     public fun chatMessageFailed(
+        vararg named: NamedArguments,
         conversationId: String,
-        reason: String,
         messageId: String? = null,
         conversationType: String? = null,
+        reason: String,
         threadId: String? = null,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
@@ -489,6 +527,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_pinned`. */
     @JvmSynthetic
     public fun chatMessagePinned(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -510,6 +549,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_read`. */
     @JvmSynthetic
     public fun chatMessageRead(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -531,6 +571,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_received`. */
     @JvmSynthetic
     public fun chatMessageReceived(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -560,6 +601,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_sent`. */
     @JvmSynthetic
     public fun chatMessageSent(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -589,6 +631,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_message_unpinned`. */
     @JvmSynthetic
     public fun chatMessageUnpinned(
+        vararg named: NamedArguments,
         conversationId: String,
         messageId: String? = null,
         conversationType: String? = null,
@@ -616,9 +659,10 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun chatReactionAdded(
+        vararg named: NamedArguments,
         conversationId: String,
-        reaction: String,
         messageId: String? = null,
+        reaction: String,
         threadId: String? = null,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
@@ -642,9 +686,10 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun chatReactionRemoved(
+        vararg named: NamedArguments,
         conversationId: String,
-        reaction: String,
         messageId: String? = null,
+        reaction: String,
         threadId: String? = null,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
@@ -663,6 +708,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_typing_started`. */
     @JvmSynthetic
     public fun chatTypingStarted(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -674,6 +720,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_typing_stopped`. */
     @JvmSynthetic
     public fun chatTypingStopped(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -685,6 +732,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `chat_unarchived`. */
     @JvmSynthetic
     public fun chatUnarchived(
+        vararg named: NamedArguments,
         conversationId: String,
         conversationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -699,13 +747,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      * User-level block (not conversation-scoped), so no conversation_id.
      */
     @JvmSynthetic
-    public fun chatUserBlocked(userId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun chatUserBlocked(
+        vararg named: NamedArguments,
+        userId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.CHAT_USER_BLOCKED, extras, options, userId)
     }
 
     /** Tracks `checkout_started`. */
     @JvmSynthetic
     public fun checkoutStarted(
+        vararg named: NamedArguments,
         productId: String? = null,
         amount: Double? = null,
         currency: String? = null,
@@ -731,6 +785,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `checkout_step_completed`. */
     @JvmSynthetic
     public fun checkoutStepCompleted(
+        vararg named: NamedArguments,
         checkoutId: String,
         step: String,
         stepIndex: Int? = null,
@@ -743,6 +798,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `coupon_applied`. */
     @JvmSynthetic
     public fun couponApplied(
+        vararg named: NamedArguments,
         couponId: String,
         couponCode: String? = null,
         cartId: String? = null,
@@ -766,6 +822,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `coupon_removed`. */
     @JvmSynthetic
     public fun couponRemoved(
+        vararg named: NamedArguments,
         couponId: String,
         couponCode: String? = null,
         cartId: String? = null,
@@ -794,6 +851,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun errorOccurred(
+        vararg named: NamedArguments,
         errorCode: String,
         message: String? = null,
         severity: String? = null,
@@ -817,6 +875,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `export_completed`. */
     @JvmSynthetic
     public fun exportCompleted(
+        vararg named: NamedArguments,
         exportId: String,
         exportType: String? = null,
         sizeBytes: Long? = null,
@@ -829,6 +888,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `export_started`. */
     @JvmSynthetic
     public fun exportStarted(
+        vararg named: NamedArguments,
         exportId: String,
         exportType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -840,6 +900,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `feature_used`. */
     @JvmSynthetic
     public fun featureUsed(
+        vararg named: NamedArguments,
         featureId: String,
         featureName: String? = null,
         extras: Map<String, Any?>? = null,
@@ -855,6 +916,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun feedbackSubmitted(
+        vararg named: NamedArguments,
         feedbackId: String? = null,
         category: String? = null,
         comment: String? = null,
@@ -871,6 +933,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun fileDownloaded(
+        vararg named: NamedArguments,
         fileId: String,
         fileName: String? = null,
         fileType: String? = null,
@@ -888,6 +951,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun fileUploaded(
+        vararg named: NamedArguments,
         fileId: String,
         fileName: String? = null,
         fileType: String? = null,
@@ -901,6 +965,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `filter_applied`. */
     @JvmSynthetic
     public fun filterApplied(
+        vararg named: NamedArguments,
         key: String,
         value: String? = null,
         extras: Map<String, Any?>? = null,
@@ -912,6 +977,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `form_start`. */
     @JvmSynthetic
     public fun formStart(
+        vararg named: NamedArguments,
         formId: String,
         formName: String? = null,
         extras: Map<String, Any?>? = null,
@@ -923,6 +989,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `form_submit`. */
     @JvmSynthetic
     public fun formSubmit(
+        vararg named: NamedArguments,
         formId: String,
         formName: String? = null,
         action: String? = null,
@@ -935,6 +1002,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `help_article_viewed`. */
     @JvmSynthetic
     public fun helpArticleViewed(
+        vararg named: NamedArguments,
         articleId: String,
         articleTitle: String? = null,
         category: String? = null,
@@ -947,8 +1015,9 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `integration_connected`. */
     @JvmSynthetic
     public fun integrationConnected(
-        integrationType: String,
+        vararg named: NamedArguments,
         integrationId: String? = null,
+        integrationType: String,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
     ) {
@@ -958,8 +1027,9 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `integration_disconnected`. */
     @JvmSynthetic
     public fun integrationDisconnected(
-        integrationType: String,
+        vararg named: NamedArguments,
         integrationId: String? = null,
+        integrationType: String,
         reason: String? = null,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
@@ -981,6 +1051,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun inviteAccepted(
+        vararg named: NamedArguments,
         inviteId: String? = null,
         workspaceId: String? = null,
         inviterId: String? = null,
@@ -1010,6 +1081,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun inviteSent(
+        vararg named: NamedArguments,
         inviteId: String? = null,
         workspaceId: String? = null,
         inviterId: String? = null,
@@ -1035,6 +1107,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `invoice_failed`. */
     @JvmSynthetic
     public fun invoiceFailed(
+        vararg named: NamedArguments,
         invoiceId: String,
         subscriptionId: String? = null,
         amount: Double? = null,
@@ -1058,6 +1131,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `invoice_paid`. */
     @JvmSynthetic
     public fun invoicePaid(
+        vararg named: NamedArguments,
         invoiceId: String,
         subscriptionId: String? = null,
         amount: Double? = null,
@@ -1074,7 +1148,12 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      * Common method values: "totp", "sms", "email", "webauthn", "backup_codes".
      */
     @JvmSynthetic
-    public fun mfaDisabled(method: String? = null, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun mfaDisabled(
+        vararg named: NamedArguments,
+        method: String? = null,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.MFA_DISABLED, extras, options, method)
     }
 
@@ -1084,13 +1163,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      * Common method values: "totp", "sms", "email", "webauthn", "backup_codes".
      */
     @JvmSynthetic
-    public fun mfaEnabled(method: String? = null, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun mfaEnabled(
+        vararg named: NamedArguments,
+        method: String? = null,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.MFA_ENABLED, extras, options, method)
     }
 
     /** Tracks `notification_clicked`. */
     @JvmSynthetic
     public fun notificationClicked(
+        vararg named: NamedArguments,
         campaignId: String,
         notificationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1102,6 +1187,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `notification_dismissed`. */
     @JvmSynthetic
     public fun notificationDismissed(
+        vararg named: NamedArguments,
         campaignId: String,
         notificationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1113,6 +1199,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `notification_received`. */
     @JvmSynthetic
     public fun notificationReceived(
+        vararg named: NamedArguments,
         campaignId: String,
         notificationType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1128,6 +1215,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun npsSubmitted(
+        vararg named: NamedArguments,
         score: Int? = null,
         comment: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1139,6 +1227,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `order_refunded`. */
     @JvmSynthetic
     public fun orderRefunded(
+        vararg named: NamedArguments,
         orderId: String,
         amount: Double? = null,
         currency: String? = null,
@@ -1164,6 +1253,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `payment_failed`. */
     @JvmSynthetic
     public fun paymentFailed(
+        vararg named: NamedArguments,
         paymentId: String? = null,
         invoiceId: String? = null,
         subscriptionId: String? = null,
@@ -1189,6 +1279,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `payment_method_added`. */
     @JvmSynthetic
     public fun paymentMethodAdded(
+        vararg named: NamedArguments,
         paymentMethodId: String? = null,
         paymentMethodType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1200,6 +1291,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `payment_method_removed`. */
     @JvmSynthetic
     public fun paymentMethodRemoved(
+        vararg named: NamedArguments,
         paymentMethodId: String? = null,
         paymentMethodType: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1211,6 +1303,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `payment_succeeded`. */
     @JvmSynthetic
     public fun paymentSucceeded(
+        vararg named: NamedArguments,
         paymentId: String? = null,
         invoiceId: String? = null,
         subscriptionId: String? = null,
@@ -1239,6 +1332,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun productListViewed(
+        vararg named: NamedArguments,
         listId: String,
         listName: String? = null,
         category: String? = null,
@@ -1252,6 +1346,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `product_viewed`. */
     @JvmSynthetic
     public fun productViewed(
+        vararg named: NamedArguments,
         productId: String,
         productName: String? = null,
         category: String? = null,
@@ -1284,6 +1379,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun purchase(
+        vararg named: NamedArguments,
         productId: String? = null,
         amount: Double? = null,
         currency: String? = null,
@@ -1313,6 +1409,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `recommendation_clicked`. */
     @JvmSynthetic
     public fun recommendationClicked(
+        vararg named: NamedArguments,
         recommendationId: String,
         itemId: String,
         source: String? = null,
@@ -1334,6 +1431,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `recommendation_viewed`. */
     @JvmSynthetic
     public fun recommendationViewed(
+        vararg named: NamedArguments,
         recommendationId: String,
         itemId: String? = null,
         source: String? = null,
@@ -1355,6 +1453,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `refund_failed`. */
     @JvmSynthetic
     public fun refundFailed(
+        vararg named: NamedArguments,
         orderId: String,
         refundId: String? = null,
         amount: Double? = null,
@@ -1369,6 +1468,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `remove_from_cart`. */
     @JvmSynthetic
     public fun removeFromCart(
+        vararg named: NamedArguments,
         productId: String,
         price: Double? = null,
         currency: String? = null,
@@ -1398,6 +1498,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `scroll`. */
     @JvmSynthetic
     public fun scroll(
+        vararg named: NamedArguments,
         percent: Int? = null,
         scrollY: Int? = null,
         extras: Map<String, Any?>? = null,
@@ -1408,13 +1509,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `search`. */
     @JvmSynthetic
-    public fun search(query: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun search(
+        vararg named: NamedArguments,
+        query: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.SEARCH, extras, options, query)
     }
 
     /** Tracks `search_result_clicked`. */
     @JvmSynthetic
     public fun searchResultClicked(
+        vararg named: NamedArguments,
         query: String,
         resultId: String,
         index: Int? = null,
@@ -1451,6 +1558,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `sort_changed`. */
     @JvmSynthetic
     public fun sortChanged(
+        vararg named: NamedArguments,
         key: String,
         direction: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1462,6 +1570,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_canceled`. */
     @JvmSynthetic
     public fun subscriptionCanceled(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         reason: String? = null,
@@ -1474,6 +1583,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_changed`. */
     @JvmSynthetic
     public fun subscriptionChanged(
+        vararg named: NamedArguments,
         subscriptionId: String,
         previousPlanId: String? = null,
         newPlanId: String? = null,
@@ -1493,6 +1603,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_paused`. */
     @JvmSynthetic
     public fun subscriptionPaused(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         reason: String? = null,
@@ -1505,6 +1616,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_renewed`. */
     @JvmSynthetic
     public fun subscriptionRenewed(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         amount: Double? = null,
@@ -1526,6 +1638,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_resumed`. */
     @JvmSynthetic
     public fun subscriptionResumed(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         reason: String? = null,
@@ -1538,6 +1651,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `subscription_started`. */
     @JvmSynthetic
     public fun subscriptionStarted(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         amount: Double? = null,
@@ -1564,6 +1678,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun subscriptionTrialWillEnd(
+        vararg named: NamedArguments,
         subscriptionId: String,
         planId: String? = null,
         trialId: String? = null,
@@ -1580,6 +1695,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun supportChatStarted(
+        vararg named: NamedArguments,
         conversationId: String,
         topic: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1591,6 +1707,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `support_ticket_created`. */
     @JvmSynthetic
     public fun supportTicketCreated(
+        vararg named: NamedArguments,
         ticketId: String,
         category: String? = null,
         priority: String? = null,
@@ -1607,6 +1724,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun supportTicketResolved(
+        vararg named: NamedArguments,
         ticketId: String,
         resolution: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1618,6 +1736,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `survey_completed`. */
     @JvmSynthetic
     public fun surveyCompleted(
+        vararg named: NamedArguments,
         surveyId: String,
         questionCount: Int? = null,
         extras: Map<String, Any?>? = null,
@@ -1628,13 +1747,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `survey_started`. */
     @JvmSynthetic
-    public fun surveyStarted(surveyId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun surveyStarted(
+        vararg named: NamedArguments,
+        surveyId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.SURVEY_STARTED, extras, options, surveyId)
     }
 
     /** Tracks `trial_converted`. */
     @JvmSynthetic
     public fun trialConverted(
+        vararg named: NamedArguments,
         trialId: String? = null,
         subscriptionId: String? = null,
         planId: String? = null,
@@ -1647,6 +1772,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `trial_started`. */
     @JvmSynthetic
     public fun trialStarted(
+        vararg named: NamedArguments,
         trialId: String? = null,
         planId: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1657,7 +1783,12 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `video_completed`. */
     @JvmSynthetic
-    public fun videoCompleted(videoId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun videoCompleted(
+        vararg named: NamedArguments,
+        videoId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.VIDEO_COMPLETED, extras, options, videoId)
     }
 
@@ -1668,6 +1799,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun videoPause(
+        vararg named: NamedArguments,
         videoId: String,
         positionMs: Long? = null,
         extras: Map<String, Any?>? = null,
@@ -1683,6 +1815,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun videoPlay(
+        vararg named: NamedArguments,
         videoId: String,
         positionMs: Long? = null,
         extras: Map<String, Any?>? = null,
@@ -1699,6 +1832,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      */
     @JvmSynthetic
     public fun videoSeeked(
+        vararg named: NamedArguments,
         videoId: String,
         fromPositionMs: Long? = null,
         toPositionMs: Long? = null,
@@ -1710,13 +1844,19 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
 
     /** Tracks `video_started`. */
     @JvmSynthetic
-    public fun videoStarted(videoId: String, extras: Map<String, Any?>? = null, options: TrackOptions? = null) {
+    public fun videoStarted(
+        vararg named: NamedArguments,
+        videoId: String,
+        extras: Map<String, Any?>? = null,
+        options: TrackOptions? = null,
+    ) {
         facade.trackTyped(WellKnownEvents.VIDEO_STARTED, extras, options, videoId)
     }
 
     /** Tracks `wishlist_added`. */
     @JvmSynthetic
     public fun wishlistAdded(
+        vararg named: NamedArguments,
         productId: String,
         wishlistId: String? = null,
         price: Double? = null,
@@ -1730,6 +1870,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `wishlist_removed`. */
     @JvmSynthetic
     public fun wishlistRemoved(
+        vararg named: NamedArguments,
         productId: String,
         wishlistId: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1741,6 +1882,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `workspace_created`. */
     @JvmSynthetic
     public fun workspaceCreated(
+        vararg named: NamedArguments,
         workspaceId: String,
         workspaceName: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1752,6 +1894,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `workspace_deleted`. */
     @JvmSynthetic
     public fun workspaceDeleted(
+        vararg named: NamedArguments,
         workspaceId: String,
         reason: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1763,6 +1906,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `workspace_joined`. */
     @JvmSynthetic
     public fun workspaceJoined(
+        vararg named: NamedArguments,
         workspaceId: String,
         role: String? = null,
         extras: Map<String, Any?>? = null,
@@ -1774,10 +1918,11 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `workspace_role_changed`. */
     @JvmSynthetic
     public fun workspaceRoleChanged(
+        vararg named: NamedArguments,
         workspaceId: String,
         memberId: String,
-        newRole: String,
         previousRole: String? = null,
+        newRole: String,
         extras: Map<String, Any?>? = null,
         options: TrackOptions? = null,
     ) {
@@ -1795,6 +1940,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /** Tracks `workspace_settings_updated`. */
     @JvmSynthetic
     public fun workspaceSettingsUpdated(
+        vararg named: NamedArguments,
         workspaceId: String,
         setting: String,
         extras: Map<String, Any?>? = null,

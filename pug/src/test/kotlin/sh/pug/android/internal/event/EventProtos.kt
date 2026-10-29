@@ -24,9 +24,6 @@ internal object EventProtos {
         val method: String =
             kind.split('_').mapIndexed { i, part -> if (i == 0) part else part.replaceFirstChar(Char::uppercaseChar) }
                 .joinToString("")
-
-        /** The order of the typed method's parameters: required properties first. */
-        val parameters: List<Property> = properties.filter { it.required } + properties.filterNot { it.required }
     }
 
     val android: List<Event> by lazy { read() }

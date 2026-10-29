@@ -51,9 +51,9 @@ Module `:pug`, package `sh.pug.android`, explicit API mode. Public: the `Pug` ob
 point, `@JvmStatic`), `Options` (opaque, built by `Options.Builder` or the Kotlin
 `Options(apiKey) { … }`), `TrackOptions`, `TrackingConsent`, `Logger`, `Storage`,
 `MemoryStorage`, the generated `TrackNamespace` (`Pug.track`, a `@JvmField` beside the
-`track(kind, …)` and `track(event)` functions) and `Events`, and in `sh.pug.android.events` the
-`WellKnownEvent` base of the generated event classes (Java's typed form). Storage defaults to files
-under `noBackupFilesDir/pug/`.
+`track(kind, …)` and `track(event)` functions) and `Events`, `NamedArguments`, and in
+`sh.pug.android.events` the `WellKnownEvent` base of the generated event classes (Java's typed
+form). Storage defaults to files under `noBackupFilesDir/pug/`.
 
 - **Public API is pinned** by `pug/api/pug.api`, which `make check` compares with the release AAR
   through `tools/abi-dump` (KGP's ABI validation and BCV do not run under AGP's built-in Kotlin).
@@ -68,10 +68,15 @@ under `noBackupFilesDir/pug/`.
   `:tools:gen-track`, run by `make typed-track` on a `buf build` JSON image). Change the generator
   and regenerate; `check-codegen` fails on drift, so the generator emits what ktlint would format.
   Events the SDK tracks itself (`app_open`, `app_close`, `app_install`, `app_update`,
-  `screen_view`) get no typed method or class. Typed methods pass their values in schema order to
-  `Facade.trackTyped`, event objects hold theirs in that order, and `Client.trackTyped` names
-  them from the `EventSchema` (`internal/event/EventSchema.kt`), formats Durations and merges
-  `extras`.
+  `screen_view`) get no typed method or class. Property arguments are never positional, so two of
+  one type cannot swap: each method for an event with properties starts with `vararg named:
+  NamedArguments` (a class with no instances; Kotlin requires every argument after a vararg to be
+  named), and the event classes have a setter for every property, required ones included, with no
+  constructor arguments. Typed methods take their properties in schema order, required or not, so
+  one that becomes required or optional keeps its place in a compiled call, and pass them in that
+  order to `Facade.trackTyped`; event objects hold theirs in that order, and `Client.trackTyped` names
+  them from the `EventSchema` (`internal/event/EventSchema.kt`), formats Durations, merges `extras`
+  and warns when a required property is missing.
 - `internal/runtime/`: `Facade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
   last one's teardown. `Client` is one configured instance: calls (and lifecycle callbacks) map
@@ -120,7 +125,8 @@ under `noBackupFilesDir/pug/`.
   whole.
 - **Java nulls**: `-Xno-param-assertions` lets a Java null reach a non-null parameter, so public
   entry points check required parameters with `isNull(Any?)` and log-and-drop (or, in `Pug.init`,
-  throw `IllegalArgumentException`). Optional parameters are nullable.
+  throw `IllegalArgumentException`). Optional parameters are nullable. Event-class setters are the
+  exception: a null leaves the property unset, which `Client.trackTyped` warns about if it is required.
 - **State lives on the worker.** Only ops and network continuations on the worker read or write
   client state and storage; after any network await, re-check (`disposed`, the anonymous id, the
   purge generation) before touching anything.

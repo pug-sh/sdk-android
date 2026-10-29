@@ -18,7 +18,9 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import sh.pug.android.MemoryStorage
 import sh.pug.android.Options
+import sh.pug.android.TrackingConsent
 import sh.pug.android.TrackingConsent.DENIED
+import sh.pug.android.TrackingConsent.GRANTED
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
@@ -462,15 +464,7 @@ class ClientPlatformTest {
     @Test
     fun `a client that fails to start writes nothing afterwards`() {
         val directory = folder.newFolder("pug")
-        val platform =
-            object : Platform by FakePlatform(directory) {
-                override fun autoProperties(logger: SafeLogger): AutoProperties = object : AutoProperties {
-                    override val appVersion: String = "1.0"
-
-                    override fun current(): Map<String, Any?> = throw IllegalStateException("boom")
-                }
-            }
-        client(platform) { storage = null }
+        client(failingToStart(directory)) { storage = null }
 
         scheduler.runCurrent()
         scheduler.advanceTimeBy(STORAGE_SYNC_DELAY_MS)
@@ -478,6 +472,36 @@ class ClientPlatformTest {
 
         assertEquals(listOf("Pug failed to start; calls are ignored"), logger.errors)
         assertEquals(emptyList(), directory.list()?.toList())
+    }
+
+    @Test
+    fun `a client that fails to start reports consent as unknown, choices included`() {
+        val client = client(failingToStart())
+        client.optOutTracking()
+
+        scheduler.runCurrent()
+        client.optInTracking()
+
+        assertNull(client.trackingConsent)
+        assertTrue(client.isConsentPending)
+        assertEquals(listOf("Tracking consent is reported as unknown: Pug failed to start"), logger.warnings)
+    }
+
+    @Test
+    fun `whenConsentReady callbacks see what start-up read, even when run at once`() {
+        storage.putString(keys.consent, "granted")
+        val platform =
+            object : Platform by FakePlatform() {
+                override fun postToMainThread(block: () -> Unit) = block()
+            }
+        val client = client(platform) { defaultTrackingConsent = DENIED }
+        val seen = mutableListOf<Pair<TrackingConsent?, Boolean>>()
+
+        client.whenConsentReady { seen += client.trackingConsent to client.isConsentPending }
+        scheduler.runCurrent()
+
+        assertEquals(listOf<Pair<TrackingConsent?, Boolean>>(GRANTED to false), seen)
+        assertEquals(emptyList(), logger.warnings)
     }
 
     @Test
@@ -561,6 +585,15 @@ class ClientPlatformTest {
             random = FixedRandom(),
             sdkInt = 26,
         ).also { it.start(previousTeardown) }
+    }
+
+    // Start-up fails after it has read consent, when app_install reads the auto-properties.
+    private fun failingToStart(directory: File? = null): Platform = object : Platform by FakePlatform(directory) {
+        override fun autoProperties(logger: SafeLogger): AutoProperties = object : AutoProperties {
+            override val appVersion: String = "1.0"
+
+            override fun current(): Map<String, Any?> = throw IllegalStateException("boom")
+        }
     }
 
     private fun storedKinds(directory: File): List<String> {

@@ -7,11 +7,11 @@ import sh.pug.android.internal.event.WellKnownEvents
 /**
  * The `add_to_cart` event, for `Pug.track(event)`. From Kotlin, `Pug.track.addToCart(…)` takes the same properties as
  * named arguments.
+ *
+ * `productId` is required: tracking the event without it logs a warning.
  */
-public class AddToCartEvent(productId: String) : WellKnownEvent(WellKnownEvents.ADD_TO_CART, "AddToCartEvent") {
-    init {
-        values[0] = productId
-    }
+public class AddToCartEvent : WellKnownEvent(WellKnownEvents.ADD_TO_CART, "AddToCartEvent") {
+    public fun productId(productId: String): AddToCartEvent = apply { values[0] = productId }
 
     public fun price(price: Double): AddToCartEvent = apply { values[1] = price }
 
@@ -73,12 +73,11 @@ public class AppCrashedEvent : WellKnownEvent(WellKnownEvents.APP_CRASHED, "AppC
 /**
  * The `audio_completed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.audioCompleted(…)` takes the same
  * properties as named arguments.
+ *
+ * `audioId` is required: tracking the event without it logs a warning.
  */
-public class AudioCompletedEvent(audioId: String) :
-    WellKnownEvent(WellKnownEvents.AUDIO_COMPLETED, "AudioCompletedEvent") {
-    init {
-        values[0] = audioId
-    }
+public class AudioCompletedEvent : WellKnownEvent(WellKnownEvents.AUDIO_COMPLETED, "AudioCompletedEvent") {
+    public fun audioId(audioId: String): AudioCompletedEvent = apply { values[0] = audioId }
 
     public fun extra(key: String, value: Any?): AudioCompletedEvent = apply { putExtra(key, value) }
 }
@@ -86,11 +85,11 @@ public class AudioCompletedEvent(audioId: String) :
 /**
  * The `audio_pause` event, for `Pug.track(event)`. From Kotlin, `Pug.track.audioPause(…)` takes the same properties as
  * named arguments.
+ *
+ * `audioId` is required: tracking the event without it logs a warning.
  */
-public class AudioPauseEvent(audioId: String) : WellKnownEvent(WellKnownEvents.AUDIO_PAUSE, "AudioPauseEvent") {
-    init {
-        values[0] = audioId
-    }
+public class AudioPauseEvent : WellKnownEvent(WellKnownEvents.AUDIO_PAUSE, "AudioPauseEvent") {
+    public fun audioId(audioId: String): AudioPauseEvent = apply { values[0] = audioId }
 
     /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
     public fun positionMs(positionMs: Long): AudioPauseEvent = apply { values[1] = positionMs }
@@ -101,11 +100,11 @@ public class AudioPauseEvent(audioId: String) : WellKnownEvent(WellKnownEvents.A
 /**
  * The `audio_play` event, for `Pug.track(event)`. From Kotlin, `Pug.track.audioPlay(…)` takes the same properties as
  * named arguments.
+ *
+ * `audioId` is required: tracking the event without it logs a warning.
  */
-public class AudioPlayEvent(audioId: String) : WellKnownEvent(WellKnownEvents.AUDIO_PLAY, "AudioPlayEvent") {
-    init {
-        values[0] = audioId
-    }
+public class AudioPlayEvent : WellKnownEvent(WellKnownEvents.AUDIO_PLAY, "AudioPlayEvent") {
+    public fun audioId(audioId: String): AudioPlayEvent = apply { values[0] = audioId }
 
     /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
     public fun positionMs(positionMs: Long): AudioPlayEvent = apply { values[1] = positionMs }
@@ -116,11 +115,11 @@ public class AudioPlayEvent(audioId: String) : WellKnownEvent(WellKnownEvents.AU
 /**
  * The `audio_seeked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.audioSeeked(…)` takes the same properties
  * as named arguments.
+ *
+ * `audioId` is required: tracking the event without it logs a warning.
  */
-public class AudioSeekedEvent(audioId: String) : WellKnownEvent(WellKnownEvents.AUDIO_SEEKED, "AudioSeekedEvent") {
-    init {
-        values[0] = audioId
-    }
+public class AudioSeekedEvent : WellKnownEvent(WellKnownEvents.AUDIO_SEEKED, "AudioSeekedEvent") {
+    public fun audioId(audioId: String): AudioSeekedEvent = apply { values[0] = audioId }
 
     /** @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`. */
     public fun fromPositionMs(fromPositionMs: Long): AudioSeekedEvent = apply { values[1] = fromPositionMs }
@@ -134,11 +133,11 @@ public class AudioSeekedEvent(audioId: String) : WellKnownEvent(WellKnownEvents.
 /**
  * The `audio_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.audioStarted(…)` takes the same properties
  * as named arguments.
+ *
+ * `audioId` is required: tracking the event without it logs a warning.
  */
-public class AudioStartedEvent(audioId: String) : WellKnownEvent(WellKnownEvents.AUDIO_STARTED, "AudioStartedEvent") {
-    init {
-        values[0] = audioId
-    }
+public class AudioStartedEvent : WellKnownEvent(WellKnownEvents.AUDIO_STARTED, "AudioStartedEvent") {
+    public fun audioId(audioId: String): AudioStartedEvent = apply { values[0] = audioId }
 
     public fun extra(key: String, value: Any?): AudioStartedEvent = apply { putExtra(key, value) }
 }
@@ -162,12 +161,11 @@ public class CartViewedEvent : WellKnownEvent(WellKnownEvents.CART_VIEWED, "Cart
 /**
  * The `chat_archived` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatArchived(…)` takes the same properties
  * as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatArchivedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_ARCHIVED, "ChatArchivedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatArchivedEvent : WellKnownEvent(WellKnownEvents.CHAT_ARCHIVED, "ChatArchivedEvent") {
+    public fun conversationId(conversationId: String): ChatArchivedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatArchivedEvent = apply { values[1] = conversationType }
 
@@ -177,15 +175,17 @@ public class ChatArchivedEvent(conversationId: String) :
 /**
  * The `chat_attachment_downloaded` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatAttachmentDownloaded(…)`
  * takes the same properties as named arguments.
+ *
+ * `conversationId` and `attachmentId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatAttachmentDownloadedEvent(conversationId: String, attachmentId: String) :
+public class ChatAttachmentDownloadedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_ATTACHMENT_DOWNLOADED, "ChatAttachmentDownloadedEvent") {
-    init {
-        values[0] = conversationId
-        values[2] = attachmentId
-    }
+    public fun conversationId(conversationId: String): ChatAttachmentDownloadedEvent =
+        apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatAttachmentDownloadedEvent = apply { values[1] = messageId }
+
+    public fun attachmentId(attachmentId: String): ChatAttachmentDownloadedEvent = apply { values[2] = attachmentId }
 
     public fun attachmentType(attachmentType: String?): ChatAttachmentDownloadedEvent =
         apply { values[3] = attachmentType }
@@ -200,15 +200,17 @@ public class ChatAttachmentDownloadedEvent(conversationId: String, attachmentId:
 /**
  * The `chat_attachment_uploaded` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatAttachmentUploaded(…)`
  * takes the same properties as named arguments.
+ *
+ * `conversationId` and `attachmentId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatAttachmentUploadedEvent(conversationId: String, attachmentId: String) :
+public class ChatAttachmentUploadedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_ATTACHMENT_UPLOADED, "ChatAttachmentUploadedEvent") {
-    init {
-        values[0] = conversationId
-        values[2] = attachmentId
-    }
+    public fun conversationId(conversationId: String): ChatAttachmentUploadedEvent =
+        apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatAttachmentUploadedEvent = apply { values[1] = messageId }
+
+    public fun attachmentId(attachmentId: String): ChatAttachmentUploadedEvent = apply { values[2] = attachmentId }
 
     public fun attachmentType(attachmentType: String?): ChatAttachmentUploadedEvent =
         apply { values[3] = attachmentType }
@@ -223,13 +225,13 @@ public class ChatAttachmentUploadedEvent(conversationId: String, attachmentId: S
 /**
  * The `chat_call_joined` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCallJoined(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `callId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatCallJoinedEvent(conversationId: String, callId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_CALL_JOINED, "ChatCallJoinedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = callId
-    }
+public class ChatCallJoinedEvent : WellKnownEvent(WellKnownEvents.CHAT_CALL_JOINED, "ChatCallJoinedEvent") {
+    public fun conversationId(conversationId: String): ChatCallJoinedEvent = apply { values[0] = conversationId }
+
+    public fun callId(callId: String): ChatCallJoinedEvent = apply { values[1] = callId }
 
     public fun callType(callType: String?): ChatCallJoinedEvent = apply { values[2] = callType }
 
@@ -239,13 +241,13 @@ public class ChatCallJoinedEvent(conversationId: String, callId: String) :
 /**
  * The `chat_call_left` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCallLeft(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `callId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatCallLeftEvent(conversationId: String, callId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_CALL_LEFT, "ChatCallLeftEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = callId
-    }
+public class ChatCallLeftEvent : WellKnownEvent(WellKnownEvents.CHAT_CALL_LEFT, "ChatCallLeftEvent") {
+    public fun conversationId(conversationId: String): ChatCallLeftEvent = apply { values[0] = conversationId }
+
+    public fun callId(callId: String): ChatCallLeftEvent = apply { values[1] = callId }
 
     public fun callType(callType: String?): ChatCallLeftEvent = apply { values[2] = callType }
 
@@ -258,13 +260,15 @@ public class ChatCallLeftEvent(conversationId: String, callId: String) :
 /**
  * The `chat_call_recording_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCallRecordingStarted(…)`
  * takes the same properties as named arguments.
+ *
+ * `conversationId` and `callId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatCallRecordingStartedEvent(conversationId: String, callId: String) :
+public class ChatCallRecordingStartedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_CALL_RECORDING_STARTED, "ChatCallRecordingStartedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = callId
-    }
+    public fun conversationId(conversationId: String): ChatCallRecordingStartedEvent =
+        apply { values[0] = conversationId }
+
+    public fun callId(callId: String): ChatCallRecordingStartedEvent = apply { values[1] = callId }
 
     public fun extra(key: String, value: Any?): ChatCallRecordingStartedEvent = apply { putExtra(key, value) }
 }
@@ -272,13 +276,14 @@ public class ChatCallRecordingStartedEvent(conversationId: String, callId: Strin
 /**
  * The `chat_call_screen_shared` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCallScreenShared(…)` takes
  * the same properties as named arguments.
+ *
+ * `conversationId` and `callId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatCallScreenSharedEvent(conversationId: String, callId: String) :
+public class ChatCallScreenSharedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_CALL_SCREEN_SHARED, "ChatCallScreenSharedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = callId
-    }
+    public fun conversationId(conversationId: String): ChatCallScreenSharedEvent = apply { values[0] = conversationId }
+
+    public fun callId(callId: String): ChatCallScreenSharedEvent = apply { values[1] = callId }
 
     public fun extra(key: String, value: Any?): ChatCallScreenSharedEvent = apply { putExtra(key, value) }
 }
@@ -286,13 +291,13 @@ public class ChatCallScreenSharedEvent(conversationId: String, callId: String) :
 /**
  * The `chat_call_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCallStarted(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `callId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatCallStartedEvent(conversationId: String, callId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_CALL_STARTED, "ChatCallStartedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = callId
-    }
+public class ChatCallStartedEvent : WellKnownEvent(WellKnownEvents.CHAT_CALL_STARTED, "ChatCallStartedEvent") {
+    public fun conversationId(conversationId: String): ChatCallStartedEvent = apply { values[0] = conversationId }
+
+    public fun callId(callId: String): ChatCallStartedEvent = apply { values[1] = callId }
 
     public fun callType(callType: String?): ChatCallStartedEvent = apply { values[2] = callType }
 
@@ -302,12 +307,11 @@ public class ChatCallStartedEvent(conversationId: String, callId: String) :
 /**
  * The `chat_created` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatCreated(…)` takes the same properties
  * as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatCreatedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_CREATED, "ChatCreatedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatCreatedEvent : WellKnownEvent(WellKnownEvents.CHAT_CREATED, "ChatCreatedEvent") {
+    public fun conversationId(conversationId: String): ChatCreatedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatCreatedEvent = apply { values[1] = conversationType }
 
@@ -319,12 +323,11 @@ public class ChatCreatedEvent(conversationId: String) :
 /**
  * The `chat_deleted` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatDeleted(…)` takes the same properties
  * as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatDeletedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_DELETED, "ChatDeletedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatDeletedEvent : WellKnownEvent(WellKnownEvents.CHAT_DELETED, "ChatDeletedEvent") {
+    public fun conversationId(conversationId: String): ChatDeletedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatDeletedEvent = apply { values[1] = conversationType }
 
@@ -336,11 +339,11 @@ public class ChatDeletedEvent(conversationId: String) :
 /**
  * The `chat_joined` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatJoined(…)` takes the same properties as
  * named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatJoinedEvent(conversationId: String) : WellKnownEvent(WellKnownEvents.CHAT_JOINED, "ChatJoinedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatJoinedEvent : WellKnownEvent(WellKnownEvents.CHAT_JOINED, "ChatJoinedEvent") {
+    public fun conversationId(conversationId: String): ChatJoinedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatJoinedEvent = apply { values[1] = conversationType }
 
@@ -350,11 +353,11 @@ public class ChatJoinedEvent(conversationId: String) : WellKnownEvent(WellKnownE
 /**
  * The `chat_left` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatLeft(…)` takes the same properties as
  * named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatLeftEvent(conversationId: String) : WellKnownEvent(WellKnownEvents.CHAT_LEFT, "ChatLeftEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatLeftEvent : WellKnownEvent(WellKnownEvents.CHAT_LEFT, "ChatLeftEvent") {
+    public fun conversationId(conversationId: String): ChatLeftEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatLeftEvent = apply { values[1] = conversationType }
 
@@ -366,13 +369,13 @@ public class ChatLeftEvent(conversationId: String) : WellKnownEvent(WellKnownEve
 /**
  * The `chat_member_added` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMemberAdded(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `memberId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatMemberAddedEvent(conversationId: String, memberId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MEMBER_ADDED, "ChatMemberAddedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = memberId
-    }
+public class ChatMemberAddedEvent : WellKnownEvent(WellKnownEvents.CHAT_MEMBER_ADDED, "ChatMemberAddedEvent") {
+    public fun conversationId(conversationId: String): ChatMemberAddedEvent = apply { values[0] = conversationId }
+
+    public fun memberId(memberId: String): ChatMemberAddedEvent = apply { values[1] = memberId }
 
     public fun role(role: String?): ChatMemberAddedEvent = apply { values[2] = role }
 
@@ -383,15 +386,15 @@ public class ChatMemberAddedEvent(conversationId: String, memberId: String) :
  * The `chat_member_muted` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMemberMuted(…)` takes the same
  * properties as named arguments.
  *
+ * `conversationId` and `memberId` are required: tracking the event with any of them missing logs a warning.
+ *
  * mute_duration is optional — populate when the mute is time-bounded
  * (e.g. "mute for 1h"); leave unset for indefinite mutes.
  */
-public class ChatMemberMutedEvent(conversationId: String, memberId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MEMBER_MUTED, "ChatMemberMutedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = memberId
-    }
+public class ChatMemberMutedEvent : WellKnownEvent(WellKnownEvents.CHAT_MEMBER_MUTED, "ChatMemberMutedEvent") {
+    public fun conversationId(conversationId: String): ChatMemberMutedEvent = apply { values[0] = conversationId }
+
+    public fun memberId(memberId: String): ChatMemberMutedEvent = apply { values[1] = memberId }
 
     /** @param muteDurationMs in milliseconds, sent as `muteDuration` in seconds, such as `"1.5s"`. */
     public fun muteDurationMs(muteDurationMs: Long): ChatMemberMutedEvent = apply { values[2] = muteDurationMs }
@@ -402,13 +405,13 @@ public class ChatMemberMutedEvent(conversationId: String, memberId: String) :
 /**
  * The `chat_member_removed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMemberRemoved(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `memberId` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatMemberRemovedEvent(conversationId: String, memberId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MEMBER_REMOVED, "ChatMemberRemovedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = memberId
-    }
+public class ChatMemberRemovedEvent : WellKnownEvent(WellKnownEvents.CHAT_MEMBER_REMOVED, "ChatMemberRemovedEvent") {
+    public fun conversationId(conversationId: String): ChatMemberRemovedEvent = apply { values[0] = conversationId }
+
+    public fun memberId(memberId: String): ChatMemberRemovedEvent = apply { values[1] = memberId }
 
     public fun reason(reason: String?): ChatMemberRemovedEvent = apply { values[2] = reason }
 
@@ -418,16 +421,18 @@ public class ChatMemberRemovedEvent(conversationId: String, memberId: String) :
 /**
  * The `chat_member_role_changed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMemberRoleChanged(…)` takes
  * the same properties as named arguments.
+ *
+ * `conversationId`, `memberId` and `newRole` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatMemberRoleChangedEvent(conversationId: String, memberId: String, newRole: String) :
+public class ChatMemberRoleChangedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_MEMBER_ROLE_CHANGED, "ChatMemberRoleChangedEvent") {
-    init {
-        values[0] = conversationId
-        values[1] = memberId
-        values[3] = newRole
-    }
+    public fun conversationId(conversationId: String): ChatMemberRoleChangedEvent = apply { values[0] = conversationId }
+
+    public fun memberId(memberId: String): ChatMemberRoleChangedEvent = apply { values[1] = memberId }
 
     public fun previousRole(previousRole: String?): ChatMemberRoleChangedEvent = apply { values[2] = previousRole }
+
+    public fun newRole(newRole: String): ChatMemberRoleChangedEvent = apply { values[3] = newRole }
 
     public fun extra(key: String, value: Any?): ChatMemberRoleChangedEvent = apply { putExtra(key, value) }
 }
@@ -435,12 +440,11 @@ public class ChatMemberRoleChangedEvent(conversationId: String, memberId: String
 /**
  * The `chat_message_deleted` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageDeleted(…)` takes the
  * same properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageDeletedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_DELETED, "ChatMessageDeletedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatMessageDeletedEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_DELETED, "ChatMessageDeletedEvent") {
+    public fun conversationId(conversationId: String): ChatMessageDeletedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageDeletedEvent = apply { values[1] = messageId }
 
@@ -457,12 +461,11 @@ public class ChatMessageDeletedEvent(conversationId: String) :
 /**
  * The `chat_message_edited` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageEdited(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageEditedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_EDITED, "ChatMessageEditedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatMessageEditedEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_EDITED, "ChatMessageEditedEvent") {
+    public fun conversationId(conversationId: String): ChatMessageEditedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageEditedEvent = apply { values[1] = messageId }
 
@@ -477,18 +480,18 @@ public class ChatMessageEditedEvent(conversationId: String) :
 /**
  * The `chat_message_failed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageFailed(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` and `reason` are required: tracking the event with any of them missing logs a warning.
  */
-public class ChatMessageFailedEvent(conversationId: String, reason: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_FAILED, "ChatMessageFailedEvent") {
-    init {
-        values[0] = conversationId
-        values[3] = reason
-    }
+public class ChatMessageFailedEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_FAILED, "ChatMessageFailedEvent") {
+    public fun conversationId(conversationId: String): ChatMessageFailedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageFailedEvent = apply { values[1] = messageId }
 
     public fun conversationType(conversationType: String?): ChatMessageFailedEvent =
         apply { values[2] = conversationType }
+
+    public fun reason(reason: String): ChatMessageFailedEvent = apply { values[3] = reason }
 
     public fun threadId(threadId: String?): ChatMessageFailedEvent = apply { values[4] = threadId }
 
@@ -498,12 +501,11 @@ public class ChatMessageFailedEvent(conversationId: String, reason: String) :
 /**
  * The `chat_message_pinned` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessagePinned(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessagePinnedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_PINNED, "ChatMessagePinnedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatMessagePinnedEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_PINNED, "ChatMessagePinnedEvent") {
+    public fun conversationId(conversationId: String): ChatMessagePinnedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessagePinnedEvent = apply { values[1] = messageId }
 
@@ -518,12 +520,11 @@ public class ChatMessagePinnedEvent(conversationId: String) :
 /**
  * The `chat_message_read` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageRead(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageReadEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_READ, "ChatMessageReadEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatMessageReadEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_READ, "ChatMessageReadEvent") {
+    public fun conversationId(conversationId: String): ChatMessageReadEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageReadEvent = apply { values[1] = messageId }
 
@@ -538,12 +539,12 @@ public class ChatMessageReadEvent(conversationId: String) :
 /**
  * The `chat_message_received` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageReceived(…)` takes the
  * same properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageReceivedEvent(conversationId: String) :
+public class ChatMessageReceivedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_RECEIVED, "ChatMessageReceivedEvent") {
-    init {
-        values[0] = conversationId
-    }
+    public fun conversationId(conversationId: String): ChatMessageReceivedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageReceivedEvent = apply { values[1] = messageId }
 
@@ -567,12 +568,11 @@ public class ChatMessageReceivedEvent(conversationId: String) :
 /**
  * The `chat_message_sent` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageSent(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageSentEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_SENT, "ChatMessageSentEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatMessageSentEvent : WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_SENT, "ChatMessageSentEvent") {
+    public fun conversationId(conversationId: String): ChatMessageSentEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageSentEvent = apply { values[1] = messageId }
 
@@ -595,12 +595,12 @@ public class ChatMessageSentEvent(conversationId: String) :
 /**
  * The `chat_message_unpinned` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatMessageUnpinned(…)` takes the
  * same properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatMessageUnpinnedEvent(conversationId: String) :
+public class ChatMessageUnpinnedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_MESSAGE_UNPINNED, "ChatMessageUnpinnedEvent") {
-    init {
-        values[0] = conversationId
-    }
+    public fun conversationId(conversationId: String): ChatMessageUnpinnedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatMessageUnpinnedEvent = apply { values[1] = messageId }
 
@@ -616,18 +616,18 @@ public class ChatMessageUnpinnedEvent(conversationId: String) :
  * The `chat_reaction_added` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatReactionAdded(…)` takes the same
  * properties as named arguments.
  *
+ * `conversationId` and `reaction` are required: tracking the event with any of them missing logs a warning.
+ *
  * `reaction` is the literal reaction value (emoji, shortcode, sticker id),
  * not a category. Compare reaction_type if a future schema needs to
  * distinguish emoji from sticker from gif reactions.
  */
-public class ChatReactionAddedEvent(conversationId: String, reaction: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_REACTION_ADDED, "ChatReactionAddedEvent") {
-    init {
-        values[0] = conversationId
-        values[2] = reaction
-    }
+public class ChatReactionAddedEvent : WellKnownEvent(WellKnownEvents.CHAT_REACTION_ADDED, "ChatReactionAddedEvent") {
+    public fun conversationId(conversationId: String): ChatReactionAddedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatReactionAddedEvent = apply { values[1] = messageId }
+
+    public fun reaction(reaction: String): ChatReactionAddedEvent = apply { values[2] = reaction }
 
     public fun threadId(threadId: String?): ChatReactionAddedEvent = apply { values[3] = threadId }
 
@@ -638,17 +638,18 @@ public class ChatReactionAddedEvent(conversationId: String, reaction: String) :
  * The `chat_reaction_removed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatReactionRemoved(…)` takes the
  * same properties as named arguments.
  *
+ * `conversationId` and `reaction` are required: tracking the event with any of them missing logs a warning.
+ *
  * `reaction` is the literal reaction value (emoji, shortcode, sticker id),
  * not a category.
  */
-public class ChatReactionRemovedEvent(conversationId: String, reaction: String) :
+public class ChatReactionRemovedEvent :
     WellKnownEvent(WellKnownEvents.CHAT_REACTION_REMOVED, "ChatReactionRemovedEvent") {
-    init {
-        values[0] = conversationId
-        values[2] = reaction
-    }
+    public fun conversationId(conversationId: String): ChatReactionRemovedEvent = apply { values[0] = conversationId }
 
     public fun messageId(messageId: String?): ChatReactionRemovedEvent = apply { values[1] = messageId }
+
+    public fun reaction(reaction: String): ChatReactionRemovedEvent = apply { values[2] = reaction }
 
     public fun threadId(threadId: String?): ChatReactionRemovedEvent = apply { values[3] = threadId }
 
@@ -658,12 +659,11 @@ public class ChatReactionRemovedEvent(conversationId: String, reaction: String) 
 /**
  * The `chat_typing_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatTypingStarted(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatTypingStartedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_TYPING_STARTED, "ChatTypingStartedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatTypingStartedEvent : WellKnownEvent(WellKnownEvents.CHAT_TYPING_STARTED, "ChatTypingStartedEvent") {
+    public fun conversationId(conversationId: String): ChatTypingStartedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatTypingStartedEvent =
         apply { values[1] = conversationType }
@@ -674,12 +674,11 @@ public class ChatTypingStartedEvent(conversationId: String) :
 /**
  * The `chat_typing_stopped` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatTypingStopped(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatTypingStoppedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_TYPING_STOPPED, "ChatTypingStoppedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatTypingStoppedEvent : WellKnownEvent(WellKnownEvents.CHAT_TYPING_STOPPED, "ChatTypingStoppedEvent") {
+    public fun conversationId(conversationId: String): ChatTypingStoppedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatTypingStoppedEvent =
         apply { values[1] = conversationType }
@@ -690,12 +689,11 @@ public class ChatTypingStoppedEvent(conversationId: String) :
 /**
  * The `chat_unarchived` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatUnarchived(…)` takes the same
  * properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class ChatUnarchivedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_UNARCHIVED, "ChatUnarchivedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class ChatUnarchivedEvent : WellKnownEvent(WellKnownEvents.CHAT_UNARCHIVED, "ChatUnarchivedEvent") {
+    public fun conversationId(conversationId: String): ChatUnarchivedEvent = apply { values[0] = conversationId }
 
     public fun conversationType(conversationType: String?): ChatUnarchivedEvent = apply { values[1] = conversationType }
 
@@ -706,13 +704,12 @@ public class ChatUnarchivedEvent(conversationId: String) :
  * The `chat_user_blocked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.chatUserBlocked(…)` takes the same
  * properties as named arguments.
  *
+ * `userId` is required: tracking the event without it logs a warning.
+ *
  * User-level block (not conversation-scoped), so no conversation_id.
  */
-public class ChatUserBlockedEvent(userId: String) :
-    WellKnownEvent(WellKnownEvents.CHAT_USER_BLOCKED, "ChatUserBlockedEvent") {
-    init {
-        values[0] = userId
-    }
+public class ChatUserBlockedEvent : WellKnownEvent(WellKnownEvents.CHAT_USER_BLOCKED, "ChatUserBlockedEvent") {
+    public fun userId(userId: String): ChatUserBlockedEvent = apply { values[0] = userId }
 
     public fun extra(key: String, value: Any?): ChatUserBlockedEvent = apply { putExtra(key, value) }
 }
@@ -740,13 +737,14 @@ public class CheckoutStartedEvent : WellKnownEvent(WellKnownEvents.CHECKOUT_STAR
 /**
  * The `checkout_step_completed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.checkoutStepCompleted(…)` takes
  * the same properties as named arguments.
+ *
+ * `checkoutId` and `step` are required: tracking the event with any of them missing logs a warning.
  */
-public class CheckoutStepCompletedEvent(checkoutId: String, step: String) :
+public class CheckoutStepCompletedEvent :
     WellKnownEvent(WellKnownEvents.CHECKOUT_STEP_COMPLETED, "CheckoutStepCompletedEvent") {
-    init {
-        values[0] = checkoutId
-        values[1] = step
-    }
+    public fun checkoutId(checkoutId: String): CheckoutStepCompletedEvent = apply { values[0] = checkoutId }
+
+    public fun step(step: String): CheckoutStepCompletedEvent = apply { values[1] = step }
 
     public fun stepIndex(stepIndex: Int): CheckoutStepCompletedEvent = apply { values[2] = stepIndex }
 
@@ -756,12 +754,11 @@ public class CheckoutStepCompletedEvent(checkoutId: String, step: String) :
 /**
  * The `coupon_applied` event, for `Pug.track(event)`. From Kotlin, `Pug.track.couponApplied(…)` takes the same
  * properties as named arguments.
+ *
+ * `couponId` is required: tracking the event without it logs a warning.
  */
-public class CouponAppliedEvent(couponId: String) :
-    WellKnownEvent(WellKnownEvents.COUPON_APPLIED, "CouponAppliedEvent") {
-    init {
-        values[0] = couponId
-    }
+public class CouponAppliedEvent : WellKnownEvent(WellKnownEvents.COUPON_APPLIED, "CouponAppliedEvent") {
+    public fun couponId(couponId: String): CouponAppliedEvent = apply { values[0] = couponId }
 
     public fun couponCode(couponCode: String?): CouponAppliedEvent = apply { values[1] = couponCode }
 
@@ -777,12 +774,11 @@ public class CouponAppliedEvent(couponId: String) :
 /**
  * The `coupon_removed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.couponRemoved(…)` takes the same
  * properties as named arguments.
+ *
+ * `couponId` is required: tracking the event without it logs a warning.
  */
-public class CouponRemovedEvent(couponId: String) :
-    WellKnownEvent(WellKnownEvents.COUPON_REMOVED, "CouponRemovedEvent") {
-    init {
-        values[0] = couponId
-    }
+public class CouponRemovedEvent : WellKnownEvent(WellKnownEvents.COUPON_REMOVED, "CouponRemovedEvent") {
+    public fun couponId(couponId: String): CouponRemovedEvent = apply { values[0] = couponId }
 
     public fun couponCode(couponCode: String?): CouponRemovedEvent = apply { values[1] = couponCode }
 
@@ -797,15 +793,14 @@ public class CouponRemovedEvent(couponId: String) :
  * The `error_occurred` event, for `Pug.track(event)`. From Kotlin, `Pug.track.errorOccurred(…)` takes the same
  * properties as named arguments.
  *
+ * `errorCode` is required: tracking the event without it logs a warning.
+ *
  * Common severity values: "info", "warning", "error", "fatal".
  * unhandled indicates whether the error was caught by application code (false)
  * or escaped to a global handler / crashed the surface (true).
  */
-public class ErrorOccurredEvent(errorCode: String) :
-    WellKnownEvent(WellKnownEvents.ERROR_OCCURRED, "ErrorOccurredEvent") {
-    init {
-        values[0] = errorCode
-    }
+public class ErrorOccurredEvent : WellKnownEvent(WellKnownEvents.ERROR_OCCURRED, "ErrorOccurredEvent") {
+    public fun errorCode(errorCode: String): ErrorOccurredEvent = apply { values[0] = errorCode }
 
     /** @param message personal data, as the event schema marks it. */
     public fun message(message: String?): ErrorOccurredEvent = apply { values[1] = message }
@@ -823,12 +818,11 @@ public class ErrorOccurredEvent(errorCode: String) :
 /**
  * The `export_completed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.exportCompleted(…)` takes the same
  * properties as named arguments.
+ *
+ * `exportId` is required: tracking the event without it logs a warning.
  */
-public class ExportCompletedEvent(exportId: String) :
-    WellKnownEvent(WellKnownEvents.EXPORT_COMPLETED, "ExportCompletedEvent") {
-    init {
-        values[0] = exportId
-    }
+public class ExportCompletedEvent : WellKnownEvent(WellKnownEvents.EXPORT_COMPLETED, "ExportCompletedEvent") {
+    public fun exportId(exportId: String): ExportCompletedEvent = apply { values[0] = exportId }
 
     public fun exportType(exportType: String?): ExportCompletedEvent = apply { values[1] = exportType }
 
@@ -840,12 +834,11 @@ public class ExportCompletedEvent(exportId: String) :
 /**
  * The `export_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.exportStarted(…)` takes the same
  * properties as named arguments.
+ *
+ * `exportId` is required: tracking the event without it logs a warning.
  */
-public class ExportStartedEvent(exportId: String) :
-    WellKnownEvent(WellKnownEvents.EXPORT_STARTED, "ExportStartedEvent") {
-    init {
-        values[0] = exportId
-    }
+public class ExportStartedEvent : WellKnownEvent(WellKnownEvents.EXPORT_STARTED, "ExportStartedEvent") {
+    public fun exportId(exportId: String): ExportStartedEvent = apply { values[0] = exportId }
 
     public fun exportType(exportType: String?): ExportStartedEvent = apply { values[1] = exportType }
 
@@ -855,11 +848,11 @@ public class ExportStartedEvent(exportId: String) :
 /**
  * The `feature_used` event, for `Pug.track(event)`. From Kotlin, `Pug.track.featureUsed(…)` takes the same properties
  * as named arguments.
+ *
+ * `featureId` is required: tracking the event without it logs a warning.
  */
-public class FeatureUsedEvent(featureId: String) : WellKnownEvent(WellKnownEvents.FEATURE_USED, "FeatureUsedEvent") {
-    init {
-        values[0] = featureId
-    }
+public class FeatureUsedEvent : WellKnownEvent(WellKnownEvents.FEATURE_USED, "FeatureUsedEvent") {
+    public fun featureId(featureId: String): FeatureUsedEvent = apply { values[0] = featureId }
 
     public fun featureName(featureName: String?): FeatureUsedEvent = apply { values[1] = featureName }
 
@@ -884,12 +877,11 @@ public class FeedbackSubmittedEvent : WellKnownEvent(WellKnownEvents.FEEDBACK_SU
 /**
  * The `file_downloaded` event, for `Pug.track(event)`. From Kotlin, `Pug.track.fileDownloaded(…)` takes the same
  * properties as named arguments.
+ *
+ * `fileId` is required: tracking the event without it logs a warning.
  */
-public class FileDownloadedEvent(fileId: String) :
-    WellKnownEvent(WellKnownEvents.FILE_DOWNLOADED, "FileDownloadedEvent") {
-    init {
-        values[0] = fileId
-    }
+public class FileDownloadedEvent : WellKnownEvent(WellKnownEvents.FILE_DOWNLOADED, "FileDownloadedEvent") {
+    public fun fileId(fileId: String): FileDownloadedEvent = apply { values[0] = fileId }
 
     /** @param fileName personal data, as the event schema marks it. */
     public fun fileName(fileName: String?): FileDownloadedEvent = apply { values[1] = fileName }
@@ -904,11 +896,11 @@ public class FileDownloadedEvent(fileId: String) :
 /**
  * The `file_uploaded` event, for `Pug.track(event)`. From Kotlin, `Pug.track.fileUploaded(…)` takes the same properties
  * as named arguments.
+ *
+ * `fileId` is required: tracking the event without it logs a warning.
  */
-public class FileUploadedEvent(fileId: String) : WellKnownEvent(WellKnownEvents.FILE_UPLOADED, "FileUploadedEvent") {
-    init {
-        values[0] = fileId
-    }
+public class FileUploadedEvent : WellKnownEvent(WellKnownEvents.FILE_UPLOADED, "FileUploadedEvent") {
+    public fun fileId(fileId: String): FileUploadedEvent = apply { values[0] = fileId }
 
     /** @param fileName personal data, as the event schema marks it. */
     public fun fileName(fileName: String?): FileUploadedEvent = apply { values[1] = fileName }
@@ -923,11 +915,11 @@ public class FileUploadedEvent(fileId: String) : WellKnownEvent(WellKnownEvents.
 /**
  * The `filter_applied` event, for `Pug.track(event)`. From Kotlin, `Pug.track.filterApplied(…)` takes the same
  * properties as named arguments.
+ *
+ * `key` is required: tracking the event without it logs a warning.
  */
-public class FilterAppliedEvent(key: String) : WellKnownEvent(WellKnownEvents.FILTER_APPLIED, "FilterAppliedEvent") {
-    init {
-        values[0] = key
-    }
+public class FilterAppliedEvent : WellKnownEvent(WellKnownEvents.FILTER_APPLIED, "FilterAppliedEvent") {
+    public fun key(key: String): FilterAppliedEvent = apply { values[0] = key }
 
     public fun value(value: String?): FilterAppliedEvent = apply { values[1] = value }
 
@@ -937,11 +929,11 @@ public class FilterAppliedEvent(key: String) : WellKnownEvent(WellKnownEvents.FI
 /**
  * The `form_start` event, for `Pug.track(event)`. From Kotlin, `Pug.track.formStart(…)` takes the same properties as
  * named arguments.
+ *
+ * `formId` is required: tracking the event without it logs a warning.
  */
-public class FormStartEvent(formId: String) : WellKnownEvent(WellKnownEvents.FORM_START, "FormStartEvent") {
-    init {
-        values[0] = formId
-    }
+public class FormStartEvent : WellKnownEvent(WellKnownEvents.FORM_START, "FormStartEvent") {
+    public fun formId(formId: String): FormStartEvent = apply { values[0] = formId }
 
     public fun formName(formName: String?): FormStartEvent = apply { values[1] = formName }
 
@@ -951,11 +943,11 @@ public class FormStartEvent(formId: String) : WellKnownEvent(WellKnownEvents.FOR
 /**
  * The `form_submit` event, for `Pug.track(event)`. From Kotlin, `Pug.track.formSubmit(…)` takes the same properties as
  * named arguments.
+ *
+ * `formId` is required: tracking the event without it logs a warning.
  */
-public class FormSubmitEvent(formId: String) : WellKnownEvent(WellKnownEvents.FORM_SUBMIT, "FormSubmitEvent") {
-    init {
-        values[0] = formId
-    }
+public class FormSubmitEvent : WellKnownEvent(WellKnownEvents.FORM_SUBMIT, "FormSubmitEvent") {
+    public fun formId(formId: String): FormSubmitEvent = apply { values[0] = formId }
 
     public fun formName(formName: String?): FormSubmitEvent = apply { values[1] = formName }
 
@@ -967,12 +959,11 @@ public class FormSubmitEvent(formId: String) : WellKnownEvent(WellKnownEvents.FO
 /**
  * The `help_article_viewed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.helpArticleViewed(…)` takes the same
  * properties as named arguments.
+ *
+ * `articleId` is required: tracking the event without it logs a warning.
  */
-public class HelpArticleViewedEvent(articleId: String) :
-    WellKnownEvent(WellKnownEvents.HELP_ARTICLE_VIEWED, "HelpArticleViewedEvent") {
-    init {
-        values[0] = articleId
-    }
+public class HelpArticleViewedEvent : WellKnownEvent(WellKnownEvents.HELP_ARTICLE_VIEWED, "HelpArticleViewedEvent") {
+    public fun articleId(articleId: String): HelpArticleViewedEvent = apply { values[0] = articleId }
 
     public fun articleTitle(articleTitle: String?): HelpArticleViewedEvent = apply { values[1] = articleTitle }
 
@@ -984,14 +975,15 @@ public class HelpArticleViewedEvent(articleId: String) :
 /**
  * The `integration_connected` event, for `Pug.track(event)`. From Kotlin, `Pug.track.integrationConnected(…)` takes the
  * same properties as named arguments.
+ *
+ * `integrationType` is required: tracking the event without it logs a warning.
  */
-public class IntegrationConnectedEvent(integrationType: String) :
+public class IntegrationConnectedEvent :
     WellKnownEvent(WellKnownEvents.INTEGRATION_CONNECTED, "IntegrationConnectedEvent") {
-    init {
-        values[1] = integrationType
-    }
-
     public fun integrationId(integrationId: String?): IntegrationConnectedEvent = apply { values[0] = integrationId }
+
+    public fun integrationType(integrationType: String): IntegrationConnectedEvent =
+        apply { values[1] = integrationType }
 
     public fun extra(key: String, value: Any?): IntegrationConnectedEvent = apply { putExtra(key, value) }
 }
@@ -999,14 +991,15 @@ public class IntegrationConnectedEvent(integrationType: String) :
 /**
  * The `integration_disconnected` event, for `Pug.track(event)`. From Kotlin, `Pug.track.integrationDisconnected(…)`
  * takes the same properties as named arguments.
+ *
+ * `integrationType` is required: tracking the event without it logs a warning.
  */
-public class IntegrationDisconnectedEvent(integrationType: String) :
+public class IntegrationDisconnectedEvent :
     WellKnownEvent(WellKnownEvents.INTEGRATION_DISCONNECTED, "IntegrationDisconnectedEvent") {
-    init {
-        values[1] = integrationType
-    }
-
     public fun integrationId(integrationId: String?): IntegrationDisconnectedEvent = apply { values[0] = integrationId }
+
+    public fun integrationType(integrationType: String): IntegrationDisconnectedEvent =
+        apply { values[1] = integrationType }
 
     public fun reason(reason: String?): IntegrationDisconnectedEvent = apply { values[2] = reason }
 
@@ -1058,12 +1051,11 @@ public class InviteSentEvent : WellKnownEvent(WellKnownEvents.INVITE_SENT, "Invi
 /**
  * The `invoice_failed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.invoiceFailed(…)` takes the same
  * properties as named arguments.
+ *
+ * `invoiceId` is required: tracking the event without it logs a warning.
  */
-public class InvoiceFailedEvent(invoiceId: String) :
-    WellKnownEvent(WellKnownEvents.INVOICE_FAILED, "InvoiceFailedEvent") {
-    init {
-        values[0] = invoiceId
-    }
+public class InvoiceFailedEvent : WellKnownEvent(WellKnownEvents.INVOICE_FAILED, "InvoiceFailedEvent") {
+    public fun invoiceId(invoiceId: String): InvoiceFailedEvent = apply { values[0] = invoiceId }
 
     public fun subscriptionId(subscriptionId: String?): InvoiceFailedEvent = apply { values[1] = subscriptionId }
 
@@ -1079,11 +1071,11 @@ public class InvoiceFailedEvent(invoiceId: String) :
 /**
  * The `invoice_paid` event, for `Pug.track(event)`. From Kotlin, `Pug.track.invoicePaid(…)` takes the same properties
  * as named arguments.
+ *
+ * `invoiceId` is required: tracking the event without it logs a warning.
  */
-public class InvoicePaidEvent(invoiceId: String) : WellKnownEvent(WellKnownEvents.INVOICE_PAID, "InvoicePaidEvent") {
-    init {
-        values[0] = invoiceId
-    }
+public class InvoicePaidEvent : WellKnownEvent(WellKnownEvents.INVOICE_PAID, "InvoicePaidEvent") {
+    public fun invoiceId(invoiceId: String): InvoicePaidEvent = apply { values[0] = invoiceId }
 
     public fun subscriptionId(subscriptionId: String?): InvoicePaidEvent = apply { values[1] = subscriptionId }
 
@@ -1121,12 +1113,12 @@ public class MfaEnabledEvent : WellKnownEvent(WellKnownEvents.MFA_ENABLED, "MfaE
 /**
  * The `notification_clicked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.notificationClicked(…)` takes the
  * same properties as named arguments.
+ *
+ * `campaignId` is required: tracking the event without it logs a warning.
  */
-public class NotificationClickedEvent(campaignId: String) :
+public class NotificationClickedEvent :
     WellKnownEvent(WellKnownEvents.NOTIFICATION_CLICKED, "NotificationClickedEvent") {
-    init {
-        values[0] = campaignId
-    }
+    public fun campaignId(campaignId: String): NotificationClickedEvent = apply { values[0] = campaignId }
 
     public fun notificationType(notificationType: String?): NotificationClickedEvent =
         apply { values[1] = notificationType }
@@ -1137,12 +1129,12 @@ public class NotificationClickedEvent(campaignId: String) :
 /**
  * The `notification_dismissed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.notificationDismissed(…)` takes
  * the same properties as named arguments.
+ *
+ * `campaignId` is required: tracking the event without it logs a warning.
  */
-public class NotificationDismissedEvent(campaignId: String) :
+public class NotificationDismissedEvent :
     WellKnownEvent(WellKnownEvents.NOTIFICATION_DISMISSED, "NotificationDismissedEvent") {
-    init {
-        values[0] = campaignId
-    }
+    public fun campaignId(campaignId: String): NotificationDismissedEvent = apply { values[0] = campaignId }
 
     public fun notificationType(notificationType: String?): NotificationDismissedEvent =
         apply { values[1] = notificationType }
@@ -1153,12 +1145,12 @@ public class NotificationDismissedEvent(campaignId: String) :
 /**
  * The `notification_received` event, for `Pug.track(event)`. From Kotlin, `Pug.track.notificationReceived(…)` takes the
  * same properties as named arguments.
+ *
+ * `campaignId` is required: tracking the event without it logs a warning.
  */
-public class NotificationReceivedEvent(campaignId: String) :
+public class NotificationReceivedEvent :
     WellKnownEvent(WellKnownEvents.NOTIFICATION_RECEIVED, "NotificationReceivedEvent") {
-    init {
-        values[0] = campaignId
-    }
+    public fun campaignId(campaignId: String): NotificationReceivedEvent = apply { values[0] = campaignId }
 
     public fun notificationType(notificationType: String?): NotificationReceivedEvent =
         apply { values[1] = notificationType }
@@ -1182,12 +1174,11 @@ public class NpsSubmittedEvent : WellKnownEvent(WellKnownEvents.NPS_SUBMITTED, "
 /**
  * The `order_refunded` event, for `Pug.track(event)`. From Kotlin, `Pug.track.orderRefunded(…)` takes the same
  * properties as named arguments.
+ *
+ * `orderId` is required: tracking the event without it logs a warning.
  */
-public class OrderRefundedEvent(orderId: String) :
-    WellKnownEvent(WellKnownEvents.ORDER_REFUNDED, "OrderRefundedEvent") {
-    init {
-        values[0] = orderId
-    }
+public class OrderRefundedEvent : WellKnownEvent(WellKnownEvents.ORDER_REFUNDED, "OrderRefundedEvent") {
+    public fun orderId(orderId: String): OrderRefundedEvent = apply { values[0] = orderId }
 
     public fun amount(amount: Double): OrderRefundedEvent = apply { values[1] = amount }
 
@@ -1269,14 +1260,13 @@ public class PaymentSucceededEvent : WellKnownEvent(WellKnownEvents.PAYMENT_SUCC
  * The `product_list_viewed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.productListViewed(…)` takes the same
  * properties as named arguments.
  *
+ * `listId` is required: tracking the event without it logs a warning.
+ *
  * A list/category/search-results impression — fired when the user views a
  * collection of products rather than a single product detail page.
  */
-public class ProductListViewedEvent(listId: String) :
-    WellKnownEvent(WellKnownEvents.PRODUCT_LIST_VIEWED, "ProductListViewedEvent") {
-    init {
-        values[0] = listId
-    }
+public class ProductListViewedEvent : WellKnownEvent(WellKnownEvents.PRODUCT_LIST_VIEWED, "ProductListViewedEvent") {
+    public fun listId(listId: String): ProductListViewedEvent = apply { values[0] = listId }
 
     public fun listName(listName: String?): ProductListViewedEvent = apply { values[1] = listName }
 
@@ -1290,12 +1280,11 @@ public class ProductListViewedEvent(listId: String) :
 /**
  * The `product_viewed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.productViewed(…)` takes the same
  * properties as named arguments.
+ *
+ * `productId` is required: tracking the event without it logs a warning.
  */
-public class ProductViewedEvent(productId: String) :
-    WellKnownEvent(WellKnownEvents.PRODUCT_VIEWED, "ProductViewedEvent") {
-    init {
-        values[0] = productId
-    }
+public class ProductViewedEvent : WellKnownEvent(WellKnownEvents.PRODUCT_VIEWED, "ProductViewedEvent") {
+    public fun productId(productId: String): ProductViewedEvent = apply { values[0] = productId }
 
     public fun productName(productName: String?): ProductViewedEvent = apply { values[1] = productName }
 
@@ -1342,13 +1331,15 @@ public class PurchaseEvent : WellKnownEvent(WellKnownEvents.PURCHASE, "PurchaseE
 /**
  * The `recommendation_clicked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.recommendationClicked(…)` takes
  * the same properties as named arguments.
+ *
+ * `recommendationId` and `itemId` are required: tracking the event with any of them missing logs a warning.
  */
-public class RecommendationClickedEvent(recommendationId: String, itemId: String) :
+public class RecommendationClickedEvent :
     WellKnownEvent(WellKnownEvents.RECOMMENDATION_CLICKED, "RecommendationClickedEvent") {
-    init {
-        values[0] = recommendationId
-        values[1] = itemId
-    }
+    public fun recommendationId(recommendationId: String): RecommendationClickedEvent =
+        apply { values[0] = recommendationId }
+
+    public fun itemId(itemId: String): RecommendationClickedEvent = apply { values[1] = itemId }
 
     public fun source(source: String?): RecommendationClickedEvent = apply { values[2] = source }
 
@@ -1360,12 +1351,13 @@ public class RecommendationClickedEvent(recommendationId: String, itemId: String
 /**
  * The `recommendation_viewed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.recommendationViewed(…)` takes the
  * same properties as named arguments.
+ *
+ * `recommendationId` is required: tracking the event without it logs a warning.
  */
-public class RecommendationViewedEvent(recommendationId: String) :
+public class RecommendationViewedEvent :
     WellKnownEvent(WellKnownEvents.RECOMMENDATION_VIEWED, "RecommendationViewedEvent") {
-    init {
-        values[0] = recommendationId
-    }
+    public fun recommendationId(recommendationId: String): RecommendationViewedEvent =
+        apply { values[0] = recommendationId }
 
     public fun itemId(itemId: String?): RecommendationViewedEvent = apply { values[1] = itemId }
 
@@ -1379,11 +1371,11 @@ public class RecommendationViewedEvent(recommendationId: String) :
 /**
  * The `refund_failed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.refundFailed(…)` takes the same properties
  * as named arguments.
+ *
+ * `orderId` is required: tracking the event without it logs a warning.
  */
-public class RefundFailedEvent(orderId: String) : WellKnownEvent(WellKnownEvents.REFUND_FAILED, "RefundFailedEvent") {
-    init {
-        values[0] = orderId
-    }
+public class RefundFailedEvent : WellKnownEvent(WellKnownEvents.REFUND_FAILED, "RefundFailedEvent") {
+    public fun orderId(orderId: String): RefundFailedEvent = apply { values[0] = orderId }
 
     public fun refundId(refundId: String?): RefundFailedEvent = apply { values[1] = refundId }
 
@@ -1399,12 +1391,11 @@ public class RefundFailedEvent(orderId: String) : WellKnownEvent(WellKnownEvents
 /**
  * The `remove_from_cart` event, for `Pug.track(event)`. From Kotlin, `Pug.track.removeFromCart(…)` takes the same
  * properties as named arguments.
+ *
+ * `productId` is required: tracking the event without it logs a warning.
  */
-public class RemoveFromCartEvent(productId: String) :
-    WellKnownEvent(WellKnownEvents.REMOVE_FROM_CART, "RemoveFromCartEvent") {
-    init {
-        values[0] = productId
-    }
+public class RemoveFromCartEvent : WellKnownEvent(WellKnownEvents.REMOVE_FROM_CART, "RemoveFromCartEvent") {
+    public fun productId(productId: String): RemoveFromCartEvent = apply { values[0] = productId }
 
     public fun price(price: Double): RemoveFromCartEvent = apply { values[1] = price }
 
@@ -1438,11 +1429,11 @@ public class ScrollEvent : WellKnownEvent(WellKnownEvents.SCROLL, "ScrollEvent")
 /**
  * The `search` event, for `Pug.track(event)`. From Kotlin, `Pug.track.search(…)` takes the same properties as named
  * arguments.
+ *
+ * `query` is required: tracking the event without it logs a warning.
  */
-public class SearchEvent(query: String) : WellKnownEvent(WellKnownEvents.SEARCH, "SearchEvent") {
-    init {
-        values[0] = query
-    }
+public class SearchEvent : WellKnownEvent(WellKnownEvents.SEARCH, "SearchEvent") {
+    public fun query(query: String): SearchEvent = apply { values[0] = query }
 
     public fun extra(key: String, value: Any?): SearchEvent = apply { putExtra(key, value) }
 }
@@ -1450,13 +1441,14 @@ public class SearchEvent(query: String) : WellKnownEvent(WellKnownEvents.SEARCH,
 /**
  * The `search_result_clicked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.searchResultClicked(…)` takes the
  * same properties as named arguments.
+ *
+ * `query` and `resultId` are required: tracking the event with any of them missing logs a warning.
  */
-public class SearchResultClickedEvent(query: String, resultId: String) :
+public class SearchResultClickedEvent :
     WellKnownEvent(WellKnownEvents.SEARCH_RESULT_CLICKED, "SearchResultClickedEvent") {
-    init {
-        values[0] = query
-        values[1] = resultId
-    }
+    public fun query(query: String): SearchResultClickedEvent = apply { values[0] = query }
+
+    public fun resultId(resultId: String): SearchResultClickedEvent = apply { values[1] = resultId }
 
     public fun index(index: Int): SearchResultClickedEvent = apply { values[2] = index }
 
@@ -1466,11 +1458,11 @@ public class SearchResultClickedEvent(query: String, resultId: String) :
 /**
  * The `sort_changed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.sortChanged(…)` takes the same properties
  * as named arguments.
+ *
+ * `key` is required: tracking the event without it logs a warning.
  */
-public class SortChangedEvent(key: String) : WellKnownEvent(WellKnownEvents.SORT_CHANGED, "SortChangedEvent") {
-    init {
-        values[0] = key
-    }
+public class SortChangedEvent : WellKnownEvent(WellKnownEvents.SORT_CHANGED, "SortChangedEvent") {
+    public fun key(key: String): SortChangedEvent = apply { values[0] = key }
 
     public fun direction(direction: String?): SortChangedEvent = apply { values[1] = direction }
 
@@ -1480,12 +1472,12 @@ public class SortChangedEvent(key: String) : WellKnownEvent(WellKnownEvents.SORT
 /**
  * The `subscription_canceled` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionCanceled(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionCanceledEvent(subscriptionId: String) :
+public class SubscriptionCanceledEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_CANCELED, "SubscriptionCanceledEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionCanceledEvent = apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionCanceledEvent = apply { values[1] = planId }
 
@@ -1497,12 +1489,12 @@ public class SubscriptionCanceledEvent(subscriptionId: String) :
 /**
  * The `subscription_changed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionChanged(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionChangedEvent(subscriptionId: String) :
+public class SubscriptionChangedEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_CHANGED, "SubscriptionChangedEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionChangedEvent = apply { values[0] = subscriptionId }
 
     public fun previousPlanId(previousPlanId: String?): SubscriptionChangedEvent = apply { values[1] = previousPlanId }
 
@@ -1514,12 +1506,11 @@ public class SubscriptionChangedEvent(subscriptionId: String) :
 /**
  * The `subscription_paused` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionPaused(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionPausedEvent(subscriptionId: String) :
-    WellKnownEvent(WellKnownEvents.SUBSCRIPTION_PAUSED, "SubscriptionPausedEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+public class SubscriptionPausedEvent : WellKnownEvent(WellKnownEvents.SUBSCRIPTION_PAUSED, "SubscriptionPausedEvent") {
+    public fun subscriptionId(subscriptionId: String): SubscriptionPausedEvent = apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionPausedEvent = apply { values[1] = planId }
 
@@ -1531,12 +1522,12 @@ public class SubscriptionPausedEvent(subscriptionId: String) :
 /**
  * The `subscription_renewed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionRenewed(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionRenewedEvent(subscriptionId: String) :
+public class SubscriptionRenewedEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_RENEWED, "SubscriptionRenewedEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionRenewedEvent = apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionRenewedEvent = apply { values[1] = planId }
 
@@ -1550,12 +1541,12 @@ public class SubscriptionRenewedEvent(subscriptionId: String) :
 /**
  * The `subscription_resumed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionResumed(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionResumedEvent(subscriptionId: String) :
+public class SubscriptionResumedEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_RESUMED, "SubscriptionResumedEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionResumedEvent = apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionResumedEvent = apply { values[1] = planId }
 
@@ -1567,12 +1558,12 @@ public class SubscriptionResumedEvent(subscriptionId: String) :
 /**
  * The `subscription_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionStarted(…)` takes the
  * same properties as named arguments.
+ *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
  */
-public class SubscriptionStartedEvent(subscriptionId: String) :
+public class SubscriptionStartedEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_STARTED, "SubscriptionStartedEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionStartedEvent = apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionStartedEvent = apply { values[1] = planId }
 
@@ -1587,14 +1578,15 @@ public class SubscriptionStartedEvent(subscriptionId: String) :
  * The `subscription_trial_will_end` event, for `Pug.track(event)`. From Kotlin, `Pug.track.subscriptionTrialWillEnd(…)`
  * takes the same properties as named arguments.
  *
+ * `subscriptionId` is required: tracking the event without it logs a warning.
+ *
  * Fired in advance of a trial converting (e.g. 3 days before). Useful for
  * upsell / conversion campaigns.
  */
-public class SubscriptionTrialWillEndEvent(subscriptionId: String) :
+public class SubscriptionTrialWillEndEvent :
     WellKnownEvent(WellKnownEvents.SUBSCRIPTION_TRIAL_WILL_END, "SubscriptionTrialWillEndEvent") {
-    init {
-        values[0] = subscriptionId
-    }
+    public fun subscriptionId(subscriptionId: String): SubscriptionTrialWillEndEvent =
+        apply { values[0] = subscriptionId }
 
     public fun planId(planId: String?): SubscriptionTrialWillEndEvent = apply { values[1] = planId }
 
@@ -1606,12 +1598,11 @@ public class SubscriptionTrialWillEndEvent(subscriptionId: String) :
 /**
  * The `support_chat_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.supportChatStarted(…)` takes the
  * same properties as named arguments.
+ *
+ * `conversationId` is required: tracking the event without it logs a warning.
  */
-public class SupportChatStartedEvent(conversationId: String) :
-    WellKnownEvent(WellKnownEvents.SUPPORT_CHAT_STARTED, "SupportChatStartedEvent") {
-    init {
-        values[0] = conversationId
-    }
+public class SupportChatStartedEvent : WellKnownEvent(WellKnownEvents.SUPPORT_CHAT_STARTED, "SupportChatStartedEvent") {
+    public fun conversationId(conversationId: String): SupportChatStartedEvent = apply { values[0] = conversationId }
 
     /** @param topic personal data, as the event schema marks it. */
     public fun topic(topic: String?): SupportChatStartedEvent = apply { values[1] = topic }
@@ -1622,12 +1613,12 @@ public class SupportChatStartedEvent(conversationId: String) :
 /**
  * The `support_ticket_created` event, for `Pug.track(event)`. From Kotlin, `Pug.track.supportTicketCreated(…)` takes
  * the same properties as named arguments.
+ *
+ * `ticketId` is required: tracking the event without it logs a warning.
  */
-public class SupportTicketCreatedEvent(ticketId: String) :
+public class SupportTicketCreatedEvent :
     WellKnownEvent(WellKnownEvents.SUPPORT_TICKET_CREATED, "SupportTicketCreatedEvent") {
-    init {
-        values[0] = ticketId
-    }
+    public fun ticketId(ticketId: String): SupportTicketCreatedEvent = apply { values[0] = ticketId }
 
     public fun category(category: String?): SupportTicketCreatedEvent = apply { values[1] = category }
 
@@ -1639,12 +1630,12 @@ public class SupportTicketCreatedEvent(ticketId: String) :
 /**
  * The `support_ticket_resolved` event, for `Pug.track(event)`. From Kotlin, `Pug.track.supportTicketResolved(…)` takes
  * the same properties as named arguments.
+ *
+ * `ticketId` is required: tracking the event without it logs a warning.
  */
-public class SupportTicketResolvedEvent(ticketId: String) :
+public class SupportTicketResolvedEvent :
     WellKnownEvent(WellKnownEvents.SUPPORT_TICKET_RESOLVED, "SupportTicketResolvedEvent") {
-    init {
-        values[0] = ticketId
-    }
+    public fun ticketId(ticketId: String): SupportTicketResolvedEvent = apply { values[0] = ticketId }
 
     /** @param resolution personal data, as the event schema marks it. */
     public fun resolution(resolution: String?): SupportTicketResolvedEvent = apply { values[1] = resolution }
@@ -1655,12 +1646,11 @@ public class SupportTicketResolvedEvent(ticketId: String) :
 /**
  * The `survey_completed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.surveyCompleted(…)` takes the same
  * properties as named arguments.
+ *
+ * `surveyId` is required: tracking the event without it logs a warning.
  */
-public class SurveyCompletedEvent(surveyId: String) :
-    WellKnownEvent(WellKnownEvents.SURVEY_COMPLETED, "SurveyCompletedEvent") {
-    init {
-        values[0] = surveyId
-    }
+public class SurveyCompletedEvent : WellKnownEvent(WellKnownEvents.SURVEY_COMPLETED, "SurveyCompletedEvent") {
+    public fun surveyId(surveyId: String): SurveyCompletedEvent = apply { values[0] = surveyId }
 
     public fun questionCount(questionCount: Int): SurveyCompletedEvent = apply { values[1] = questionCount }
 
@@ -1670,12 +1660,11 @@ public class SurveyCompletedEvent(surveyId: String) :
 /**
  * The `survey_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.surveyStarted(…)` takes the same
  * properties as named arguments.
+ *
+ * `surveyId` is required: tracking the event without it logs a warning.
  */
-public class SurveyStartedEvent(surveyId: String) :
-    WellKnownEvent(WellKnownEvents.SURVEY_STARTED, "SurveyStartedEvent") {
-    init {
-        values[0] = surveyId
-    }
+public class SurveyStartedEvent : WellKnownEvent(WellKnownEvents.SURVEY_STARTED, "SurveyStartedEvent") {
+    public fun surveyId(surveyId: String): SurveyStartedEvent = apply { values[0] = surveyId }
 
     public fun extra(key: String, value: Any?): SurveyStartedEvent = apply { putExtra(key, value) }
 }
@@ -1709,12 +1698,11 @@ public class TrialStartedEvent : WellKnownEvent(WellKnownEvents.TRIAL_STARTED, "
 /**
  * The `video_completed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.videoCompleted(…)` takes the same
  * properties as named arguments.
+ *
+ * `videoId` is required: tracking the event without it logs a warning.
  */
-public class VideoCompletedEvent(videoId: String) :
-    WellKnownEvent(WellKnownEvents.VIDEO_COMPLETED, "VideoCompletedEvent") {
-    init {
-        values[0] = videoId
-    }
+public class VideoCompletedEvent : WellKnownEvent(WellKnownEvents.VIDEO_COMPLETED, "VideoCompletedEvent") {
+    public fun videoId(videoId: String): VideoCompletedEvent = apply { values[0] = videoId }
 
     public fun extra(key: String, value: Any?): VideoCompletedEvent = apply { putExtra(key, value) }
 }
@@ -1722,11 +1710,11 @@ public class VideoCompletedEvent(videoId: String) :
 /**
  * The `video_pause` event, for `Pug.track(event)`. From Kotlin, `Pug.track.videoPause(…)` takes the same properties as
  * named arguments.
+ *
+ * `videoId` is required: tracking the event without it logs a warning.
  */
-public class VideoPauseEvent(videoId: String) : WellKnownEvent(WellKnownEvents.VIDEO_PAUSE, "VideoPauseEvent") {
-    init {
-        values[0] = videoId
-    }
+public class VideoPauseEvent : WellKnownEvent(WellKnownEvents.VIDEO_PAUSE, "VideoPauseEvent") {
+    public fun videoId(videoId: String): VideoPauseEvent = apply { values[0] = videoId }
 
     /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
     public fun positionMs(positionMs: Long): VideoPauseEvent = apply { values[1] = positionMs }
@@ -1737,11 +1725,11 @@ public class VideoPauseEvent(videoId: String) : WellKnownEvent(WellKnownEvents.V
 /**
  * The `video_play` event, for `Pug.track(event)`. From Kotlin, `Pug.track.videoPlay(…)` takes the same properties as
  * named arguments.
+ *
+ * `videoId` is required: tracking the event without it logs a warning.
  */
-public class VideoPlayEvent(videoId: String) : WellKnownEvent(WellKnownEvents.VIDEO_PLAY, "VideoPlayEvent") {
-    init {
-        values[0] = videoId
-    }
+public class VideoPlayEvent : WellKnownEvent(WellKnownEvents.VIDEO_PLAY, "VideoPlayEvent") {
+    public fun videoId(videoId: String): VideoPlayEvent = apply { values[0] = videoId }
 
     /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
     public fun positionMs(positionMs: Long): VideoPlayEvent = apply { values[1] = positionMs }
@@ -1752,11 +1740,11 @@ public class VideoPlayEvent(videoId: String) : WellKnownEvent(WellKnownEvents.VI
 /**
  * The `video_seeked` event, for `Pug.track(event)`. From Kotlin, `Pug.track.videoSeeked(…)` takes the same properties
  * as named arguments.
+ *
+ * `videoId` is required: tracking the event without it logs a warning.
  */
-public class VideoSeekedEvent(videoId: String) : WellKnownEvent(WellKnownEvents.VIDEO_SEEKED, "VideoSeekedEvent") {
-    init {
-        values[0] = videoId
-    }
+public class VideoSeekedEvent : WellKnownEvent(WellKnownEvents.VIDEO_SEEKED, "VideoSeekedEvent") {
+    public fun videoId(videoId: String): VideoSeekedEvent = apply { values[0] = videoId }
 
     /** @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`. */
     public fun fromPositionMs(fromPositionMs: Long): VideoSeekedEvent = apply { values[1] = fromPositionMs }
@@ -1770,11 +1758,11 @@ public class VideoSeekedEvent(videoId: String) : WellKnownEvent(WellKnownEvents.
 /**
  * The `video_started` event, for `Pug.track(event)`. From Kotlin, `Pug.track.videoStarted(…)` takes the same properties
  * as named arguments.
+ *
+ * `videoId` is required: tracking the event without it logs a warning.
  */
-public class VideoStartedEvent(videoId: String) : WellKnownEvent(WellKnownEvents.VIDEO_STARTED, "VideoStartedEvent") {
-    init {
-        values[0] = videoId
-    }
+public class VideoStartedEvent : WellKnownEvent(WellKnownEvents.VIDEO_STARTED, "VideoStartedEvent") {
+    public fun videoId(videoId: String): VideoStartedEvent = apply { values[0] = videoId }
 
     public fun extra(key: String, value: Any?): VideoStartedEvent = apply { putExtra(key, value) }
 }
@@ -1782,12 +1770,11 @@ public class VideoStartedEvent(videoId: String) : WellKnownEvent(WellKnownEvents
 /**
  * The `wishlist_added` event, for `Pug.track(event)`. From Kotlin, `Pug.track.wishlistAdded(…)` takes the same
  * properties as named arguments.
+ *
+ * `productId` is required: tracking the event without it logs a warning.
  */
-public class WishlistAddedEvent(productId: String) :
-    WellKnownEvent(WellKnownEvents.WISHLIST_ADDED, "WishlistAddedEvent") {
-    init {
-        values[0] = productId
-    }
+public class WishlistAddedEvent : WellKnownEvent(WellKnownEvents.WISHLIST_ADDED, "WishlistAddedEvent") {
+    public fun productId(productId: String): WishlistAddedEvent = apply { values[0] = productId }
 
     public fun wishlistId(wishlistId: String?): WishlistAddedEvent = apply { values[1] = wishlistId }
 
@@ -1801,12 +1788,11 @@ public class WishlistAddedEvent(productId: String) :
 /**
  * The `wishlist_removed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.wishlistRemoved(…)` takes the same
  * properties as named arguments.
+ *
+ * `productId` is required: tracking the event without it logs a warning.
  */
-public class WishlistRemovedEvent(productId: String) :
-    WellKnownEvent(WellKnownEvents.WISHLIST_REMOVED, "WishlistRemovedEvent") {
-    init {
-        values[0] = productId
-    }
+public class WishlistRemovedEvent : WellKnownEvent(WellKnownEvents.WISHLIST_REMOVED, "WishlistRemovedEvent") {
+    public fun productId(productId: String): WishlistRemovedEvent = apply { values[0] = productId }
 
     public fun wishlistId(wishlistId: String?): WishlistRemovedEvent = apply { values[1] = wishlistId }
 
@@ -1816,12 +1802,11 @@ public class WishlistRemovedEvent(productId: String) :
 /**
  * The `workspace_created` event, for `Pug.track(event)`. From Kotlin, `Pug.track.workspaceCreated(…)` takes the same
  * properties as named arguments.
+ *
+ * `workspaceId` is required: tracking the event without it logs a warning.
  */
-public class WorkspaceCreatedEvent(workspaceId: String) :
-    WellKnownEvent(WellKnownEvents.WORKSPACE_CREATED, "WorkspaceCreatedEvent") {
-    init {
-        values[0] = workspaceId
-    }
+public class WorkspaceCreatedEvent : WellKnownEvent(WellKnownEvents.WORKSPACE_CREATED, "WorkspaceCreatedEvent") {
+    public fun workspaceId(workspaceId: String): WorkspaceCreatedEvent = apply { values[0] = workspaceId }
 
     public fun workspaceName(workspaceName: String?): WorkspaceCreatedEvent = apply { values[1] = workspaceName }
 
@@ -1831,12 +1816,11 @@ public class WorkspaceCreatedEvent(workspaceId: String) :
 /**
  * The `workspace_deleted` event, for `Pug.track(event)`. From Kotlin, `Pug.track.workspaceDeleted(…)` takes the same
  * properties as named arguments.
+ *
+ * `workspaceId` is required: tracking the event without it logs a warning.
  */
-public class WorkspaceDeletedEvent(workspaceId: String) :
-    WellKnownEvent(WellKnownEvents.WORKSPACE_DELETED, "WorkspaceDeletedEvent") {
-    init {
-        values[0] = workspaceId
-    }
+public class WorkspaceDeletedEvent : WellKnownEvent(WellKnownEvents.WORKSPACE_DELETED, "WorkspaceDeletedEvent") {
+    public fun workspaceId(workspaceId: String): WorkspaceDeletedEvent = apply { values[0] = workspaceId }
 
     public fun reason(reason: String?): WorkspaceDeletedEvent = apply { values[1] = reason }
 
@@ -1846,12 +1830,11 @@ public class WorkspaceDeletedEvent(workspaceId: String) :
 /**
  * The `workspace_joined` event, for `Pug.track(event)`. From Kotlin, `Pug.track.workspaceJoined(…)` takes the same
  * properties as named arguments.
+ *
+ * `workspaceId` is required: tracking the event without it logs a warning.
  */
-public class WorkspaceJoinedEvent(workspaceId: String) :
-    WellKnownEvent(WellKnownEvents.WORKSPACE_JOINED, "WorkspaceJoinedEvent") {
-    init {
-        values[0] = workspaceId
-    }
+public class WorkspaceJoinedEvent : WellKnownEvent(WellKnownEvents.WORKSPACE_JOINED, "WorkspaceJoinedEvent") {
+    public fun workspaceId(workspaceId: String): WorkspaceJoinedEvent = apply { values[0] = workspaceId }
 
     public fun role(role: String?): WorkspaceJoinedEvent = apply { values[1] = role }
 
@@ -1861,16 +1844,18 @@ public class WorkspaceJoinedEvent(workspaceId: String) :
 /**
  * The `workspace_role_changed` event, for `Pug.track(event)`. From Kotlin, `Pug.track.workspaceRoleChanged(…)` takes
  * the same properties as named arguments.
+ *
+ * `workspaceId`, `memberId` and `newRole` are required: tracking the event with any of them missing logs a warning.
  */
-public class WorkspaceRoleChangedEvent(workspaceId: String, memberId: String, newRole: String) :
+public class WorkspaceRoleChangedEvent :
     WellKnownEvent(WellKnownEvents.WORKSPACE_ROLE_CHANGED, "WorkspaceRoleChangedEvent") {
-    init {
-        values[0] = workspaceId
-        values[1] = memberId
-        values[3] = newRole
-    }
+    public fun workspaceId(workspaceId: String): WorkspaceRoleChangedEvent = apply { values[0] = workspaceId }
+
+    public fun memberId(memberId: String): WorkspaceRoleChangedEvent = apply { values[1] = memberId }
 
     public fun previousRole(previousRole: String?): WorkspaceRoleChangedEvent = apply { values[2] = previousRole }
+
+    public fun newRole(newRole: String): WorkspaceRoleChangedEvent = apply { values[3] = newRole }
 
     public fun extra(key: String, value: Any?): WorkspaceRoleChangedEvent = apply { putExtra(key, value) }
 }
@@ -1878,13 +1863,14 @@ public class WorkspaceRoleChangedEvent(workspaceId: String, memberId: String, ne
 /**
  * The `workspace_settings_updated` event, for `Pug.track(event)`. From Kotlin, `Pug.track.workspaceSettingsUpdated(…)`
  * takes the same properties as named arguments.
+ *
+ * `workspaceId` and `setting` are required: tracking the event with any of them missing logs a warning.
  */
-public class WorkspaceSettingsUpdatedEvent(workspaceId: String, setting: String) :
+public class WorkspaceSettingsUpdatedEvent :
     WellKnownEvent(WellKnownEvents.WORKSPACE_SETTINGS_UPDATED, "WorkspaceSettingsUpdatedEvent") {
-    init {
-        values[0] = workspaceId
-        values[1] = setting
-    }
+    public fun workspaceId(workspaceId: String): WorkspaceSettingsUpdatedEvent = apply { values[0] = workspaceId }
+
+    public fun setting(setting: String): WorkspaceSettingsUpdatedEvent = apply { values[1] = setting }
 
     public fun extra(key: String, value: Any?): WorkspaceSettingsUpdatedEvent = apply { putExtra(key, value) }
 }

@@ -7,6 +7,6 @@ final class JavaTypedCallers {
     private JavaTypedCallers() {}
 
     static AddToCartEvent addToCartEventWithNullProductId() {
-        return new AddToCartEvent(null);
+        return new AddToCartEvent().productId(null);
     }
 }
