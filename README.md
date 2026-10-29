@@ -15,7 +15,7 @@ The SDK is on Maven Central:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("sh.pug:android:0.0.2")
+    implementation("sh.pug:android:0.2.0")
 }
 ```
 
