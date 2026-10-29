@@ -135,7 +135,10 @@ under `noBackupFilesDir/pug/`.
   platform's org.json. Do not add a runtime dependency. `pug/gradle.lockfile` locks the release
   runtime classpath alone, which OSV-Scanner (`.github/workflows/osv-scanner.yml`) scans on pull
   requests, on `main` and daily, so it sees what ships and not the tooling; Gradle enforces locked
-  versions rather than failing on them, so `check-locks` diffs a fresh `make locks`.
+  versions rather than failing on them, so `check-locks` diffs a fresh `make locks`. Dependabot
+  alerts cover the same classpath: `.github/workflows/dependency-submission.yml` submits it on
+  pushes to `main`, and the repository's Automatic dependency submission stays disabled, since it
+  resolves every build and test configuration too.
 - **minSdk 21.** Lint `NewApi` runs with warnings as errors; `java.time`, `java.util.Base64`,
   `Math.floorDiv` and `ConcurrentHashMap.newKeySet()` are all above 21 (use the Kotlin stdlib
   equivalents). Code with an API-level branch takes the level as a constructor parameter

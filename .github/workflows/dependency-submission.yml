@@ -1,0 +1,29 @@
+name: Dependency submission
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Dependabot alerts on the dependency graph this submits: the release runtime classpath of :pug,
+# what the SDK ships (as in pug/gradle.lockfile), without the build and test tooling. The
+# repository's Automatic dependency submission must stay disabled, since it resolves every
+# configuration of every project. Pinned to a commit, since this job's token can write to the
+# repository and a third-party action's tags can be moved.
+jobs:
+  submit:
+    name: Submit the release runtime classpath
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          dependency-graph-include-projects: ":pug"
+          dependency-graph-include-configurations: releaseRuntimeClasspath
