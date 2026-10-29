@@ -6,11 +6,13 @@ import sh.pug.android.internal.event.EventSchema
  * A well-known event as an object, the typed form for Java:
  * `Pug.track(new PurchaseEvent().orderId("o-42").amount(39.98).extra("coupon", "FALL10"))`.
  *
- * The properties the event requires are constructor arguments, and every other property has a
- * setter; a property never set is not sent, and a number or boolean once set stays set. `extra` adds
- * a property the event does not define, and one named like a property that is set is dropped with a
- * warning. `Pug.track(event)` reads the event during the call, so it can be changed and tracked again
- * once the call returns.
+ * Every property has a setter, required ones too: Java has no named arguments, and a constructor
+ * would take required values by position, where two of one type could swap. An optional property
+ * never set is not sent, and a number or boolean once set stays set. An event tracked with a required
+ * property unset, or set to null, is dropped with a warning; each class names its required properties.
+ * `extra` adds a property the event does not define, and one named like a property that is set is
+ * dropped with a warning. `Pug.track(event)` reads the event during the call, so it can be changed and
+ * tracked again once the call returns.
  */
 public abstract class WellKnownEvent internal constructor(schema: EventSchema, className: String) {
     // Internal members are public in bytecode: without JvmSynthetic, Java could write to values.

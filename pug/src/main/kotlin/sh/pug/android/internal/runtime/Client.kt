@@ -88,13 +88,12 @@ internal class Client(
     private val traitsMapper = TraitsMapper(logger, sdkInt)
     private val factory = EventFactory(projectId, logger, propertyMapper, ids)
 
-    // The consent getters answer on the caller's thread without waiting: the latest opt-in or
-    // opt-out wins, else what start-up restored, else "unknown". whenConsentReady() callbacks wait
-    // for start-up instead, in consentWaiters until it has read consent.
-    @Volatile private var chosenConsent: TrackingConsent? = null
+    // The consent getters answer on the caller's thread without waiting, each from one read of
+    // consentView, so no answer mixes two moments: the latest opt-in or opt-out, else what start-up
+    // read, else null for unknown. whenConsentReady() callbacks wait for start-up instead, in
+    // consentWaiters until it has read consent.
+    @Volatile private var consentView: ConsentView? = null
     private val consentLock = Any()
-
-    @Volatile private var restoredConsent: RestoredConsent? = null
 
     @Volatile private var consentRead = false
     private val consentWaiters = ArrayList<Runnable>()
@@ -124,7 +123,7 @@ internal class Client(
 
     private class Op(val label: String, val block: () -> Unit)
 
-    private class RestoredConsent(val consent: TrackingConsent, val isPending: Boolean)
+    private class ConsentView(val consent: TrackingConsent, val isPending: Boolean)
 
     /**
      * Runs the client once [previousTeardown], the last client's [destroy], is done with storage, and
@@ -180,19 +179,19 @@ internal class Client(
         caller: String,
     ) {
         val callTime = clock.nowMillis()
+        // An event object with a required property never set, or a null from Java.
+        val missing = event.fields.filterIndexed { index, field -> field.required && values[index] == null }
+        if (missing.isNotEmpty()) {
+            val verb = if (missing.size == 1) "is" else "are"
+            logger.warn("$caller was dropped: the required ${missing.joinToString { it.name }} $verb missing")
+            return
+        }
         val typed = LinkedHashMap<String, Any?>()
         event.fields.forEachIndexed { index, field ->
             val value = values[index]
             when {
                 value is Long && field.type == FieldType.DURATION -> typed[field.name] = durationText(value)
-
                 value != null -> typed[field.name] = value
-
-                // Only Java code can pass null for a required argument.
-                field.required -> {
-                    logger.warn("$caller was dropped: ${field.name} is null")
-                    return
-                }
             }
         }
         val custom = LinkedHashMap<String, PropertyValue>()
@@ -278,16 +277,13 @@ internal class Client(
     }
 
     val trackingConsent: TrackingConsent?
-        get() = chosenConsent ?: restored()?.consent
+        get() = currentConsent()?.consent
 
     val isTrackingEnabled: Boolean
-        get() = trackingConsent == TrackingConsent.GRANTED
+        get() = currentConsent()?.consent == TrackingConsent.GRANTED
 
     val isConsentPending: Boolean
-        get() {
-            if (chosenConsent != null) return false
-            return restored()?.isPending ?: true
-        }
+        get() = currentConsent()?.isPending ?: true
 
     fun whenConsentReady(callback: Runnable) {
         synchronized(consentLock) {
@@ -304,8 +300,7 @@ internal class Client(
         // Choices made at once on two threads: the one the getters report must be the one queued
         // last, which the worker applies last.
         synchronized(consentLock) {
-            chosenConsent = value
-            submit(name) {
+            val queued = submit(name) {
                 val wasGranted = consent.isGranted
                 consent.set(value)
                 // An opt-out and its purge must survive a process killed before the write-behind.
@@ -323,6 +318,8 @@ internal class Client(
                     }
                 }
             }
+            // Refused once Pug is destroyed or failed to start: no choice to report.
+            if (queued) consentView = ConsentView(value, isPending = false)
         }
     }
 
@@ -334,17 +331,16 @@ internal class Client(
         logger.debug("Event \"${event.kind}\" is missing its required $names")
     }
 
-    private fun restored(): RestoredConsent? {
-        restoredConsent?.let { return it }
+    private fun currentConsent(): ConsentView? {
+        consentView?.let { return it }
+        // Read again only to word the warning: start-up sets consentView before consentRead, so a
+        // view still unknown once consent was read means start-up failed.
         val message =
-            when {
-                !consentRead ->
-                    "Tracking consent was asked for before Pug read it from storage; it is reported as unknown. " +
-                        "Ask from Pug.whenConsentReady() instead"
-
-                restoredConsent == null -> "Tracking consent is reported as unknown: Pug failed to start"
-
-                else -> return restoredConsent
+            if (consentRead && consentView == null) {
+                "Tracking consent is reported as unknown: Pug failed to start"
+            } else {
+                "Tracking consent was asked for before Pug read it from storage; it is reported as unknown. " +
+                    "Ask from Pug.whenConsentReady() instead"
             }
         if (consentUnknownReported) {
             logger.debug(message)
@@ -352,7 +348,7 @@ internal class Client(
             consentUnknownReported = true
             logger.warn(message)
         }
-        return restoredConsent
+        return null
     }
 
     /** Releases the whenConsentReady() callbacks, once start-up has read consent or failed. */
@@ -381,12 +377,12 @@ internal class Client(
         }
     }
 
-    private fun submit(name: String, block: () -> Unit) {
-        enqueue("Pug.$name()", block)
-    }
+    private fun submit(name: String, block: () -> Unit): Boolean = enqueue("Pug.$name()", block)
 
-    private fun enqueue(label: String, block: () -> Unit) {
-        if (ops.trySend(Op(label, block)).isFailure) logger.debug("$label was ignored: Pug was destroyed")
+    private fun enqueue(label: String, block: () -> Unit): Boolean {
+        val queued = ops.trySend(Op(label, block)).isSuccess
+        if (!queued) logger.debug("$label was ignored: Pug was destroyed")
+        return queued
     }
 
     private suspend fun run(previousTeardown: Job?, startTime: Long) {
@@ -398,6 +394,9 @@ internal class Client(
         } catch (t: Throwable) {
             logger.error("Pug failed to start; calls are ignored", t)
             ops.cancel()
+            // Consent is unknown from here: the choices queued so far went with the ops, never applied
+            // or stored.
+            synchronized(consentLock) { consentView = null }
             // A storage sync or a send started before the failure would otherwise write to storage
             // that the next client, which no longer waits for this one, is using.
             root.cancel()
@@ -421,7 +420,11 @@ internal class Client(
                 options.persistTrackingConsent,
                 ConsentPurge(),
             )
-        restoredConsent = RestoredConsent(consent.consent, consent.isPending)
+        synchronized(consentLock) {
+            // A choice made since init is queued behind this and applied after it, so it stays what
+            // the getters report.
+            if (consentView == null) consentView = ConsentView(consent.consent, consent.isPending)
+        }
         consentReady()
         deviceProperties = readAutoProperties()
         // Before anything this launch writes, so the probe for earlier launches sees only theirs.

@@ -108,9 +108,9 @@ public class PugJavaApiTest {
     @Test
     public void typedEventsAreObjectsToo() {
         Pug.track(new PurchaseEvent().orderId("o-42").amount(10).currency("USD").quantity(2).extra("coupon", "FALL"));
-        Pug.track(new AddToCartEvent("p1").price(9.99), new TrackOptions.Builder().immediate(true).build());
-        Pug.track(new AddToCartEvent(null).currency(null).extra(null, null));
-        Pug.track(new VideoPlayEvent("v1").positionMs(1_500));
+        Pug.track(new AddToCartEvent().productId("p1").price(9.99), new TrackOptions.Builder().immediate(true).build());
+        Pug.track(new AddToCartEvent().productId(null).currency(null).extra(null, null));
+        Pug.track(new VideoPlayEvent().videoId("v1").positionMs(1_500));
     }
 
     @Test

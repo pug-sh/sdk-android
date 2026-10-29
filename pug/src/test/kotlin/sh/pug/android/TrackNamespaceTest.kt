@@ -15,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import sh.pug.android.events.AddToCartEvent
+import sh.pug.android.events.ChatAttachmentDownloadedEvent
 import sh.pug.android.events.WellKnownEvent
 import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
@@ -33,6 +34,8 @@ import sh.pug.android.internal.wire.PropertyValue.StringValue
 
 // The events whose methods the generator leaves out, since Pug tracks them itself.
 private val SDK_TRACKED = setOf("app_open", "app_close", "app_install", "app_update", "screen_view")
+
+private val NAMED_ARGUMENTS = Array<NamedArguments>::class.java
 
 class TrackNamespaceTest {
     private val scheduler = TestCoroutineScheduler()
@@ -75,14 +78,16 @@ class TrackNamespaceTest {
                     // Hidden from Java, which has the event's class instead.
                     assertTrue(overloads.single().isSynthetic, event.method)
                 }
-                val arguments = event.parameters.mapIndexed { index, property -> Argument(property, index) }
+                val arguments = event.properties.mapIndexed { index, property -> Argument(property, index) }
                 val method = overloads.maxBy { it.parameterCount }
+                val marker = if (event.properties.isEmpty()) emptyList() else listOf(NAMED_ARGUMENTS)
                 assertEquals(
-                    arguments.map { it.javaType } + listOf(Map::class.java, TrackOptions::class.java),
+                    marker + arguments.map { it.javaType } + listOf(Map::class.java, TrackOptions::class.java),
                     method.parameterTypes.toList(),
                     event.method,
                 )
-                method.invoke(track, *(arguments.map { it.value } + listOf(null, null)).toTypedArray())
+                val markerValue = if (event.properties.isEmpty()) emptyList() else listOf(emptyArray<NamedArguments>())
+                method.invoke(track, *(markerValue + arguments.map { it.value } + listOf(null, null)).toTypedArray())
                 event.kind to arguments.associate { it.property.name to it.sent }
             }
 
@@ -194,13 +199,11 @@ class TrackNamespaceTest {
         val expected =
             EventProtos.android.filter { it.kind !in SDK_TRACKED && it.properties.isNotEmpty() }.map { event ->
                 val type = Class.forName(event.className)
-                val arguments = event.parameters.mapIndexed { index, property -> Argument(property, index) }
-                val (required, optional) = arguments.partition { it.property.required }
-                val constructor = type.getConstructor(*required.map { it.javaType }.toTypedArray())
-                val instance = constructor.newInstance(*required.map { it.value }.toTypedArray()) as WellKnownEvent
-                optional.forEach { type.getMethod(it.setter, it.setterType).invoke(instance, it.value) }
+                val arguments = event.properties.mapIndexed { index, property -> Argument(property, index) }
+                val instance = type.getConstructor().newInstance() as WellKnownEvent
+                arguments.forEach { type.getMethod(it.setter, it.setterType).invoke(instance, it.value) }
                 assertEquals(
-                    optional.map { it.setter }.toSet() + "extra",
+                    arguments.map { it.setter }.toSet() + "extra",
                     type.declaredMethods.filter { Modifier.isPublic(it.modifiers) && !it.isSynthetic }
                         .map { it.name }.toSet(),
                     type.simpleName,
@@ -224,7 +227,7 @@ class TrackNamespaceTest {
     fun `an event object sends its extras, but a property it sets wins over an extra of its name`() {
         start()
 
-        facade.track(AddToCartEvent("p1").price(9.99).extra("price", 1.5).extra("coupon", "SPRING"), null)
+        facade.track(AddToCartEvent().productId("p1").price(9.99).extra("price", 1.5).extra("coupon", "SPRING"), null)
 
         assertEquals(
             mapOf("productId" to StringValue("p1"), "price" to DoubleValue(9.99), "coupon" to StringValue("SPRING")),
@@ -239,7 +242,7 @@ class TrackNamespaceTest {
     @Test
     fun `an event object is read during the call, so it can be changed and tracked again`() {
         start()
-        val event = AddToCartEvent("p1").quantity(1)
+        val event = AddToCartEvent().productId("p1").quantity(1)
 
         facade.track(event, null)
         event.quantity(2)
@@ -251,13 +254,28 @@ class TrackNamespaceTest {
     }
 
     @Test
-    fun `a null from Java for a required constructor argument drops the event`() {
+    fun `an event object with a required property unset, or null from Java, is dropped`() {
         start()
 
+        facade.track(AddToCartEvent().price(9.99), null)
         facade.track(JavaTypedCallers.addToCartEventWithNullProductId(), null)
+        facade.track(ChatAttachmentDownloadedEvent().messageId("m1"), null)
 
         assertEquals(emptyList(), sent())
-        assertEquals(listOf("Pug.track(AddToCartEvent) was dropped: productId is null"), logger.warnings)
+        assertEquals(
+            listOf(
+                "Pug.track(AddToCartEvent) was dropped: the required productId is missing",
+                "Pug.track(AddToCartEvent) was dropped: the required productId is missing",
+                "Pug.track(ChatAttachmentDownloadedEvent) was dropped: the required conversationId, attachmentId " +
+                    "are missing",
+            ),
+            logger.warnings,
+        )
+    }
+
+    @Test
+    fun `NamedArguments has no public constructor, so there is no instance to pass`() {
+        assertEquals(emptyList(), NamedArguments::class.java.constructors.toList())
     }
 
     @Test
@@ -275,7 +293,7 @@ class TrackNamespaceTest {
         // Compiling is the check: before Pug.init() both calls only log.
         Pug.track("checkout_started", mapOf("cartId" to "c1"))
         Pug.track.addToCart(productId = "p1", price = 9.99)
-        Pug.track(AddToCartEvent("p1").price(9.99))
+        Pug.track(AddToCartEvent().productId("p1").price(9.99))
     }
 
     private fun start() {

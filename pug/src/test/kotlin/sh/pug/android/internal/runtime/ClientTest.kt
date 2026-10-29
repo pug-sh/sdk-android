@@ -420,6 +420,47 @@ class ClientTest {
     }
 
     @Test
+    fun `a choice made before start-up has read consent wins over the stored one`() {
+        storage.putString(keys.consent, "granted")
+        val previousTeardown = Job()
+        val client = client(previousTeardown)
+
+        client.optOutTracking()
+        previousTeardown.complete()
+        scheduler.runCurrent()
+
+        assertEquals(DENIED, client.trackingConsent)
+        assertFalse(client.isConsentPending)
+        assertEquals("denied", storage.getString(keys.consent))
+    }
+
+    @Test
+    fun `a consent getter answers for one moment while consent changes on other threads`() {
+        storage.putString(keys.consent, "denied")
+        val previousTeardown = Job()
+        lateinit var client: Client
+        var interleaved = false
+        // The warning that consent is unknown runs host code inside the getter. There the user opts
+        // in, then start-up reads the stored opt-out, which that earlier opt-in overrides.
+        val interleaving =
+            object : Logger by logger {
+                override fun warn(message: String, throwable: Throwable?) {
+                    logger.warn(message, throwable)
+                    if (interleaved || "reported as unknown" !in message) return
+                    interleaved = true
+                    client.optInTracking()
+                    previousTeardown.complete()
+                    scheduler.runCurrent()
+                }
+            }
+        client = client(previousTeardown) { logger = interleaving }
+
+        assertNull(client.trackingConsent)
+        assertEquals(GRANTED, client.trackingConsent)
+        assertEquals("granted", storage.getString(keys.consent))
+    }
+
+    @Test
     fun `whenConsentReady runs on the main thread once start-up has read the stored choice`() {
         storage.putString(keys.consent, "granted")
         val previousTeardown = Job()

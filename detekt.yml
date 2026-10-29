@@ -4,7 +4,8 @@ style:
     active: true
   UnusedParameter:
     active: true
-    allowedNames: 'ignored|expected'
+    # `named`: the `vararg named: NamedArguments` of the generated Pug.track methods, never passed or read.
+    allowedNames: 'ignored|expected|named'
   UnusedPrivateClass:
     active: true
   UnusedPrivateMember:
