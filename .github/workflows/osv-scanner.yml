@@ -13,9 +13,9 @@ permissions:
   contents: read
 
 # Only pug/gradle.lockfile is scanned: it is what the SDK ships, without the build and test tooling.
-# The reusable workflows ask for security-events: write, but nothing is uploaded: a private
-# repository on the free plan has no code scanning. Pinned to a commit, since a third-party action's
-# tags can be moved.
+# The reusable workflows ask for security-events: write, but nothing is uploaded: Dependabot already
+# alerts on the same classpath (dependency-submission.yml), so code scanning would repeat its alerts.
+# Pinned to a commit, since a third-party action's tags can be moved.
 jobs:
   scan:
     if: github.event_name != 'pull_request'
