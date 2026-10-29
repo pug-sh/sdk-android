@@ -324,18 +324,19 @@ Pug.track.signup();                            // an event without properties ha
 Each well-known event with properties has a class in `sh.pug.android.events` with a setter for every
 property, required ones included (numbers as primitives, so `amount(89)` compiles): Java has no named
 arguments, and a constructor taking the required ones would let two of one type swap places.
-`extra(key, value)` adds a property the event does not define. An optional property never set is not
-sent. `Pug.track` reads the object during the call, so it can be changed and tracked again. An event
-tracked with a required property unset, or set to `null`, is dropped with a warning instead of
-throwing; each class's documentation names its required properties. `Events` constants work in a
-`switch`.
+`extra(key, value)` adds a property the event does not define, and one named like a property that is
+set is dropped with a warning. An optional property never set is not sent. `Pug.track` reads the
+object during the call, so it can be changed and tracked again. An event missing a required property
+(never set, set to `null`, or with a value dropped as invalid) is sent without it and logs a warning
+instead of throwing; each class's documentation names its required properties. `Events` constants
+work in a `switch`.
 
 From Java, `Pug.track` has methods only for the events without properties, such as
 `Pug.track.signup()`, with overloads that add `extras` and then `options`. The others are hidden
 from Java, so each event has one typed form there. When Pug adds a property to an event schema, an
 event object gains a setter. A property that becomes required is no compile error from Java: events
-that leave it unset are dropped with a warning. An event without properties that gains one moves
-from `Pug.track.signup()` to an object. The changelog says so.
+that leave it unset log a warning. An event without properties that gains one moves from
+`Pug.track.signup()` to an object. The changelog says so.
 
 ## R8 and ProGuard
 

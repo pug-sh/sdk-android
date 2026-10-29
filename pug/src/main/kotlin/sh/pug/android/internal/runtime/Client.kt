@@ -179,13 +179,6 @@ internal class Client(
         caller: String,
     ) {
         val callTime = clock.nowMillis()
-        // An event object with a required property never set, or a null from Java.
-        val missing = event.fields.filterIndexed { index, field -> field.required && values[index] == null }
-        if (missing.isNotEmpty()) {
-            val verb = if (missing.size == 1) "is" else "are"
-            logger.warn("$caller was dropped: the required ${missing.joinToString { it.name }} $verb missing")
-            return
-        }
         val typed = LinkedHashMap<String, Any?>()
         event.fields.forEachIndexed { index, field ->
             val value = values[index]
@@ -200,6 +193,12 @@ internal class Client(
             if (custom.put(name, value) != null) {
                 logger.warn("Extra \"$name\" of $caller was dropped: the event's own $name is set")
             }
+        }
+        // Checked on what is sent: an extra can supply a required property, and the mapper can drop one.
+        // The server takes the event without it, as it does from Pug.track(kind, properties).
+        val missing = event.fields.filter { it.required && it.name !in custom }
+        if (missing.isNotEmpty()) {
+            logger.warn("$caller was tracked without its required ${missing.joinToString { it.name }}")
         }
         submitCapture(caller, event.kind, custom, callTime, trackOptions)
     }

@@ -76,7 +76,7 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   one that becomes required or optional keeps its place in a compiled call, and pass them in that
   order to `Facade.trackTyped`; event objects hold theirs in that order, and `Client.trackTyped` names
   them from the `EventSchema` (`internal/event/EventSchema.kt`), formats Durations, merges `extras`
-  and drops an event whose required property is missing.
+  and warns when a required property is missing.
 - `internal/runtime/`: `Facade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
   last one's teardown. `Client` is one configured instance: calls (and lifecycle callbacks) map
@@ -125,7 +125,8 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   whole.
 - **Java nulls**: `-Xno-param-assertions` lets a Java null reach a non-null parameter, so public
   entry points check required parameters with `isNull(Any?)` and log-and-drop (or, in `Pug.init`,
-  throw `IllegalArgumentException`). Optional parameters are nullable.
+  throw `IllegalArgumentException`). Optional parameters are nullable. Event-class setters are the
+  exception: a null leaves the property unset, which `Client.trackTyped` warns about if it is required.
 - **State lives on the worker.** Only ops and network continuations on the worker read or write
   client state and storage; after any network await, re-check (`disposed`, the anonymous id, the
   purge generation) before touching anything.

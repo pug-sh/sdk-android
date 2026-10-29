@@ -48,8 +48,8 @@ public object Pug {
     /**
      * Tracks a well-known event built as an object, the typed form for Java:
      * `Pug.track(new AddToCartEvent().productId("p1").price(9.99))`. From Kotlin, the methods of
-     * [TrackNamespace] take the same properties as named arguments. An event with a required property
-     * unset is dropped with a warning; each event class names its required properties.
+     * [TrackNamespace] take the same properties as named arguments. An event missing a required
+     * property is sent without it and logs a warning; each event class names its required properties.
      */
     @JvmStatic
     @JvmOverloads

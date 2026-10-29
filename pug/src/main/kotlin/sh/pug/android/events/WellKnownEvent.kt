@@ -8,8 +8,9 @@ import sh.pug.android.internal.event.EventSchema
  *
  * Every property has a setter, required ones too: Java has no named arguments, and a constructor
  * would take required values by position, where two of one type could swap. An optional property
- * never set is not sent, and a number or boolean once set stays set. An event tracked with a required
- * property unset, or set to null, is dropped with a warning; each class names its required properties.
+ * never set is not sent, and a number or boolean once set stays set. An event missing a required
+ * property (never set, set to null, or with a value dropped as invalid) is sent without it and logs a
+ * warning; each class names its required properties.
  * `extra` adds a property the event does not define, and one named like a property that is set is
  * dropped with a warning. `Pug.track(event)` reads the event during the call, so it can be changed and
  * tracked again once the call returns.

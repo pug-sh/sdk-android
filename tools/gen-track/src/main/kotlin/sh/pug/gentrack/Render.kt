@@ -143,10 +143,10 @@ private fun StringBuilder.eventClass(event: Event) {
 }
 
 private fun requiredDoc(names: List<String>): String = if (names.size == 1) {
-    "${names[0]} is required: an event tracked without it is dropped with a warning."
+    "${names[0]} is required: tracking the event without it logs a warning."
 } else {
-    "${names.dropLast(1).joinToString(", ")} and ${names.last()} are required: an event tracked with any of them " +
-        "unset is dropped with a warning."
+    "${names.dropLast(1).joinToString(", ")} and ${names.last()} are required: tracking the event with any of them " +
+        "missing logs a warning."
 }
 
 private fun eventKinds(events: List<Event>): String = buildString {

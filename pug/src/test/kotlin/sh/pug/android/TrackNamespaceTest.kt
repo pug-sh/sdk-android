@@ -254,20 +254,56 @@ class TrackNamespaceTest {
     }
 
     @Test
-    fun `an event object with a required property unset, or null from Java, is dropped`() {
+    fun `an event object with a required property unset, or null from Java, is tracked with a warning`() {
         start()
 
         facade.track(AddToCartEvent().price(9.99), null)
         facade.track(JavaTypedCallers.addToCartEventWithNullProductId(), null)
         facade.track(ChatAttachmentDownloadedEvent().messageId("m1"), null)
 
-        assertEquals(emptyList(), sent())
         assertEquals(
             listOf(
-                "Pug.track(AddToCartEvent) was dropped: the required productId is missing",
-                "Pug.track(AddToCartEvent) was dropped: the required productId is missing",
-                "Pug.track(ChatAttachmentDownloadedEvent) was dropped: the required conversationId, attachmentId " +
-                    "are missing",
+                mapOf("price" to DoubleValue(9.99)),
+                emptyMap<String, PropertyValue>(),
+                mapOf("messageId" to StringValue("m1")),
+            ),
+            sent().map { it.customProperties },
+        )
+        assertEquals(
+            listOf(
+                "Pug.track(AddToCartEvent) was tracked without its required productId",
+                "Pug.track(AddToCartEvent) was tracked without its required productId",
+                "Pug.track(ChatAttachmentDownloadedEvent) was tracked without its required conversationId, " +
+                    "attachmentId",
+            ),
+            logger.warnings,
+        )
+    }
+
+    @Test
+    fun `an extra can supply a required property, unless it is null or dropped`() {
+        start()
+
+        facade.track(AddToCartEvent().extra("productId", "p1"), null)
+        facade.track(ChatAttachmentDownloadedEvent().extra("conversationId", "c1"), null)
+        facade.track(AddToCartEvent().extra("productId", null), null)
+        facade.track(AddToCartEvent().extra("productId", Double.NaN), null)
+
+        assertEquals(
+            listOf(
+                mapOf("productId" to StringValue("p1")),
+                mapOf("conversationId" to StringValue("c1")),
+                emptyMap<String, PropertyValue>(),
+                emptyMap<String, PropertyValue>(),
+            ),
+            sent().map { it.customProperties },
+        )
+        assertEquals(
+            listOf(
+                "Pug.track(ChatAttachmentDownloadedEvent) was tracked without its required attachmentId",
+                "Pug.track(AddToCartEvent) was tracked without its required productId",
+                "Property \"productId\" on event \"add_to_cart\" was dropped: NaN is not a finite number",
+                "Pug.track(AddToCartEvent) was tracked without its required productId",
             ),
             logger.warnings,
         )
