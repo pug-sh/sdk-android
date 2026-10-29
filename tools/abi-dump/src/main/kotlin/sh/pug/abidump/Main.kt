@@ -5,6 +5,8 @@ import java.nio.file.Files
 import java.util.ServiceLoader
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
+import kotlin.io.path.createDirectories
+import kotlin.io.path.outputStream
 import kotlin.system.exitProcess
 import org.jetbrains.kotlin.abi.tools.api.AbiFilters
 import org.jetbrains.kotlin.abi.tools.api.AbiToolsFactory
@@ -44,7 +46,7 @@ fun main(args: Array<String>) {
 }
 
 private fun dump(tools: AbiToolsInterface, aar: File): String {
-    val classes = Files.createTempDirectory("abi-dump").toFile()
+    val classes = Files.createTempDirectory("abi-dump")
     try {
         ZipFile(aar).use { zip ->
             val jar = zip.getEntry("classes.jar") ?: error("$aar has no classes.jar")
@@ -52,16 +54,17 @@ private fun dump(tools: AbiToolsInterface, aar: File): String {
                 while (true) {
                     val entry = input.nextEntry ?: break
                     if (entry.isDirectory || !entry.name.endsWith(".class")) continue
-                    val file = File(classes, entry.name)
-                    check(file.canonicalPath.startsWith(classes.canonicalPath + File.separator)) { entry.name }
-                    file.parentFile.mkdirs()
+                    val file = classes.resolve(entry.name).normalize()
+                    // A throw rather than check(), which CodeQL's zip slip query does not take for a guard.
+                    if (!file.startsWith(classes)) throw IllegalStateException(entry.name)
+                    file.parent.createDirectories()
                     file.outputStream().use { input.copyTo(it) }
                 }
             }
         }
-        val files = classes.walkTopDown().filter { it.isFile }.sortedBy { it.path }.toList()
+        val files = classes.toFile().walkTopDown().filter { it.isFile }.sortedBy { it.path }.toList()
         return StringBuilder().also { tools.v2.printJvmDump(it, files, AbiFilters.EMPTY) }.toString()
     } finally {
-        classes.deleteRecursively()
+        classes.toFile().deleteRecursively()
     }
 }
