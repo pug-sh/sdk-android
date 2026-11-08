@@ -7,7 +7,7 @@ buf = "1.75.0"
 detekt = "1.23.8"
 # The R8 AGP builds with (tools/dead-code).
 r8 = "9.4.28"
-spotless = "8.10.4"
+spotless = "8.11.0"
 # Floors, not targets: Gradle resolves highest-wins, so these set the oldest versions a host app
 # can be on.
 coroutines = "1.9.0"
