@@ -1,7 +1,8 @@
 # Pug Android SDK
 
-Native Kotlin SDK for [Pug](https://pug.sh) analytics on Android: event tracking, identity,
-sessions, consent, and batched delivery that survives restarts and bad networks.
+Open-source product analytics SDK for Android, from [Pug](https://pug.sh): a native Kotlin SDK with
+event tracking, identity, sessions, consent, and batched delivery that survives restarts and bad
+networks.
 
 - `minSdk 21`, usable from Kotlin and Java.
 - Runtime dependencies: kotlin-stdlib (2.0.21 or newer) and kotlinx-coroutines-core (1.9.0 or

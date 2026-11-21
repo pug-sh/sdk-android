@@ -95,8 +95,8 @@ publishing {
             pom {
                 name = "Pug Android SDK"
                 description =
-                    "Pug analytics for Android: event tracking, identity, sessions, consent and batched delivery."
-                url = "https://github.com/pug-sh/sdk-android"
+                    "Open-source product analytics SDK for Android: events, identity, sessions, consent and batching."
+                url = "https://pug.sh/integrations/android"
                 inceptionYear = "2026"
                 licenses {
                     license {
