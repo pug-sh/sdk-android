@@ -13,9 +13,13 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.Duration.Companion.seconds
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.wire.PropertyValue.BoolValue
 import sh.pug.android.internal.wire.PropertyValue.DoubleValue
+import sh.pug.android.internal.wire.PropertyValue.DurationValue
 import sh.pug.android.internal.wire.PropertyValue.IntValue
 import sh.pug.android.internal.wire.PropertyValue.StringValue
 import sh.pug.android.internal.wire.PropertyValue.TimestampValue
@@ -138,6 +142,76 @@ class PropertyMapperTest {
 
         assertEquals(mapOf("instant" to StringValue("1970-01-01T00:00:00Z")), mapped)
         assertEquals(emptyList(), logger.entries)
+    }
+
+    @Test
+    fun `durations map onto durations to the nanosecond`() {
+        val mapped =
+            mapper.mapCustom(
+                "kind",
+                mapOf(
+                    "kotlin" to 1.5.seconds,
+                    "kotlinBack" to (-1_500_999).nanoseconds,
+                    "zero" to Duration.ZERO,
+                    "java" to java.time.Duration.ofMillis(-61_000L),
+                    "javaBack" to java.time.Duration.ofMillis(-1_500L),
+                    "javaFraction" to java.time.Duration.ofNanos(1_500_999L),
+                    "javaFractionBack" to java.time.Duration.ofNanos(-1_500_999L),
+                    "longest" to java.time.Duration.ofSeconds(MAX_DURATION_SECONDS, 999_999_999L),
+                    "longestBack" to java.time.Duration.ofSeconds(-MAX_DURATION_SECONDS, -999_999_999L),
+                    "kotlinLongest" to MAX_DURATION_SECONDS.seconds,
+                ),
+            )
+
+        assertEquals(
+            mapOf(
+                "kotlin" to DurationValue(1, 500_000_000),
+                "kotlinBack" to DurationValue(0, -1_500_999),
+                "zero" to DurationValue(0, 0),
+                "java" to DurationValue(-61, 0),
+                "javaBack" to DurationValue(-1, -500_000_000),
+                "javaFraction" to DurationValue(0, 1_500_999),
+                "javaFractionBack" to DurationValue(0, -1_500_999),
+                "longest" to DurationValue(MAX_DURATION_SECONDS, 999_999_999),
+                "longestBack" to DurationValue(-MAX_DURATION_SECONDS, -999_999_999),
+                "kotlinLongest" to DurationValue(MAX_DURATION_SECONDS, 0),
+            ),
+            mapped,
+        )
+        assertEquals(emptyList(), logger.entries)
+    }
+
+    @Test
+    fun `a java time Duration is a duration only from API 26`() {
+        val mapped =
+            PropertyMapper(logger.safe(), sdkInt = 25)
+                .mapCustom("kind", mapOf("java" to java.time.Duration.ofMillis(1_500L), "kotlin" to 1.5.seconds))
+
+        assertEquals(mapOf("java" to StringValue("PT1.5S"), "kotlin" to DurationValue(1, 500_000_000)), mapped)
+        assertEquals(emptyList(), logger.entries)
+    }
+
+    @Test
+    fun `durations beyond 10,000 years are dropped`() {
+        val mapped =
+            mapper.mapCustom(
+                "kind",
+                linkedMapOf(
+                    "longer" to (MAX_DURATION_SECONDS + 1).seconds,
+                    "infinite" to Duration.INFINITE,
+                    "javaLonger" to java.time.Duration.ofSeconds(MAX_DURATION_SECONDS, 1_000_000_000L),
+                    "javaLongerBack" to java.time.Duration.ofSeconds(-MAX_DURATION_SECONDS - 1),
+                    "javaOverflow" to java.time.Duration.ofSeconds(Long.MIN_VALUE),
+                ),
+            )
+
+        assertEquals(emptyMap(), mapped)
+        assertEquals(
+            listOf("longer", "infinite", "javaLonger", "javaLongerBack", "javaOverflow").map {
+                "Property \"$it\" on event \"kind\" was dropped: the duration is beyond ±10,000 years"
+            },
+            logger.warnings,
+        )
     }
 
     @Test
@@ -296,6 +370,7 @@ class PropertyMapperTest {
                     "nonFinite" to doubleArrayOf(Double.NaN, Double.NEGATIVE_INFINITY),
                     "wide" to listOf(Long.MAX_VALUE, 9_007_199_254_740_991L, BigInteger.TEN.pow(30)),
                     "date" to listOf(Date(1_760_000_000_123L)),
+                    "durations" to listOf(1.5.seconds, java.time.Duration.ofMillis(-250L), Duration.ZERO),
                     "empty" to emptyMap<String, Any>(),
                 ),
             )
@@ -311,6 +386,7 @@ class PropertyMapperTest {
                 "nonFinite" to StringValue("[null,null]"),
                 "wide" to StringValue("""["9223372036854775807",9007199254740991,"1000000000000000000000000000000"]"""),
                 "date" to StringValue("""["2025-10-09T08:53:20.123Z"]"""),
+                "durations" to StringValue("[1.5,-0.25,0]"),
                 "empty" to StringValue("{}"),
             ),
             mapped,

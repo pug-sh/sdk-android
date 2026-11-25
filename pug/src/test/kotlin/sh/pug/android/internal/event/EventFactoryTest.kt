@@ -44,6 +44,17 @@ class EventFactoryTest {
     }
 
     @Test
+    fun `the crawler collectors' kind is dropped`() {
+        assertFalse(factory.acceptsKind("crawler_request"))
+        assertTrue(factory.acceptsKind("crawler_requests"))
+
+        assertEquals(
+            listOf("Event \"crawler_request\" was dropped: the kind is reserved for server-side crawler collectors"),
+            logger.warnings,
+        )
+    }
+
+    @Test
     fun `an event happens at its timestamp, or at the call when it has none`() {
         assertEquals(500L, factory.occurTime("kind", timestamp = null, callTimeMillis = 500L))
         assertEquals(0L, factory.occurTime("kind", timestamp = 0L, callTimeMillis = 500L))

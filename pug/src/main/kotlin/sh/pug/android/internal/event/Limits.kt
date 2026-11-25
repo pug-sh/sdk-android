@@ -15,3 +15,7 @@ internal val TIMESTAMP_MILLIS: LongRange = MIN_TIMESTAMP_MILLIS..MAX_TIMESTAMP_M
 
 // Event.occur_time must fall in 1970 to 9999.
 internal val OCCUR_TIME_MILLIS: LongRange = 0L..MAX_TIMESTAMP_MILLIS
+
+// google.protobuf.Duration spans about ±10,000 years: ±315,576,000,000 seconds, plus up to 999,999,999 nanos.
+internal const val MAX_DURATION_SECONDS: Long = 315_576_000_000L
+internal val DURATION_SECONDS: LongRange = -MAX_DURATION_SECONDS..MAX_DURATION_SECONDS

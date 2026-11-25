@@ -244,15 +244,21 @@ class EventQueueTest {
     @Test
     fun `stored events with a reserved distinct id are dropped`() {
         val healthy = event(0)
-        val poisoned = event(1).copy(distinctId = "cookieless-abc")
-        storage.putString(KEY, "[${EventJson.encode(poisoned)},${EventJson.encode(healthy)}]")
+        val cookieless = event(1).copy(distinctId = "cookieless-abc")
+        val crawler = event(2).copy(distinctId = "crawler-abc")
+        val events = listOf(cookieless, healthy, crawler)
+        storage.putString(KEY, events.joinToString(",", "[", "]") { EventJson.encode(it) })
 
         val queue = queue()
 
         assertEquals(1, queue.totalSize)
         assertEquals(listOf(healthy), stored())
-        assertTrue(
-            logger.warnings.single().startsWith("1 stored events were dropped: their distinct id uses the reserved"),
+        assertEquals(
+            listOf(
+                "2 stored events were dropped: their distinct id starts with \"cookieless-\" or \"crawler-\", " +
+                    "which the server reserves",
+            ),
+            logger.warnings,
         )
     }
 

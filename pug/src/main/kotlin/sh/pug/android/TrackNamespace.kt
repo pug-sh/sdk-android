@@ -124,7 +124,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `audio_pause`.
      *
-     * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
+     * @param positionMs in milliseconds, sent as `position`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun audioPause(
@@ -140,7 +140,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `audio_play`.
      *
-     * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
+     * @param positionMs in milliseconds, sent as `position`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun audioPlay(
@@ -156,8 +156,8 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `audio_seeked`.
      *
-     * @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`.
-     * @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`.
+     * @param fromPositionMs in milliseconds, sent as `fromPosition`, which the server stores in seconds.
+     * @param toPositionMs in milliseconds, sent as `toPosition`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun audioSeeked(
@@ -276,7 +276,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `chat_call_left`.
      *
-     * @param durationMs in milliseconds, sent as `duration` in seconds, such as `"1.5s"`.
+     * @param durationMs in milliseconds, sent as `duration`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun chatCallLeft(
@@ -405,7 +405,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
      * mute_duration is optional — populate when the mute is time-bounded
      * (e.g. "mute for 1h"); leave unset for indefinite mutes.
      *
-     * @param muteDurationMs in milliseconds, sent as `muteDuration` in seconds, such as `"1.5s"`.
+     * @param muteDurationMs in milliseconds, sent as `muteDuration`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun chatMemberMuted(
@@ -1795,7 +1795,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `video_pause`.
      *
-     * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
+     * @param positionMs in milliseconds, sent as `position`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun videoPause(
@@ -1811,7 +1811,7 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `video_play`.
      *
-     * @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`.
+     * @param positionMs in milliseconds, sent as `position`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun videoPlay(
@@ -1827,8 +1827,8 @@ public class TrackNamespace internal constructor(private val facade: Facade) {
     /**
      * Tracks `video_seeked`.
      *
-     * @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`.
-     * @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`.
+     * @param fromPositionMs in milliseconds, sent as `fromPosition`, which the server stores in seconds.
+     * @param toPositionMs in milliseconds, sent as `toPosition`, which the server stores in seconds.
      */
     @JvmSynthetic
     public fun videoSeeked(

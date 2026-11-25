@@ -8,8 +8,10 @@ import sh.pug.android.internal.json.JsonWriter
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.storage.StorageKeys
 
-/** The server mints cookieless ids with this prefix and rejects any batch whose distinct id has it. */
-internal const val RESERVED_ID_PREFIX: String = "cookieless-"
+/** The server mints ids with these prefixes itself: Identify refuses them, and ingest drops events carrying one. */
+internal val RESERVED_ID_PREFIXES: List<String> = listOf("cookieless-", "crawler-")
+
+internal fun reservedPrefixOf(id: String): String? = RESERVED_ID_PREFIXES.firstOrNull { id.startsWith(it) }
 
 internal const val ANONYMOUS_ID_PREFIX: String = "anon-"
 
@@ -118,18 +120,18 @@ internal class Identity(
         }
         var externalId = (profile?.opt("externalId") as? String) ?: storage.getString(keys.externalId)
         // Written by an identify the server accepted before it reserved the prefix. As the distinct
-        // id it fails every batch it is in, healthy events included.
-        val reserved = externalId?.startsWith(RESERVED_ID_PREFIX) == true
-        if (reserved) {
+        // id it gets every event dropped.
+        val reserved = externalId?.let(::reservedPrefixOf)
+        if (reserved != null) {
             logger.warn(
-                "The stored external id uses the reserved \"$RESERVED_ID_PREFIX\" prefix and was discarded; " +
+                "The stored external id uses the reserved \"$reserved\" prefix and was discarded; " +
                     "the user is anonymous until identify() is called again",
             )
             externalId = null
         }
         currentAnonymousId = anonymousId
         this.externalId = externalId?.takeIf { it.isNotEmpty() }
-        if (reserved) {
+        if (reserved != null) {
             storage.remove(keys.externalId)
             storeProfile()
         }

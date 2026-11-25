@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import sh.pug.android.internal.event.MAX_DURATION_SECONDS
 
 class WireTest {
     @Test
@@ -29,6 +30,7 @@ class WireTest {
                 "false" to PropertyValue.BoolValue(false),
                 "empty" to PropertyValue.StringValue(""),
                 "epoch" to PropertyValue.TimestampValue(0),
+                "noTime" to PropertyValue.DurationValue(0, 0),
             )
         val event = minimalEvent().copy(customProperties = defaults)
 
@@ -73,6 +75,9 @@ class WireTest {
                             "wholeSecond" to PropertyValue.TimestampValue(-1_000L),
                             "epoch" to PropertyValue.TimestampValue(0L),
                             "negative" to PropertyValue.IntValue(-1),
+                            "noTime" to PropertyValue.DurationValue(0, 0),
+                            "backwards" to PropertyValue.DurationValue(-1, -500_000_000),
+                            "longest" to PropertyValue.DurationValue(-MAX_DURATION_SECONDS, -999_999_999),
                         ),
                 ),
             )
@@ -152,10 +157,15 @@ class WireTest {
             ReferenceMessages
                 .batchResponse(
                     accepted = 7,
-                    dropped = 3,
+                    dropped = 5,
                     droppedByReason = mapOf(
                         "salt_unavailable" to 2,
                         "day_out_of_range" to 1,
+                        "invalid_event" to 2,
+                    ),
+                    invalidEvents = listOf(
+                        InvalidEvent(0, listOf("event.kind: value is required", "event.occur_time: value is required")),
+                        InvalidEvent(9, listOf("custom_properties: exactly one field is required in oneof")),
                     ),
                 )
                 .toBuilder()
@@ -164,19 +174,38 @@ class WireTest {
 
         val decoded = Wire.decodeBatchCreateResponse(response.toByteArray())
 
-        assertEquals(BatchCreateResponse(7, mapOf("salt_unavailable" to 2L, "day_out_of_range" to 1L)), decoded)
+        assertEquals(
+            BatchCreateResponse(
+                7,
+                mapOf("salt_unavailable" to 2L, "day_out_of_range" to 1L, "invalid_event" to 2L),
+                listOf(
+                    InvalidEvent(0, listOf("event.kind: value is required", "event.occur_time: value is required")),
+                    InvalidEvent(9, listOf("custom_properties: exactly one field is required in oneof")),
+                ),
+            ),
+            decoded,
+        )
     }
 
     @Test
     fun `decodes uint32 counts above Int MAX_VALUE`() {
-        val response = ReferenceMessages.batchResponse(accepted = -1, dropped = 0, droppedByReason = emptyMap())
+        val response =
+            ReferenceMessages.batchResponse(
+                accepted = -1,
+                dropped = 0,
+                droppedByReason = emptyMap(),
+                invalidEvents = listOf(InvalidEvent(-1, emptyList())),
+            )
 
-        assertEquals(4_294_967_295L, Wire.decodeBatchCreateResponse(response.toByteArray()).accepted)
+        val decoded = Wire.decodeBatchCreateResponse(response.toByteArray())
+
+        assertEquals(4_294_967_295L, decoded.accepted)
+        assertEquals(listOf(InvalidEvent(4_294_967_295L, emptyList())), decoded.invalidEvents)
     }
 
     @Test
     fun `an empty body decodes as nothing accepted`() {
-        assertEquals(BatchCreateResponse(0, emptyMap()), Wire.decodeBatchCreateResponse(ByteArray(0)))
+        assertEquals(BatchCreateResponse(0, emptyMap(), emptyList()), Wire.decodeBatchCreateResponse(ByteArray(0)))
     }
 
     @Test
@@ -219,6 +248,13 @@ class WireTest {
                 "addedAt" to PropertyValue.TimestampValue(1_760_000_000_999L),
                 "before1970" to PropertyValue.TimestampValue(-1L),
                 "wholeSecond" to PropertyValue.TimestampValue(1_000L),
+                "position" to PropertyValue.DurationValue(1, 500_000_000),
+                "rewind" to PropertyValue.DurationValue(-1, -500_000_000),
+                "nanoBack" to PropertyValue.DurationValue(0, -1),
+                "minuteBack" to PropertyValue.DurationValue(-60, 0),
+                "secondAndNano" to PropertyValue.DurationValue(1, 1),
+                "longest" to PropertyValue.DurationValue(MAX_DURATION_SECONDS, 999_999_999),
+                "longestBack" to PropertyValue.DurationValue(-MAX_DURATION_SECONDS, -999_999_999),
                 "ü-key" to PropertyValue.StringValue("unicode key"),
                 "Z-upper" to PropertyValue.StringValue("sorts before lowercase"),
             ),

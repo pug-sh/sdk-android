@@ -5,6 +5,8 @@ import java.util.Date
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.wire.JsonValue
 
@@ -79,6 +81,29 @@ class TraitsMapperTest {
             ),
             mapped,
         )
+    }
+
+    @Test
+    fun `durations become numbers of seconds`() {
+        val mapped =
+            mapper.map(
+                linkedMapOf(
+                    "watched" to 90.5.seconds,
+                    "rewound" to java.time.Duration.ofNanos(-1_500_000L),
+                    "laps" to listOf(1.seconds, 250.milliseconds),
+                    "beyond" to (MAX_DURATION_SECONDS + 1).seconds,
+                ),
+            )
+
+        assertEquals(
+            mapOf(
+                "watched" to JsonValue.NumberValue(90.5),
+                "rewound" to JsonValue.NumberValue(-0.0015),
+                "laps" to JsonValue.ArrayValue(listOf(JsonValue.NumberValue(1.0), JsonValue.NumberValue(0.25))),
+            ),
+            mapped,
+        )
+        assertEquals(listOf("Trait \"beyond\" was dropped: the duration is beyond ±10,000 years"), logger.warnings)
     }
 
     @Test

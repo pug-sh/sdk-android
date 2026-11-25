@@ -2,6 +2,7 @@ package sh.pug.android.internal.runtime
 
 import android.os.Build
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,9 +31,8 @@ import sh.pug.android.internal.event.MAX_STRING_BYTES
 import sh.pug.android.internal.event.PropertyMapper
 import sh.pug.android.internal.event.TraitsMapper
 import sh.pug.android.internal.event.WellKnownEvents
-import sh.pug.android.internal.event.durationText
 import sh.pug.android.internal.identity.Identity
-import sh.pug.android.internal.identity.RESERVED_ID_PREFIX
+import sh.pug.android.internal.identity.reservedPrefixOf
 import sh.pug.android.internal.lifecycle.InstallTracker
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.platform.AutoProperties
@@ -163,7 +163,10 @@ internal class Client(
         if (!factory.acceptsKind(kind)) return
         // Mapped now, because the host may change the map or its values once track() returns.
         val custom = if (properties == null) emptyMap() else propertyMapper.mapCustom(kind, properties)
-        WellKnownEvents.byKind[kind]?.let { reportMissing(it, custom) }
+        WellKnownEvents.byKind[kind]?.let {
+            reportMissing(it, custom)
+            warnNumericDurations(it, custom)
+        }
         submitCapture("Pug.track()", kind, custom, callTime, trackOptions)
     }
 
@@ -183,7 +186,7 @@ internal class Client(
         event.fields.forEachIndexed { index, field ->
             val value = values[index]
             when {
-                value is Long && field.type == FieldType.DURATION -> typed[field.name] = durationText(value)
+                value is Long && field.type == FieldType.DURATION -> typed[field.name] = value.milliseconds
                 value != null -> typed[field.name] = value
             }
         }
@@ -200,6 +203,7 @@ internal class Client(
         if (missing.isNotEmpty()) {
             logger.warn("$caller was tracked without its required ${missing.joinToString { it.name }}")
         }
+        warnNumericDurations(event, custom)
         submitCapture(caller, event.kind, custom, callTime, trackOptions)
     }
 
@@ -220,9 +224,10 @@ internal class Client(
             logger.error("identify() was dropped: externalId is blank")
             return
         }
-        // As the distinct id it would fail every batch it is in.
-        if (externalId.startsWith(RESERVED_ID_PREFIX)) {
-            logger.error("identify() was dropped: externalId may not start with \"$RESERVED_ID_PREFIX\"")
+        // The server refuses it, and as the distinct id it would get every later event dropped.
+        val reserved = reservedPrefixOf(externalId)
+        if (reserved != null) {
+            logger.error("identify() was dropped: externalId may not start with \"$reserved\"")
             return
         }
         val mappedTraits = if (traits == null) emptyMap() else traitsMapper.map(traits)
@@ -328,6 +333,21 @@ internal class Client(
         if (missing.isEmpty()) return
         val names = missing.joinToString { "\"${it.name}\"" }
         logger.debug("Event \"${event.kind}\" is missing its required $names")
+    }
+
+    // The server stores a duration in seconds, so a number in the same property, in whatever unit the
+    // caller meant, would be summed and averaged with it.
+    private fun warnNumericDurations(event: EventSchema, properties: Map<String, PropertyValue>) {
+        for (field in event.fields) {
+            if (field.type != FieldType.DURATION) continue
+            val value = properties[field.name]
+            if (value is PropertyValue.IntValue || value is PropertyValue.DoubleValue) {
+                logger.warn(
+                    "Property \"${field.name}\" on event \"${event.kind}\" takes a Duration; " +
+                        "the number given is sent as it is",
+                )
+            }
+        }
     }
 
     private fun currentConsent(): ConsentView? {

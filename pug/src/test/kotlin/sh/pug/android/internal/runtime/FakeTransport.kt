@@ -58,7 +58,9 @@ internal class FakeTransport(private val now: () -> Long = { 0L }) : Transport {
         batchTimes += now()
         awaitRelease()
         batchFailure?.let { throw failure(it) }
-        val answer = batchAnswers.removeFirstOrNull() ?: return BatchCreateResponse(events.size.toLong(), emptyMap())
+        val answer =
+            batchAnswers.removeFirstOrNull()
+                ?: return BatchCreateResponse(events.size.toLong(), emptyMap(), emptyList())
         return answer()
     }
 

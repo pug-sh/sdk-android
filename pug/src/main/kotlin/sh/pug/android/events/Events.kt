@@ -91,7 +91,7 @@ public class AudioCompletedEvent : WellKnownEvent(WellKnownEvents.AUDIO_COMPLETE
 public class AudioPauseEvent : WellKnownEvent(WellKnownEvents.AUDIO_PAUSE, "AudioPauseEvent") {
     public fun audioId(audioId: String): AudioPauseEvent = apply { values[0] = audioId }
 
-    /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
+    /** @param positionMs in milliseconds, sent as `position`, which the server stores in seconds. */
     public fun positionMs(positionMs: Long): AudioPauseEvent = apply { values[1] = positionMs }
 
     public fun extra(key: String, value: Any?): AudioPauseEvent = apply { putExtra(key, value) }
@@ -106,7 +106,7 @@ public class AudioPauseEvent : WellKnownEvent(WellKnownEvents.AUDIO_PAUSE, "Audi
 public class AudioPlayEvent : WellKnownEvent(WellKnownEvents.AUDIO_PLAY, "AudioPlayEvent") {
     public fun audioId(audioId: String): AudioPlayEvent = apply { values[0] = audioId }
 
-    /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
+    /** @param positionMs in milliseconds, sent as `position`, which the server stores in seconds. */
     public fun positionMs(positionMs: Long): AudioPlayEvent = apply { values[1] = positionMs }
 
     public fun extra(key: String, value: Any?): AudioPlayEvent = apply { putExtra(key, value) }
@@ -121,10 +121,10 @@ public class AudioPlayEvent : WellKnownEvent(WellKnownEvents.AUDIO_PLAY, "AudioP
 public class AudioSeekedEvent : WellKnownEvent(WellKnownEvents.AUDIO_SEEKED, "AudioSeekedEvent") {
     public fun audioId(audioId: String): AudioSeekedEvent = apply { values[0] = audioId }
 
-    /** @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`. */
+    /** @param fromPositionMs in milliseconds, sent as `fromPosition`, which the server stores in seconds. */
     public fun fromPositionMs(fromPositionMs: Long): AudioSeekedEvent = apply { values[1] = fromPositionMs }
 
-    /** @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`. */
+    /** @param toPositionMs in milliseconds, sent as `toPosition`, which the server stores in seconds. */
     public fun toPositionMs(toPositionMs: Long): AudioSeekedEvent = apply { values[2] = toPositionMs }
 
     public fun extra(key: String, value: Any?): AudioSeekedEvent = apply { putExtra(key, value) }
@@ -251,7 +251,7 @@ public class ChatCallLeftEvent : WellKnownEvent(WellKnownEvents.CHAT_CALL_LEFT, 
 
     public fun callType(callType: String?): ChatCallLeftEvent = apply { values[2] = callType }
 
-    /** @param durationMs in milliseconds, sent as `duration` in seconds, such as `"1.5s"`. */
+    /** @param durationMs in milliseconds, sent as `duration`, which the server stores in seconds. */
     public fun durationMs(durationMs: Long): ChatCallLeftEvent = apply { values[3] = durationMs }
 
     public fun extra(key: String, value: Any?): ChatCallLeftEvent = apply { putExtra(key, value) }
@@ -396,7 +396,7 @@ public class ChatMemberMutedEvent : WellKnownEvent(WellKnownEvents.CHAT_MEMBER_M
 
     public fun memberId(memberId: String): ChatMemberMutedEvent = apply { values[1] = memberId }
 
-    /** @param muteDurationMs in milliseconds, sent as `muteDuration` in seconds, such as `"1.5s"`. */
+    /** @param muteDurationMs in milliseconds, sent as `muteDuration`, which the server stores in seconds. */
     public fun muteDurationMs(muteDurationMs: Long): ChatMemberMutedEvent = apply { values[2] = muteDurationMs }
 
     public fun extra(key: String, value: Any?): ChatMemberMutedEvent = apply { putExtra(key, value) }
@@ -1716,7 +1716,7 @@ public class VideoCompletedEvent : WellKnownEvent(WellKnownEvents.VIDEO_COMPLETE
 public class VideoPauseEvent : WellKnownEvent(WellKnownEvents.VIDEO_PAUSE, "VideoPauseEvent") {
     public fun videoId(videoId: String): VideoPauseEvent = apply { values[0] = videoId }
 
-    /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
+    /** @param positionMs in milliseconds, sent as `position`, which the server stores in seconds. */
     public fun positionMs(positionMs: Long): VideoPauseEvent = apply { values[1] = positionMs }
 
     public fun extra(key: String, value: Any?): VideoPauseEvent = apply { putExtra(key, value) }
@@ -1731,7 +1731,7 @@ public class VideoPauseEvent : WellKnownEvent(WellKnownEvents.VIDEO_PAUSE, "Vide
 public class VideoPlayEvent : WellKnownEvent(WellKnownEvents.VIDEO_PLAY, "VideoPlayEvent") {
     public fun videoId(videoId: String): VideoPlayEvent = apply { values[0] = videoId }
 
-    /** @param positionMs in milliseconds, sent as `position` in seconds, such as `"1.5s"`. */
+    /** @param positionMs in milliseconds, sent as `position`, which the server stores in seconds. */
     public fun positionMs(positionMs: Long): VideoPlayEvent = apply { values[1] = positionMs }
 
     public fun extra(key: String, value: Any?): VideoPlayEvent = apply { putExtra(key, value) }
@@ -1746,10 +1746,10 @@ public class VideoPlayEvent : WellKnownEvent(WellKnownEvents.VIDEO_PLAY, "VideoP
 public class VideoSeekedEvent : WellKnownEvent(WellKnownEvents.VIDEO_SEEKED, "VideoSeekedEvent") {
     public fun videoId(videoId: String): VideoSeekedEvent = apply { values[0] = videoId }
 
-    /** @param fromPositionMs in milliseconds, sent as `fromPosition` in seconds, such as `"1.5s"`. */
+    /** @param fromPositionMs in milliseconds, sent as `fromPosition`, which the server stores in seconds. */
     public fun fromPositionMs(fromPositionMs: Long): VideoSeekedEvent = apply { values[1] = fromPositionMs }
 
-    /** @param toPositionMs in milliseconds, sent as `toPosition` in seconds, such as `"1.5s"`. */
+    /** @param toPositionMs in milliseconds, sent as `toPosition`, which the server stores in seconds. */
     public fun toPositionMs(toPositionMs: Long): VideoSeekedEvent = apply { values[2] = toPositionMs }
 
     public fun extra(key: String, value: Any?): VideoSeekedEvent = apply { putExtra(key, value) }

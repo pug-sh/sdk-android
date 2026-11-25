@@ -3,7 +3,8 @@ package sh.pug.android.internal.queue
 import org.json.JSONArray
 import org.json.JSONObject
 import sh.pug.android.Storage
-import sh.pug.android.internal.identity.RESERVED_ID_PREFIX
+import sh.pug.android.internal.identity.RESERVED_ID_PREFIXES
+import sh.pug.android.internal.identity.reservedPrefixOf
 import sh.pug.android.internal.logging.SafeLogger
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.Wire
@@ -171,7 +172,7 @@ internal class EventQueue(
                 }
             when {
                 event == null -> unreadable++
-                event.distinctId.startsWith(RESERVED_ID_PREFIX) -> reserved++
+                reservedPrefixOf(event.distinctId) != null -> reserved++
                 else -> pending.addLast(entry(event))
             }
         }
@@ -180,8 +181,8 @@ internal class EventQueue(
         if (unreadable > 0) logger.warn("$unreadable stored events could not be read and were dropped")
         if (reserved > 0) {
             logger.warn(
-                "$reserved stored events were dropped: their distinct id uses the reserved " +
-                    "\"$RESERVED_ID_PREFIX\" prefix, which the server rejects",
+                "$reserved stored events were dropped: their distinct id starts with " +
+                    RESERVED_ID_PREFIXES.joinToString(" or ") { "\"$it\"" } + ", which the server reserves",
             )
         }
         if (excess > 0) {

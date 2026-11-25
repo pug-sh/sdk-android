@@ -235,6 +235,17 @@ class IdentityTest {
         )
     }
 
+    @Test
+    fun `an external id with the crawler prefix is discarded too`() {
+        storage.putString(keys.profile, """{"anonymousId":"anon-1","externalId":"crawler-abc"}""")
+
+        val identity = identity()
+
+        assertNull(identity.externalId)
+        assertEquals("""{"anonymousId":"anon-1"}""", storage.getString(keys.profile))
+        assertTrue(logger.warnings.single().startsWith("The stored external id uses the reserved \"crawler-\" prefix"))
+    }
+
     private fun storedSession() = JSONObject(assertNotNull(storage.getString(keys.session)))
 
     private fun identity() =

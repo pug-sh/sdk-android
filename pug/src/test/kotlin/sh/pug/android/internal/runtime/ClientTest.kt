@@ -10,6 +10,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -95,6 +96,31 @@ class ClientTest {
         assertEquals(
             listOf("Event \"add_to_cart\" is missing its required \"productId\""),
             logger.debugs.filter { "missing" in it },
+        )
+    }
+
+    @Test
+    fun `a number for a well-known duration property is sent as it is, with a warning`() {
+        val client = client { batchMaxSize = 3 }
+
+        client.track("video_play", mapOf("videoId" to "v1", "position" to 1_500), null)
+        client.track("video_play", mapOf("videoId" to "v1", "position" to 1.5), null)
+        client.track("video_play", mapOf("videoId" to "v1", "position" to 1.5.seconds), null)
+        scheduler.runCurrent()
+
+        assertEquals(
+            listOf(
+                PropertyValue.IntValue(1_500),
+                PropertyValue.DoubleValue(1.5),
+                PropertyValue.DurationValue(1, 500_000_000),
+            ),
+            transport.batches.single().map { it.customProperties["position"] },
+        )
+        assertEquals(
+            List(2) {
+                "Property \"position\" on event \"video_play\" takes a Duration; the number given is sent as it is"
+            },
+            logger.warnings,
         )
     }
 
@@ -206,6 +232,7 @@ class ClientTest {
 
         client.identify(" ", null)
         client.identify("cookieless-abc", null)
+        client.identify("crawler-abc", null)
         scheduler.runCurrent()
 
         assertEquals(emptyList(), transport.identifies)
@@ -213,6 +240,7 @@ class ClientTest {
             listOf(
                 "identify() was dropped: externalId is blank",
                 "identify() was dropped: externalId may not start with \"cookieless-\"",
+                "identify() was dropped: externalId may not start with \"crawler-\"",
             ),
             logger.errors,
         )

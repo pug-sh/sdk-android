@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.json.JSONObject
+import sh.pug.android.internal.event.MAX_DURATION_SECONDS
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
 
@@ -25,6 +26,9 @@ class EventJsonTest {
                         "whole" to PropertyValue.DoubleValue(2.0),
                         "false" to PropertyValue.BoolValue(false),
                         "before1970" to PropertyValue.TimestampValue(-1L),
+                        "position" to PropertyValue.DurationValue(1, 500_000_000),
+                        "nanoBack" to PropertyValue.DurationValue(0, -1),
+                        "rewind" to PropertyValue.DurationValue(-MAX_DURATION_SECONDS, -999_999_999),
                         "ü-key \"quoted\"" to PropertyValue.IntValue(1),
                     ),
                 auto = mapOf("\$platform" to PropertyValue.StringValue("android")),
@@ -39,13 +43,14 @@ class EventJsonTest {
     fun `the stored shape is the family's domain shape`() {
         val event =
             event(
-                custom = mapOf("n" to PropertyValue.IntValue(1)),
+                custom = mapOf("n" to PropertyValue.IntValue(1), "d" to PropertyValue.DurationValue(1, 500_000_000)),
                 auto = mapOf("\$at" to PropertyValue.TimestampValue(5)),
             )
 
         assertEquals(
             """{"eventId":"$EVENT_ID","kind":"add_to_cart","sessionId":"$SESSION_ID","distinctId":"anon-1",""" +
-                """"occurTime":1760000000123,"customProperties":{"n":{"intValue":1}},""" +
+                """"occurTime":1760000000123,""" +
+                """"customProperties":{"n":{"intValue":1},"d":{"durationValue":{"seconds":1,"nanos":500000000}}},""" +
                 """"autoProperties":{"${'$'}at":{"timestampValue":5}}}""",
             EventJson.encode(event),
         )
@@ -77,6 +82,20 @@ class EventJsonTest {
                     it.getJSONObject("customProperties")
                         .put("a", JSONObject().put("timestampValue", 253_402_300_800_000L))
                 },
+                { it.getJSONObject("customProperties").put("a", duration(MAX_DURATION_SECONDS + 1, 0)) },
+                { it.getJSONObject("customProperties").put("a", duration(Long.MAX_VALUE, Long.MAX_VALUE)) },
+                { it.getJSONObject("customProperties").put("a", duration(Long.MIN_VALUE, Long.MIN_VALUE)) },
+                {
+                    it.getJSONObject("customProperties")
+                        .put("a", JSONObject("""{"durationValue":{"seconds":1.5,"nanos":0}}"""))
+                },
+                { it.getJSONObject("customProperties").put("a", JSONObject("""{"durationValue":{"seconds":1}}""")) },
+                {
+                    it.getJSONObject("customProperties")
+                        .put("a", JSONObject("""{"durationValue":{"seconds":1,"nanos":0,"millis":0}}"""))
+                },
+                { it.getJSONObject("customProperties").put("a", JSONObject("""{"durationValue":1500}""")) },
+                { it.getJSONObject("customProperties").put("a", JSONObject("""{"durationValue":"1.5s"}""")) },
                 { it.getJSONObject("customProperties").put("\$reserved", JSONObject("""{"intValue":1}""")) },
                 { it.getJSONObject("autoProperties").put("plain", JSONObject("""{"intValue":1}""")) },
                 { it.getJSONObject("customProperties").put("a", JSONObject("""{"floatValue":1}""")) },
@@ -92,6 +111,28 @@ class EventJsonTest {
             assertNull(EventJson.decode(json), "case $index: $json")
         }
     }
+
+    @Test
+    fun `a stored duration is normalized again`() {
+        val stored =
+            listOf(1L to -1L, -1L to 1_500_000_000L, -MAX_DURATION_SECONDS - 1 to 1L).map { (seconds, nanos) ->
+                val json = JSONObject(EventJson.encode(event()))
+                json.getJSONObject("customProperties").put("d", duration(seconds, nanos))
+                EventJson.decode(JSONObject(json.toString()))?.customProperties?.get("d")
+            }
+
+        assertEquals(
+            listOf(
+                PropertyValue.DurationValue(0, 999_999_999),
+                PropertyValue.DurationValue(0, 500_000_000),
+                PropertyValue.DurationValue(-MAX_DURATION_SECONDS, -999_999_999),
+            ),
+            stored,
+        )
+    }
+
+    private fun duration(seconds: Long, nanos: Long) =
+        JSONObject("""{"durationValue":{"seconds":$seconds,"nanos":$nanos}}""")
 
     private fun event(custom: Map<String, PropertyValue> = emptyMap(), auto: Map<String, PropertyValue> = emptyMap()) =
         Event(

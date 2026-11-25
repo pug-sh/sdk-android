@@ -75,8 +75,8 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   constructor arguments. Typed methods take their properties in schema order, required or not, so
   one that becomes required or optional keeps its place in a compiled call, and pass them in that
   order to `Facade.trackTyped`; event objects hold theirs in that order, and `Client.trackTyped` names
-  them from the `EventSchema` (`internal/event/EventSchema.kt`), formats Durations, merges `extras`
-  and warns when a required property is missing.
+  them from the `EventSchema` (`internal/event/EventSchema.kt`), sends Durations as `duration_value`,
+  merges `extras` and warns when a required property is missing or a duration property holds a number.
 - `internal/runtime/`: `Facade` is the state behind `Pug`: init validation, pre-init warnings,
   never-throw wrappers, the one shared worker, and the handoff that makes a new client wait for the
   last one's teardown. `Client` is one configured instance: calls (and lifecycle callbacks) map
@@ -86,7 +86,8 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   launch could not track once the user opts in. `destroy()` closes the channel and returns the job
   that ends once the client no longer touches storage. `EventDispatcher` delivers: size, timer and
   immediate triggers, one batch in flight, retry backoff, `drain()` for explicit flushes,
-  backgrounding and teardown.
+  backgrounding and teardown, and warns about the events the server dropped from a batch it accepted
+  or an answer it could not read.
 - `internal/platform/`: `Platform` is what the runtime takes from the device (storage directory,
   auto-properties, install source, lifecycle observation, posting to the main thread), so
   `Client` runs on a plain JVM in tests. `AndroidPlatform` is the real one:
@@ -150,8 +151,12 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   equivalents). Code with an API-level branch takes the level as a constructor parameter
   (`sdkInt`), since `Build.VERSION.SDK_INT` reads 0 in JVM tests and Robolectric runs SDK 36 only.
 - **Wire pitfalls**: a selected oneof member is written even when it holds a default value; empty
-  ids are omitted (edition 2023 explicit presence); map entries are written key-sorted.
-  `WireTest` compares against protobuf-java byte for byte; keep it passing.
+  ids are omitted (edition 2023 explicit presence); map entries are written key-sorted; a Duration's
+  nanos take the duration's sign (`normalizedDuration`), where a Timestamp's never go negative.
+  `WireTest` compares against protobuf-java byte for byte; keep it passing. A server older than a
+  `PropertyValue` case drops the event carrying it (before v0.0.55, its whole batch), and an older
+  events worker loses the whole batch, so the README names the version a case needs
+  (`duration_value`: v0.0.65).
 - **Transport contract**: permanent = invalid_argument, not_found, already_exists,
   permission_denied, failed_precondition, unimplemented, unauthenticated. A 2xx that is not
   protobuf is transient (captive portals). A timeout or caller cancellation must `disconnect()` the

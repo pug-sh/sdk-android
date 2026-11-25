@@ -44,7 +44,7 @@ enum class FieldType(val kotlin: String, val schema: String) {
     DOUBLE("Double", "DOUBLE"),
     BOOLEAN("Boolean", "BOOLEAN"),
 
-    // Taken in milliseconds; the SDK sends options.proto's text form, such as "1.5s".
+    // Taken in milliseconds and sent as a duration_value, which the server stores in seconds.
     DURATION("Long", "DURATION"),
 }
 
