@@ -161,7 +161,8 @@ form). Storage defaults to files under `noBackupFilesDir/pug/`.
   permission_denied, failed_precondition, unimplemented, unauthenticated. A 2xx that is not
   protobuf is transient (captive portals). A timeout or caller cancellation must `disconnect()` the
   connection, because socket reads ignore interrupts, and the body read stops at the deadline on its
-  own, because the JDK's `disconnect()` waits for a read in progress.
+  own, because the JDK's `disconnect()` waits for a read in progress. Bodies are read up to 2 MiB,
+  room for a BatchCreate answer that lists a full batch of invalid events.
 
 ## Conventions
 
