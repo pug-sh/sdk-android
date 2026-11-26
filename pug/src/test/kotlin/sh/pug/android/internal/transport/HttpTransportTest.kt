@@ -33,6 +33,7 @@ import sh.pug.android.SDK_VERSION
 import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.IdentifyRequest
+import sh.pug.android.internal.wire.InvalidEvent
 import sh.pug.android.internal.wire.JsonValue
 import sh.pug.android.internal.wire.PropertyValue
 import sh.pug.android.internal.wire.ReferenceMessages
@@ -66,7 +67,7 @@ class HttpTransportTest {
 
         val response = transport().sendBatch(events)
 
-        assertEquals(BatchCreateResponse(1, mapOf("salt_unavailable" to 1L)), response)
+        assertEquals(BatchCreateResponse(1, mapOf("salt_unavailable" to 1L), emptyList()), response)
         val request = assertNotNull(server.takeRequest(1, TimeUnit.SECONDS))
         assertEquals("POST", request.method)
         assertEquals("/sdk.events.v1.EventsService/BatchCreate", request.url.encodedPath)
@@ -75,6 +76,25 @@ class HttpTransportTest {
         assertEquals("pub_test", request.headers["X-Api-Key"])
         assertEquals("pug-android/$SDK_VERSION", request.headers["User-Agent"])
         assertContentEquals(Wire.encodeBatchCreateRequest(events), assertNotNull(request.body).toByteArray())
+    }
+
+    @Test
+    fun `an acknowledgement naming a full batch of invalid events is read whole`() = runBlocking {
+        val violation = "event.kind: does not match regex pattern `^[a-zA-Z0-9_.-]+${'$'}`"
+        val invalid = List(1_000) { InvalidEvent(it.toLong(), List(2) { violation }) }
+        val answer =
+            ReferenceMessages.batchResponse(
+                accepted = 0,
+                dropped = 1_000,
+                droppedByReason = mapOf("invalid_event" to 1_000),
+                invalidEvents = invalid,
+            )
+        assertTrue(answer.serializedSize > 64 * 1024)
+        server.enqueue(protobuf(answer))
+
+        val response = assertNotNull(transport().sendBatch(listOf(event("first"))))
+
+        assertEquals(invalid, response.invalidEvents)
     }
 
     @Test
@@ -211,7 +231,7 @@ class HttpTransportTest {
     fun `a 2xx without a content type is accepted`() = runBlocking {
         server.enqueue(MockResponse.Builder().code(200).build())
 
-        assertEquals(BatchCreateResponse(0, emptyMap()), transport().sendBatch(listOf(event("first"))))
+        assertEquals(BatchCreateResponse(0, emptyMap(), emptyList()), transport().sendBatch(listOf(event("first"))))
     }
 
     @Test

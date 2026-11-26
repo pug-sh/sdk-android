@@ -10,6 +10,8 @@ internal sealed interface PropertyValue {
     data class BoolValue(val value: Boolean) : PropertyValue
 
     data class TimestampValue(val epochMillis: Long) : PropertyValue
+
+    data class DurationValue(val seconds: Long, val nanos: Int) : PropertyValue
 }
 
 internal data class Event(
@@ -42,4 +44,10 @@ internal data class IdentifyRequest(
     val anonymousId: String?,
 )
 
-internal data class BatchCreateResponse(val accepted: Long, val droppedByReason: Map<String, Long>)
+internal data class BatchCreateResponse(
+    val accepted: Long,
+    val droppedByReason: Map<String, Long>,
+    val invalidEvents: List<InvalidEvent>,
+)
+
+internal data class InvalidEvent(val index: Long, val violations: List<String>)

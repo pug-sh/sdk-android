@@ -5,7 +5,6 @@ package sh.pug.android
 import android.content.ContextWrapper
 import com.google.protobuf.Descriptors.FieldDescriptor.Type
 import java.lang.reflect.Modifier
-import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -21,6 +20,7 @@ import sh.pug.android.internal.FixedRandom
 import sh.pug.android.internal.RecordingLogger
 import sh.pug.android.internal.SequentialIds
 import sh.pug.android.internal.event.EventProtos
+import sh.pug.android.internal.event.MAX_DURATION_SECONDS
 import sh.pug.android.internal.platform.FakePlatform
 import sh.pug.android.internal.runtime.Client
 import sh.pug.android.internal.runtime.Facade
@@ -29,6 +29,7 @@ import sh.pug.android.internal.wire.Event
 import sh.pug.android.internal.wire.PropertyValue
 import sh.pug.android.internal.wire.PropertyValue.BoolValue
 import sh.pug.android.internal.wire.PropertyValue.DoubleValue
+import sh.pug.android.internal.wire.PropertyValue.DurationValue
 import sh.pug.android.internal.wire.PropertyValue.IntValue
 import sh.pug.android.internal.wire.PropertyValue.StringValue
 
@@ -114,18 +115,38 @@ class TrackNamespaceTest {
     }
 
     @Test
-    fun `a duration is sent in seconds`() {
+    fun `a duration is sent as a duration`() {
         start()
 
-        track.videoSeeked(videoId = "v1", fromPositionMs = 1_500, toPositionMs = 61_000)
+        track.videoSeeked(videoId = "v1", fromPositionMs = 1_500, toPositionMs = -61_001)
 
         assertEquals(
             mapOf(
                 "videoId" to StringValue("v1"),
-                "fromPosition" to StringValue("1.5s"),
-                "toPosition" to StringValue("61s"),
+                "fromPosition" to DurationValue(1, 500_000_000),
+                "toPosition" to DurationValue(-61, -1_000_000),
             ),
             sent().single().customProperties,
+        )
+    }
+
+    @Test
+    fun `a duration beyond 10,000 years is dropped`() {
+        start()
+
+        val longestMs = MAX_DURATION_SECONDS * 1_000 + 999
+
+        track.videoSeeked(videoId = "v1", fromPositionMs = -longestMs, toPositionMs = longestMs + 1)
+
+        assertEquals(
+            mapOf("videoId" to StringValue("v1"), "fromPosition" to DurationValue(-MAX_DURATION_SECONDS, -999_000_000)),
+            sent().single().customProperties,
+        )
+        assertEquals(
+            listOf(
+                "Property \"toPosition\" on event \"video_seeked\" was dropped: the duration is beyond ±10,000 years",
+            ),
+            logger.warnings,
         )
     }
 
@@ -161,6 +182,19 @@ class TrackNamespaceTest {
         track.addToCart(productId = "p1", extras = mapOf("price" to 10))
 
         assertEquals(DoubleValue(10.0), sent().single().customProperties["price"])
+    }
+
+    @Test
+    fun `a number in the extras for a duration property is sent as it is, with a warning`() {
+        start()
+
+        track.videoPlay(videoId = "v1", extras = mapOf("position" to 1_500L))
+
+        assertEquals(IntValue(1_500), sent().single().customProperties["position"])
+        assertEquals(
+            listOf("Property \"position\" on event \"video_play\" takes a Duration; the number given is sent as it is"),
+            logger.warnings,
+        )
     }
 
     @Test
@@ -400,7 +434,7 @@ class TrackNamespaceTest {
                     check(property.isDuration) { "unexpected type of ${property.name}" }
                     javaType = if (required) Long::class.javaPrimitiveType!! else Long::class.javaObjectType
                     value = 1_500L * n
-                    sent = StringValue(BigDecimal.valueOf(value, 3).stripTrailingZeros().toPlainString() + "s")
+                    sent = DurationValue(value / 1_000, (value % 1_000 * 1_000_000).toInt())
                 }
             }
         }

@@ -84,7 +84,7 @@ private fun StringBuilder.method(event: Event) {
 private fun parameterDoc(field: Field): String? {
     val notes =
         listOfNotNull(
-            "in milliseconds, sent as `${field.key}` in seconds, such as `\"1.5s\"`"
+            "in milliseconds, sent as `${field.key}`, which the server stores in seconds"
                 .takeIf { field.type == FieldType.DURATION },
             "personal data, as the event schema marks it".takeIf { field.pii },
         )

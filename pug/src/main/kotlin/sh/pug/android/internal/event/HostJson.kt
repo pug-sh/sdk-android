@@ -12,6 +12,7 @@ internal class UnsupportedValueException(message: String) : Exception(message)
 /**
  * Host values as JSON, for identify traits and for properties holding maps, collections or arrays.
  * Follows `JSON.stringify` where it can: non-finite numbers become null and dates ISO 8601 strings.
+ * Durations become numbers of seconds, as the server stores a duration property.
  * Integers beyond ±(2^53 - 1) become strings, since a JSON number would round them. Any other object
  * becomes its `toString()`, where `JSON.stringify` would list its fields.
  */
@@ -71,6 +72,7 @@ internal object HostJson {
         private fun other(value: Any, depth: Int): JsonValue {
             val elements = elementsOf(value)
             if (elements != null) return nested(depth) { array(elements, depth + 1) }
+            durationOf(value, sdkInt)?.let { return JsonValue.NumberValue(it.seconds + it.nanos / 1e9) }
             val millis = epochMillisOf(value, sdkInt) ?: return JsonValue.StringValue(value.toString())
             return JsonValue.StringValue(dates.format(Date(millis)))
         }

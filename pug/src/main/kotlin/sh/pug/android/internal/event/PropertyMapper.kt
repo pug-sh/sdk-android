@@ -6,8 +6,8 @@ import sh.pug.android.internal.truncateUtf8
 import sh.pug.android.internal.wire.PropertyValue
 
 /**
- * Maps host values onto `PropertyValue`, dropping what the server would reject: every property is
- * validated with its batch, so one bad value would fail the events sent alongside it.
+ * Maps host values onto `PropertyValue`, dropping what the server would reject: one bad value would
+ * cost its whole event, and on a server before v0.0.55 the events sent alongside it too.
  */
 internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt: Int = Build.VERSION.SDK_INT) {
     /** Custom properties may not start with `$`, which is reserved for auto-properties. */
@@ -74,6 +74,7 @@ internal class PropertyMapper(private val logger: SafeLogger, private val sdkInt
         if (HostJson.isCollection(value)) {
             return PropertyValue.StringValue(HostJson.toJsonText(HostJson.toJsonValue(value, sdkInt)))
         }
+        durationOf(value, sdkInt)?.let { return it }
         val millis = epochMillisOf(value, sdkInt) ?: return PropertyValue.StringValue(value.toString())
         return PropertyValue.TimestampValue(millis)
     }

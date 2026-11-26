@@ -20,6 +20,18 @@ dependencies {
 }
 ```
 
+### Upgrading from 0.2.1 or earlier
+
+- Durations go out as durations, which the server stores as seconds, instead of text such as
+  `"1.5s"`: the typed methods' `…Ms` arguments and any `Duration` property. A `Duration` trait, or
+  one inside a map or list property, is a number of seconds. Filters and charts on the old text do
+  not match the new events.
+- A self-hosted server and events worker must be at v0.0.65 or later first: an older server drops
+  the events that carry a duration, and an older events worker loses their whole batch.
+- An id starting with `crawler-` is refused like one starting with `cookieless-`, and a stored one
+  is discarded, so that user is anonymous until the next `identify`.
+- Going back to 0.2.1 drops the queued events that carry a duration.
+
 ## Quickstart
 
 Call `Pug.init` once, in `Application.onCreate`:
@@ -99,7 +111,8 @@ Pug.track("order_completed", mapOf("orderId" to "o-1"), TrackOptions { immediate
 ```
 
 An event kind may contain letters, digits, `_`, `.` and `-`; any other kind is dropped with a
-warning. Property values map as follows:
+warning, and so is `crawler_request`, which the server keeps for crawler collectors. Property values
+map as follows:
 
 | Value | Sent as |
 | ----- | ------- |
@@ -108,12 +121,15 @@ warning. Property values map as follows:
 | `Int`, `Long`, `Short`, `Byte`, `BigInteger`, unsigned integers, `AtomicInteger`, `AtomicLong` | integer; one beyond the signed 64-bit range as a string of its digits |
 | `Double`, `Float`, other `Number` | decimal; NaN and infinities are dropped |
 | `Date`, `Calendar`, `Instant` (API 26+) | timestamp |
-| `Map`, `Iterable`, arrays | JSON text |
+| `kotlin.time.Duration`, `java.time.Duration` (API 26+) | duration, to the nanosecond, which the server stores as seconds |
+| `Map`, `Iterable`, arrays | JSON text, with a duration inside as a number of seconds |
 | `null` | left out |
 | anything else, such as `UUID` or `Uri` | its `toString()`, cut to 1024 UTF-8 bytes; a data class's lists every field |
 
 A key starting with `$` is reserved for auto-properties and dropped with a warning. Properties are
-read during the call, so the map can be changed or reused as soon as `track` returns.
+read during the call, so the map can be changed or reused as soon as `track` returns. A self-hosted
+server and events worker must be at v0.0.65 or later to accept a duration: an older server drops the
+event (before v0.0.55, its whole batch), and an older events worker loses the whole batch.
 
 `TrackOptions { immediate = true }` sends the event on its own right away instead of with the next
 batch; if that send fails it joins the queue for a retry. `TrackOptions { timestamp = … }` sets when
@@ -139,10 +155,11 @@ Pug.track.addToCart(
 
 - `extras` carries further properties. An extra named like an argument is dropped with a warning
   when that argument is set.
-- Durations are milliseconds in a parameter ending in `Ms`, sent as text in seconds:
-  `positionMs = 1_500` sends `position: "1.5s"`.
-- Values are sent as given: the schemas name and type the properties, but ranges and patterns are
-  not enforced on the device.
+- Durations are milliseconds in a parameter ending in `Ms`, sent as durations, which the server
+  stores as seconds: `positionMs = 1_500` arrives as `position: 1.5`, so it can be summed and
+  averaged. They need a server and events worker at v0.0.65 or later, like any duration.
+- Values are sent as given: the schemas name and type the properties, but neither the SDK nor the
+  server enforces their ranges and patterns, so an event that breaks one is stored as sent.
 - The events the SDK tracks itself have no method: `app_open`, `app_close`, `app_install`,
   `app_update` and `screen_view`. For a screen that is not an activity, call `Pug.screen`. With the
   automatic events turned off, `Pug.track(Events.APP_OPEN)` and the like still work.
@@ -150,7 +167,7 @@ Pug.track.addToCart(
 The kinds are constants in `Events` (`Events.ADD_TO_CART` is `"add_to_cart"`). Tracking a
 well-known kind with `Pug.track(kind, properties)` works too, and a whole number given for a decimal
 property is sent as a decimal (`"price" to 10` arrives as `10.0`), so both paths fill the same
-column.
+column. For a duration property, pass a `Duration` there: a number is sent as it is, with a warning.
 
 ## Automatic events
 
@@ -190,8 +207,9 @@ Pug.identify("user-42", mapOf("email" to "ada@example.com", "plan" to "pro"))
 ```
 
 `identify` attaches your own user id, and optional traits, to the profile. The first call links the
-events tracked anonymously so far to that user. Traits may nest maps and lists. A blank id or one
-starting with `cookieless-` (reserved by the server) is rejected with an error in the log.
+events tracked anonymously so far to that user. Traits may nest maps and lists, and a `Duration` is
+sent as a number of seconds. A blank id, or one starting with `cookieless-` or `crawler-` (reserved
+by the server), is rejected with an error in the log.
 `identify` is never retried; a failure is logged.
 
 ```kotlin
@@ -265,7 +283,9 @@ the rest once per launch.
 - Events are queued and sent in batches, one request at a time. A request that fails
   for a reason that may pass (no network, a timeout, a server error, a captive portal) is retried
   with exponential backoff from `batchMaxWaitMs` (at least a second) up to five minutes. A request the
-  server rejects for good is dropped and logged as an error.
+  server rejects for good is dropped and logged as an error. A batch the server accepts can still
+  lose single events, such as one that breaks a validation rule: a warning gives the server's reasons
+  and names the first three invalid events with the rules they broke.
 - Undelivered events, identity and consent are kept in files under the app's `noBackupFilesDir`,
   so they survive restarts but are not restored onto another device by Auto Backup. Writes are
   grouped and land within a second, and at once when the app leaves the foreground, on

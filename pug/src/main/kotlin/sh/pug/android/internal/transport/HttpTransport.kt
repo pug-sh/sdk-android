@@ -185,7 +185,10 @@ internal class HttpTransport(
         const val BATCH_CREATE_PATH = "/sdk.events.v1.EventsService/BatchCreate"
         const val IDENTIFY_PATH = "/sdk.profiles.v1.ProfilesSDKService/Identify"
         const val USER_AGENT = "pug-android/$SDK_VERSION"
-        const val MAX_RESPONSE_BYTES = 64 * 1024
+
+        // A BatchCreate answer names each event the server dropped as invalid, with up to 11 violations:
+        // about a megabyte for a full batch of them.
+        const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
     }
 }
 

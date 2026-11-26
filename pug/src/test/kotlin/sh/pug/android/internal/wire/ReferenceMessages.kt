@@ -13,8 +13,10 @@ internal object ReferenceMessages {
     val batchCreateResponse: Descriptor = ProtoDescriptors.message("sdk.events.v1.BatchCreateResponse")
     val identifyRequest: Descriptor = ProtoDescriptors.message("sdk.profiles.v1.IdentifyRequest")
     private val event = ProtoDescriptors.message("sdk.events.v1.Event")
+    private val invalidEvent = ProtoDescriptors.message("sdk.events.v1.InvalidEvent")
     private val propertyValue = ProtoDescriptors.message("common.v1.PropertyValue")
     private val timestamp = ProtoDescriptors.message("google.protobuf.Timestamp")
+    private val duration = ProtoDescriptors.message("google.protobuf.Duration")
     private val struct = ProtoDescriptors.message("google.protobuf.Struct")
     private val value = ProtoDescriptors.message("google.protobuf.Value")
     private val listValue = ProtoDescriptors.message("google.protobuf.ListValue")
@@ -32,7 +34,12 @@ internal object ReferenceMessages {
             request.anonymousId?.let { setField(identifyRequest.field("anonymous_id"), it) }
         }.build()
 
-    fun batchResponse(accepted: Int, dropped: Int, droppedByReason: Map<String, Int>): DynamicMessage {
+    fun batchResponse(
+        accepted: Int,
+        dropped: Int,
+        droppedByReason: Map<String, Int>,
+        invalidEvents: List<InvalidEvent> = emptyList(),
+    ): DynamicMessage {
         val field = batchCreateResponse.field("dropped_by_reason")
         return DynamicMessage
             .newBuilder(batchCreateResponse)
@@ -42,8 +49,16 @@ internal object ReferenceMessages {
                 droppedByReason.toSortedMap().forEach { (reason, count) ->
                     addRepeatedField(field, mapEntry(field.messageType, reason, count))
                 }
+                val invalid = batchCreateResponse.field("invalid_events")
+                invalidEvents.forEach { addRepeatedField(invalid, invalidEvent(it)) }
             }.build()
     }
+
+    private fun invalidEvent(source: InvalidEvent): DynamicMessage = DynamicMessage
+        .newBuilder(invalidEvent)
+        .setField(invalidEvent.field("index"), source.index.toInt())
+        .apply { source.violations.forEach { addRepeatedField(invalidEvent.field("violations"), it) } }
+        .build()
 
     private fun event(source: Event): DynamicMessage = DynamicMessage
         .newBuilder(event)
@@ -78,6 +93,15 @@ internal object ReferenceMessages {
             is PropertyValue.TimestampValue -> builder.setField(
                 propertyValue.field("timestamp_value"),
                 timestamp(source.epochMillis),
+            )
+
+            is PropertyValue.DurationValue -> builder.setField(
+                propertyValue.field("duration_value"),
+                DynamicMessage
+                    .newBuilder(duration)
+                    .setField(duration.field("seconds"), source.seconds)
+                    .setField(duration.field("nanos"), source.nanos)
+                    .build(),
             )
         }
         return builder.build()

@@ -3,7 +3,7 @@ package sh.pug.android.internal.wire
 import sh.pug.android.internal.utf8Length
 
 // Field numbers mirror proto/sdk/events/v1/events.proto, proto/sdk/profiles/v1/profiles.proto,
-// proto/common/v1/property_value.proto and google/protobuf/{timestamp,struct}.proto. Map entries
+// proto/common/v1/property_value.proto and google/protobuf/{timestamp,duration,struct}.proto. Map entries
 // are written key-sorted, which is what protobuf-java's deterministic serialization produces.
 internal object Wire {
     fun encodeBatchCreateRequest(events: List<Event>): ByteArray {
@@ -33,6 +33,7 @@ internal object Wire {
         val reader = ProtoReader(bytes)
         var accepted = 0L
         val droppedByReason = LinkedHashMap<String, Long>()
+        val invalidEvents = ArrayList<InvalidEvent>()
         while (!reader.isAtEnd) {
             val tag = reader.readTag()
             when (tag) {
@@ -52,10 +53,25 @@ internal object Wire {
                     droppedByReason[reason] = count
                 }
 
+                fieldKey(4, WIRE_LEN) -> invalidEvents += invalidEvent(reader.readMessage())
+
                 else -> reader.skip(tag and 7)
             }
         }
-        return BatchCreateResponse(accepted, droppedByReason)
+        return BatchCreateResponse(accepted, droppedByReason, invalidEvents)
+    }
+
+    private fun invalidEvent(message: ProtoReader): InvalidEvent {
+        var index = 0L
+        val violations = ArrayList<String>()
+        while (!message.isAtEnd) {
+            when (val tag = message.readTag()) {
+                fieldKey(1, WIRE_VARINT) -> index = message.readVarint() and UINT32_MASK
+                fieldKey(2, WIRE_LEN) -> violations += message.readString()
+                else -> message.skip(tag and 7)
+            }
+        }
+        return InvalidEvent(index, violations)
     }
 
     // edition 2023 gives singular fields explicit presence, so an empty id would be sent as a set
@@ -85,7 +101,8 @@ internal object Wire {
     }
 
     // A selected oneof member is written even when it holds the default value: without it the
-    // PropertyValue is empty, which the server's oneof.required rule rejects for the whole batch.
+    // PropertyValue is empty, and the server's oneof.required rule drops the event (before v0.0.55,
+    // its whole batch).
     private fun propertyValue(value: PropertyValue): ProtoWriter {
         val message = ProtoWriter(initialCapacity = 16)
         when (value) {
@@ -94,18 +111,24 @@ internal object Wire {
             is PropertyValue.DoubleValue -> message.writeDouble(3, value.value)
             is PropertyValue.BoolValue -> message.writeBool(4, value.value)
             is PropertyValue.TimestampValue -> message.writeMessage(5, timestamp(value.epochMillis))
+            is PropertyValue.DurationValue -> message.writeMessage(6, secondsAndNanos(value.seconds, value.nanos))
         }
         return message
     }
 
-    private fun timestamp(epochMillis: Long): ProtoWriter {
+    private fun timestamp(epochMillis: Long): ProtoWriter =
+        secondsAndNanos(epochMillis.floorDiv(MILLIS_PER_SECOND), nanosOfSecond(epochMillis))
+
+    // google.protobuf.Timestamp and Duration share their two fields, written only when not zero.
+    private fun secondsAndNanos(seconds: Long, nanos: Int): ProtoWriter {
         val message = ProtoWriter(initialCapacity = 16)
-        val seconds = epochMillis.floorDiv(MILLIS_PER_SECOND)
-        val nanos = (epochMillis.mod(MILLIS_PER_SECOND) * NANOS_PER_MILLI).toInt()
         if (seconds != 0L) message.writeInt64(1, seconds)
         if (nanos != 0) message.writeInt32(2, nanos)
         return message
     }
+
+    // A Timestamp's nanos never go negative, so times before 1970 count up from an earlier second.
+    private fun nanosOfSecond(epochMillis: Long): Int = (epochMillis.mod(MILLIS_PER_SECOND) * NANOS_PER_MILLI).toInt()
 
     private fun struct(fields: Map<String, JsonValue>): ProtoWriter {
         val message = ProtoWriter()
@@ -169,14 +192,16 @@ internal object Wire {
         is PropertyValue.DoubleValue -> tagSize(3) + 8
         is PropertyValue.BoolValue -> tagSize(4) + 1
         is PropertyValue.TimestampValue -> lengthDelimitedSize(5, timestampSize(value.epochMillis))
+        is PropertyValue.DurationValue -> lengthDelimitedSize(6, secondsAndNanosSize(value.seconds, value.nanos))
     }
 
-    private fun timestampSize(epochMillis: Long): Int {
-        val seconds = epochMillis.floorDiv(MILLIS_PER_SECOND)
-        val nanos = epochMillis.mod(MILLIS_PER_SECOND) * NANOS_PER_MILLI
+    private fun timestampSize(epochMillis: Long): Int =
+        secondsAndNanosSize(epochMillis.floorDiv(MILLIS_PER_SECOND), nanosOfSecond(epochMillis))
+
+    private fun secondsAndNanosSize(seconds: Long, nanos: Int): Int {
         var size = 0
         if (seconds != 0L) size += tagSize(1) + varintSize(seconds)
-        if (nanos != 0L) size += tagSize(2) + varintSize(nanos)
+        if (nanos != 0) size += tagSize(2) + varintSize(nanos.toLong())
         return size
     }
 

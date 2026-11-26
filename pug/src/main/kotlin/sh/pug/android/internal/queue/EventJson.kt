@@ -5,6 +5,7 @@ import sh.pug.android.internal.event.MAX_STRING_BYTES
 import sh.pug.android.internal.event.OCCUR_TIME_MILLIS
 import sh.pug.android.internal.event.TIMESTAMP_MILLIS
 import sh.pug.android.internal.event.isValidKind
+import sh.pug.android.internal.event.normalizedDuration
 import sh.pug.android.internal.isUuid
 import sh.pug.android.internal.json.JsonWriter
 import sh.pug.android.internal.utf8Length
@@ -13,7 +14,8 @@ import sh.pug.android.internal.wire.PropertyValue
 
 /**
  * The persisted form of a queued event, in the family's domain shape: values are tagged
- * `{"stringValue": …}`, `{"intValue": …}` and so on, and times are epoch milliseconds.
+ * `{"stringValue": …}`, `{"intValue": …}` and so on, times are epoch milliseconds and durations
+ * `{"seconds": …, "nanos": …}`.
  */
 internal object EventJson {
     fun encode(event: Event): String {
@@ -36,8 +38,8 @@ internal object EventJson {
     }
 
     /**
-     * The event in [json], or null when it is incomplete or would fail the server's validation: one
-     * such event would get its whole batch rejected.
+     * The event in [json], or null when it is incomplete or would fail the server's validation, which
+     * drops it (before v0.0.55, with its whole batch).
      */
     fun decode(json: JSONObject): Event? {
         val eventId = json.opt("eventId") as? String ?: return null
@@ -68,11 +70,15 @@ internal object EventJson {
                 is PropertyValue.DoubleValue -> name("doubleValue").value(value.value)
                 is PropertyValue.BoolValue -> name("boolValue").value(value.value)
                 is PropertyValue.TimestampValue -> name("timestampValue").value(value.epochMillis)
+                is PropertyValue.DurationValue -> name("durationValue").durationObject(value)
             }
             endObject()
         }
         endObject()
     }
+
+    private fun JsonWriter.durationObject(value: PropertyValue.DurationValue): JsonWriter =
+        beginObject().name("seconds").value(value.seconds).name("nanos").value(value.nanos.toLong()).endObject()
 
     private fun properties(json: Any?, auto: Boolean): Map<String, PropertyValue>? {
         if (json !is JSONObject) return null
@@ -95,6 +101,7 @@ internal object EventJson {
             "doubleValue" -> finiteDouble(value)
             "boolValue" -> (value as? Boolean)?.let { PropertyValue.BoolValue(it) }
             "timestampValue" -> timestamp(value)
+            "durationValue" -> duration(value)
             else -> null
         }
     }
@@ -107,6 +114,20 @@ internal object EventJson {
     private fun timestamp(value: Any?): PropertyValue? {
         val millis = (value as? Number)?.toLong() ?: return null
         return if (millis in TIMESTAMP_MILLIS) PropertyValue.TimestampValue(millis) else null
+    }
+
+    private fun duration(value: Any?): PropertyValue? {
+        if (value !is JSONObject || value.length() != 2) return null
+        val seconds = integer(value.opt("seconds")) ?: return null
+        val nanos = integer(value.opt("nanos")) ?: return null
+        return normalizedDuration(seconds, nanos)
+    }
+
+    // org.json reads a JSON integer as an Int or a Long, and a fraction or a wider number as neither.
+    private fun integer(value: Any?): Long? = when (value) {
+        is Int -> value.toLong()
+        is Long -> value
+        else -> null
     }
 
     private fun finiteDouble(value: Any?): PropertyValue? {

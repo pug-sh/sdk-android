@@ -7,11 +7,10 @@
 # even under `make -jN`.
 .NOTPARALLEL:
 
-# BSR module + pinned commit that proto/ is vendored from (the same commit as sdk-flutter, sdk-node,
-# sdk-go and sdk-rust). To bump: `make proto-latest`, set PROTO_COMMIT, then
-# `make sync-protos protos` and review the diff.
+# BSR module + pinned commit that proto/ is vendored from. To bump: `make proto-latest`, set
+# PROTO_COMMIT, then `make sync-protos protos` and review the diff.
 PROTO_MODULE := buf.build/pugsh/pug
-PROTO_COMMIT := 8b5d0680b10c4693b4d9d15d3dbfc663
+PROTO_COMMIT := 432c927edc274179ad23f1498a6ad20d
 # An allowlist: buf adds the transitive imports (buf/validate). sdk/devices is left out on purpose,
 # since this SDK does no device registration.
 PROTO_PATHS := --path sdk/events/v1 --path sdk/profiles/v1 --path common/events/v1 --path common/v1/property_value.proto

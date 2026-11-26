@@ -13,10 +13,12 @@ import sh.pug.android.internal.transport.Transport
 import sh.pug.android.internal.transport.TransportException
 import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
+import sh.pug.android.internal.wire.InvalidEvent
 
 internal const val RETRY_FLOOR_MS: Long = 1_000L
 internal const val RETRY_CAP_MS: Long = 5 * 60 * 1_000L
 private const val RETRY_JITTER = 0.2
+private const val MAX_INVALID_REPORTED = 3
 
 /**
  * Delivers queued events: a batch goes out once [maxSize] are pending, [maxWaitMs] after the first of
@@ -165,15 +167,38 @@ internal class EventDispatcher(
                 return null
             }
         recovered()
-        if (response != null && response.accepted < events.size) warnPartiallyAccepted(response, events.size)
+        when {
+            response == null -> logger.warn(
+                "Sent ${eventCount(events.size)}, but the server's answer could not be read: " +
+                    "any events it dropped are not reported",
+            )
+
+            response.accepted < events.size -> warnPartiallyAccepted(response, events)
+        }
         if (logger.isDebugEnabled) logger.debug("Sent ${eventCount(events.size)}")
         return null
     }
 
-    private fun warnPartiallyAccepted(response: BatchCreateResponse, sent: Int) {
+    // The batch is not sent again, so this warning is the only trace of the events the server dropped.
+    private fun warnPartiallyAccepted(response: BatchCreateResponse, events: List<Event>) {
         val reasons = response.droppedByReason.toSortedMap().entries.joinToString { "${it.key}: ${it.value}" }
         val detail = if (reasons.isEmpty()) "" else " (dropped: $reasons)"
-        logger.warn("The server accepted ${response.accepted} of ${eventCount(sent)}$detail")
+        val invalid = invalidDetail(response.invalidEvents, events)
+        logger.warn("The server accepted ${response.accepted} of ${eventCount(events.size)}$detail$invalid")
+    }
+
+    private fun invalidDetail(invalid: List<InvalidEvent>, events: List<Event>): String {
+        if (invalid.isEmpty()) return ""
+        val described = invalid.take(MAX_INVALID_REPORTED).map { describe(it, events) }
+        val rest = invalid.size - described.size
+        val parts = if (rest > 0) described + "and $rest more" else described
+        return ". Invalid events: ${parts.joinToString(" | ")}"
+    }
+
+    private fun describe(invalid: InvalidEvent, events: List<Event>): String {
+        val kind = events.getOrNull(invalid.index.toInt())?.kind
+        val event = if (kind == null) "event ${invalid.index}" else "\"$kind\""
+        return "$event: ${invalid.violations.joinToString("; ")}"
     }
 
     private fun retryLater(failure: TransportException, events: Int) {

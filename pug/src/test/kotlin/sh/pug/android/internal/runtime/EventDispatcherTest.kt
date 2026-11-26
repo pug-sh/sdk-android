@@ -24,6 +24,7 @@ import sh.pug.android.internal.queue.EventQueue
 import sh.pug.android.internal.transport.RpcCode
 import sh.pug.android.internal.wire.BatchCreateResponse
 import sh.pug.android.internal.wire.Event
+import sh.pug.android.internal.wire.InvalidEvent
 
 class EventDispatcherTest {
     private val scheduler = TestCoroutineScheduler()
@@ -212,7 +213,7 @@ class EventDispatcherTest {
 
     @Test
     fun `a short acceptance is reported`() {
-        transport.answerNextBatch(BatchCreateResponse(accepted = 1, mapOf("salt_unavailable" to 2L)))
+        transport.answerNextBatch(BatchCreateResponse(accepted = 1, mapOf("salt_unavailable" to 2L), emptyList()))
         val dispatcher = dispatcher()
 
         events(0 until 3).forEach(dispatcher::enqueue)
@@ -223,7 +224,35 @@ class EventDispatcherTest {
     }
 
     @Test
-    fun `an acknowledgement that cannot be read still delivers the batch`() {
+    fun `the events the server found invalid are named, the first three in full`() {
+        val invalid =
+            listOf(
+                InvalidEvent(1, listOf("event.kind: value is required", "event.session_id: must be a UUID")),
+                InvalidEvent(2, listOf("custom_properties: exactly one field is required in oneof")),
+                InvalidEvent(4_294_967_295L, listOf("event_id: repeats an earlier event")),
+                InvalidEvent(3, listOf("event.kind: value is required")),
+                InvalidEvent(4, listOf("event.kind: value is required")),
+            )
+        transport.answerNextBatch(BatchCreateResponse(accepted = 0, mapOf("invalid_event" to 5L), invalid))
+        val dispatcher = dispatcher(maxSize = 5)
+
+        events(0 until 5).forEach(dispatcher::enqueue)
+        scheduler.runCurrent()
+
+        assertEquals(
+            listOf(
+                "The server accepted 0 of 5 events (dropped: invalid_event: 5). Invalid events: " +
+                    "\"event_1\": event.kind: value is required; event.session_id: must be a UUID | " +
+                    "\"event_2\": custom_properties: exactly one field is required in oneof | " +
+                    "event 4294967295: event_id: repeats an earlier event | and 2 more",
+            ),
+            logger.warnings,
+        )
+        assertNull(storage.getString(KEY))
+    }
+
+    @Test
+    fun `an acknowledgement that cannot be read still delivers the batch, with a warning`() {
         transport.answerNextBatch(null)
         val dispatcher = dispatcher()
 
@@ -231,7 +260,10 @@ class EventDispatcherTest {
         scheduler.runCurrent()
 
         assertNull(storage.getString(KEY))
-        assertEquals(emptyList(), logger.warnings)
+        assertEquals(
+            listOf("Sent 3 events, but the server's answer could not be read: any events it dropped are not reported"),
+            logger.warnings,
+        )
     }
 
     @Test
